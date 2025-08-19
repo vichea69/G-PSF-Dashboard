@@ -1,5 +1,11 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { AuthService } from '@/services/auth.service';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { UserAvatarProfile } from '@/components/user-avatar-profile';
+import { getUserFromLocalStorage } from '@/services/auth.service';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,51 +15,98 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { SignOutButton, useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
+import {
+  IconBell,
+  IconCreditCard,
+  IconLogout,
+  IconUserCircle
+} from '@tabler/icons-react';
+
 export function UserNav() {
-  const { user } = useUser();
   const router = useRouter();
-  if (user) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
-            <UserAvatarProfile user={user} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className='w-56'
-          align='end'
-          sideOffset={10}
-          forceMount
-        >
-          <DropdownMenuLabel className='font-normal'>
-            <div className='flex flex-col space-y-1'>
-              <p className='text-sm leading-none font-medium'>
-                {user.fullName}
-              </p>
-              <p className='text-muted-foreground text-xs leading-none'>
-                {user.emailAddresses[0].emailAddress}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>New Team</DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <SignOutButton redirectUrl='/auth/sign-in' />
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
+  const isMobile = useIsMobile();
+  const [user, setUser] = React.useState<any | null>(null);
+
+  React.useEffect(() => {
+    const u = getUserFromLocalStorage();
+    if (u) {
+      setUser({
+        imageUrl: u.image ?? '',
+        fullName: u.username ?? u.email?.split('@')[0] ?? '',
+        emailAddresses: [{ emailAddress: u.email }]
+      });
+    }
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'current_user') {
+        const next = getUserFromLocalStorage();
+        if (next) {
+          setUser({
+            imageUrl: next.image ?? '',
+            fullName: next.username ?? next.email?.split('@')[0] ?? '',
+            emailAddresses: [{ emailAddress: next.email }]
+          });
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  async function handleLogout() {
+    try {
+      await AuthService.logout();
+    } catch {}
+    router.replace('/auth/sign-in');
   }
+
+  if (!isMobile) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant='ghost' size='icon' className='h-9 w-9 p-0'>
+          <UserAvatarProfile className='h-8 w-8 rounded-lg' user={user} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className='min-w-56 rounded-lg'
+        side='bottom'
+        align='end'
+        sideOffset={6}
+      >
+        <DropdownMenuLabel className='p-0 font-normal'>
+          <div className='px-1 py-1.5'>
+            <UserAvatarProfile
+              className='h-8 w-8 rounded-lg'
+              showInfo
+              user={user}
+            />
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
+            <IconUserCircle className='mr-2 h-4 w-4' />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <IconCreditCard className='mr-2 h-4 w-4' />
+            Billing
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <IconBell className='mr-2 h-4 w-4' />
+            Notifications
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout}>
+          <IconLogout className='mr-2 h-4 w-4' />
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }

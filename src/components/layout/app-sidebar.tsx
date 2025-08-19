@@ -31,57 +31,78 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navItems } from '@/constants/data';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useUser } from '@clerk/nextjs';
 import {
   IconBell,
   IconChevronRight,
   IconChevronsDown,
   IconCreditCard,
   IconLogout,
-  IconPhotoUp,
   IconUserCircle
 } from '@tabler/icons-react';
-import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
-export const company = {
-  name: 'Acme Inc',
-  logo: IconPhotoUp,
-  plan: 'Enterprise'
-};
-
-const tenants = [
-  { id: '1', name: 'Acme Inc' },
-  { id: '2', name: 'Beta Corp' },
-  { id: '3', name: 'Gamma Ltd' }
-];
+import { AuthService, getUserFromLocalStorage } from '@/services/auth.service';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
-  const { user } = useUser();
   const router = useRouter();
-  const handleSwitchTenant = (_tenantId: string) => {
-    // Tenant switching functionality would be implemented here
-  };
+  const [user, setUser] = React.useState<any | null>(null);
 
-  const activeTenant = tenants[0];
+  async function handleLogout() {
+    try {
+      await AuthService.logout();
+    } catch (e) {
+      // ignore
+    } finally {
+      setUser(null);
+      router.replace('/auth/sign-in');
+    }
+  }
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
   }, [isOpen]);
 
+  React.useEffect(() => {
+    // hydrate user from localStorage on mount
+    const u = getUserFromLocalStorage();
+    if (u) {
+      // Normalize fields for avatar component
+      const normalized = {
+        imageUrl: u.image ?? '',
+        fullName: u.username ?? u.email?.split('@')[0] ?? '',
+        emailAddresses: [{ emailAddress: u.email }]
+      };
+      setUser(normalized);
+    }
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'current_user') {
+        const next = getUserFromLocalStorage();
+        if (next) {
+          const normalized = {
+            imageUrl: next.image ?? '',
+            fullName: next.username ?? next.email?.split('@')[0] ?? '',
+            emailAddresses: [{ emailAddress: next.email }]
+          };
+          setUser(normalized);
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader>
-        <OrgSwitcher
-          tenants={tenants}
-          defaultTenant={activeTenant}
-          onTenantSwitch={handleSwitchTenant}
-        />
+        <OrgSwitcher />
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
         <SidebarGroup>
@@ -152,13 +173,11 @@ export default function AppSidebar() {
                   size='lg'
                   className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
                 >
-                  {user && (
-                    <UserAvatarProfile
-                      className='h-8 w-8 rounded-lg'
-                      showInfo
-                      user={user}
-                    />
-                  )}
+                  <UserAvatarProfile
+                    className='h-8 w-8 rounded-lg'
+                    showInfo
+                    user={user}
+                  />
                   <IconChevronsDown className='ml-auto size-4' />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -170,13 +189,11 @@ export default function AppSidebar() {
               >
                 <DropdownMenuLabel className='p-0 font-normal'>
                   <div className='px-1 py-1.5'>
-                    {user && (
-                      <UserAvatarProfile
-                        className='h-8 w-8 rounded-lg'
-                        showInfo
-                        user={user}
-                      />
-                    )}
+                    <UserAvatarProfile
+                      className='h-8 w-8 rounded-lg'
+                      showInfo
+                      user={user}
+                    />
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -198,9 +215,9 @@ export default function AppSidebar() {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <IconLogout className='mr-2 h-4 w-4' />
-                  <SignOutButton redirectUrl='/auth/sign-in' />
+                  Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

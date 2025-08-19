@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { AuthService } from '@/services/auth.service';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -27,6 +29,7 @@ export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, startTransition] = useTransition();
+  const router = useRouter();
   const defaultValues = {
     email: 'demo@gmail.com'
   };
@@ -36,9 +39,15 @@ export default function UserAuthForm() {
   });
 
   const onSubmit = async (data: UserFormValue) => {
-    startTransition(() => {
-      console.log('continue with email clicked');
-      toast.success('Signed In Successfully!');
+    startTransition(async () => {
+      try {
+        // demo password flow or simple magic-link style
+        await AuthService.login({ email: data.email, password: 'password' });
+        toast.success('Signed In Successfully!');
+        router.replace(callbackUrl || '/dashboard/overview');
+      } catch (e) {
+        toast.error('Sign in failed');
+      }
     });
   };
 
