@@ -14,6 +14,7 @@ function saveUserToLocalStorage(user: UserType & { token: string }) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem('current_user', JSON.stringify(user));
+    window.dispatchEvent(new Event('auth:user'));
   } catch {}
 }
 
@@ -33,24 +34,29 @@ export function clearUserFromLocalStorage() {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('current_user');
+    window.dispatchEvent(new Event('auth:user'));
   } catch {}
 }
 
 export const AuthService = {
   // IMPORTANT: backend expects { user: { email, password } }
   login: (dto: LoginDto) =>
-    api.post<IUserResponse>('/login', { user: dto }).then((r) => {
-      const data = r.data;
-      // Persist for client-side UI (avatar, etc.). Token should ideally be httpOnly cookie.
-      saveUserToLocalStorage(data.user);
-      try {
-        // Set a cookie for middleware protection if backend doesn't set httpOnly
-        const expires = new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toUTCString();
-        document.cookie = `access_token=${data.user.token}; path=/; expires=${expires}`;
-      } catch {}
-      return data;
+    api.post('/login', { user: dto }).then((r) => {
+      // Support both { user } and { data: { user } }
+      const payload: any = r.data;
+      const user = payload?.user ?? payload?.data?.user;
+      if (user) {
+        saveUserToLocalStorage(user);
+        try {
+          const expires = new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ).toUTCString();
+          if (user.token) {
+            document.cookie = `access_token=${user.token}; path=/; expires=${expires}`;
+          }
+        } catch {}
+      }
+      return r.data as any;
     }),
   logout: () =>
     api.post('/logout', {}, { withCredentials: true }).finally(() => {

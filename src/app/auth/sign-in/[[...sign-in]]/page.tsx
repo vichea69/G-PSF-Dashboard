@@ -30,8 +30,8 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await AuthService.login({ email, password });
-      console.log('✅ Login success:', res);
+      await AuthService.login({ email, password });
+      // Login success
 
       // If backend sets httpOnly cookie, no need to store token manually
       // If not, you can store token:
@@ -39,7 +39,7 @@ export default function AdminLogin() {
 
       router.replace('/dashboard/overview');
     } catch (error: any) {
-      console.error('❌ Login error:', error?.response?.data);
+      // Login error
       setErr(
         error?.response?.data?.message ??
           'Login failed. Please check your credentials.'
@@ -50,14 +50,14 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4'>
+    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-zinc-950'>
       {/* Background decoration */}
       <div className='absolute inset-0 overflow-hidden'>
-        <div className='absolute -top-1/2 -right-1/2 h-full w-full rounded-full bg-gradient-to-br from-blue-400/20 to-purple-600/20 blur-3xl'></div>
-        <div className='absolute -bottom-1/2 -left-1/2 h-full w-full rounded-full bg-gradient-to-tr from-indigo-400/20 to-pink-600/20 blur-3xl'></div>
+        <div className='absolute -top-1/2 -right-1/2 h-full w-full rounded-full bg-gradient-to-br from-blue-400/20 to-purple-600/20 blur-3xl dark:from-blue-400/10 dark:to-purple-600/10'></div>
+        <div className='absolute -bottom-1/2 -left-1/2 h-full w-full rounded-full bg-gradient-to-tr from-indigo-400/20 to-pink-600/20 blur-3xl dark:from-indigo-400/10 dark:to-pink-600/10'></div>
       </div>
 
-      <Card className='relative mx-auto w-full max-w-md border-0 bg-white/95 shadow-2xl backdrop-blur-sm'>
+      <Card className='relative mx-auto w-full max-w-md border-0 bg-white/95 shadow-2xl backdrop-blur-sm dark:bg-zinc-900/90'>
         <CardHeader className='space-y-4 pb-6'>
           {/* Logo */}
           <div className='flex justify-center'>
@@ -73,10 +73,10 @@ export default function AdminLogin() {
 
           {/* Header */}
           <div className='space-y-2 text-center'>
-            <CardTitle className='bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-2xl font-bold text-transparent'>
+            <CardTitle className='bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-2xl font-bold text-transparent dark:from-gray-100 dark:to-gray-400'>
               Admin Dashboard
             </CardTitle>
-            <CardDescription className='text-base text-gray-600'>
+            <CardDescription className='text-base text-gray-600 dark:text-gray-300'>
               Sign in to access your admin panel
             </CardDescription>
           </div>
@@ -85,8 +85,11 @@ export default function AdminLogin() {
         <CardContent className='space-y-6'>
           {/* Error Alert */}
           {err && (
-            <Alert variant='destructive' className='border-red-200 bg-red-50'>
-              <AlertDescription className='text-red-800'>
+            <Alert
+              variant='destructive'
+              className='border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30'
+            >
+              <AlertDescription className='text-red-800 dark:text-red-300'>
                 {err}
               </AlertDescription>
             </Alert>
@@ -98,19 +101,19 @@ export default function AdminLogin() {
             <div className='space-y-2'>
               <Label
                 htmlFor='email'
-                className='text-sm font-medium text-gray-700'
+                className='text-sm font-medium text-gray-700 dark:text-gray-300'
               >
                 Email Address
               </Label>
               <div className='relative'>
-                <Mail className='absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400' />
+                <Mail className='absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400 dark:text-gray-500' />
                 <Input
                   id='email'
                   name='email'
                   type='email'
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className='h-12 border-gray-200 pl-10 transition-colors focus:border-blue-500 focus:ring-blue-500'
+                  className='h-12 border-gray-200 pl-10 transition-colors focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-500 dark:focus:ring-blue-500'
                   placeholder='admin@example.com'
                   required
                 />
@@ -121,19 +124,19 @@ export default function AdminLogin() {
             <div className='space-y-2'>
               <Label
                 htmlFor='password'
-                className='text-sm font-medium text-gray-700'
+                className='text-sm font-medium text-gray-700 dark:text-gray-300'
               >
                 Password
               </Label>
               <div className='relative'>
-                <Lock className='absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400' />
+                <Lock className='absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 transform text-gray-400 dark:text-gray-500' />
                 <Input
                   id='password'
                   name='password'
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className='h-12 border-gray-200 pr-12 pl-10 transition-colors focus:border-blue-500 focus:ring-blue-500'
+                  className='h-12 border-gray-200 pr-12 pl-10 transition-colors focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-500 dark:focus:ring-blue-500'
                   placeholder='Enter your password'
                   required
                 />
@@ -142,7 +145,7 @@ export default function AdminLogin() {
                   variant='ghost'
                   size='sm'
                   onClick={() => setShowPassword(!showPassword)}
-                  className='absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2 transform p-0 hover:bg-gray-100'
+                  className='absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2 transform p-0 hover:bg-gray-100 dark:hover:bg-gray-800'
                 >
                   {showPassword ? (
                     <EyeOff className='h-4 w-4 text-gray-500' />
@@ -160,7 +163,9 @@ export default function AdminLogin() {
                   type='checkbox'
                   className='h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500'
                 />
-                <span className='text-gray-600'>Remember me</span>
+                <span className='text-gray-600 dark:text-gray-300'>
+                  Remember me
+                </span>
               </label>
               <button
                 type='button'

@@ -33,7 +33,7 @@ export const navItems: NavItem[] = [
     title: 'Account',
     url: '#', // Placeholder as there is no direct link for the parent
     icon: 'billing',
-    isActive: true,
+    isActive: false,
 
     items: [
       {
@@ -56,6 +56,35 @@ export const navItems: NavItem[] = [
     icon: 'kanban',
     shortcut: ['k', 'k'],
     isActive: false,
+    items: [] // No child items
+  }
+];
+export const contentItems: NavItem[] = [
+  {
+    title: 'content',
+    url: '/dashboard',
+    icon: 'page',
+    shortcut: ['c', 'c'],
+    isActive: true,
+    items: [
+      {
+        title: 'category',
+        url: '/dashboard/category',
+        icon: 'page',
+        shortcut: ['c', 'c'],
+        isActive: true,
+        items: [] // No child items
+      }
+    ] // No child items
+  }
+];
+export const userItems: NavItem[] = [
+  {
+    title: 'user',
+    url: '/dashboard/users',
+    icon: 'user',
+    shortcut: ['u', 'u'],
+    isActive: true,
     items: [] // No child items
   }
 ];
