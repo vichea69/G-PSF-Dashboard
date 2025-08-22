@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AuthService } from '@/services/auth.service';
 import { Eye, EyeOff, Shield, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
+import { loginAction } from '@/server/action/userAuth/user';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -30,13 +30,15 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      await AuthService.login({ email, password });
-      // Login success
-
-      // If backend sets httpOnly cookie, no need to store token manually
-      // If not, you can store token:
-      // localStorage.setItem("token", res.user.token);
-
+      const res = await loginAction({ email, password });
+      // Mirror current user client-side for UI that reads from localStorage
+      try {
+        const user = res?.user;
+        if (user) {
+          localStorage.setItem('current_user', JSON.stringify(user));
+          window.dispatchEvent(new Event('auth:user'));
+        }
+      } catch {}
       router.replace('/dashboard/overview');
     } catch (error: any) {
       // Login error

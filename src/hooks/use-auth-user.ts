@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getUserFromLocalStorage } from '@/services/auth.service';
+import { getUserFromLocalStorage } from '@/lib/auth-client';
 
 export type SidebarUser = {
   imageUrl?: string;

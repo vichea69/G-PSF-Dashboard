@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { api } from '@/lib/api';
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   // Get token from cookies
-  const token = req.cookies.get('access_token')?.value;
+  let token = req.cookies.get('access_token')?.value;
+  const refreshToken = req.cookies.get('refresh_token')?.value;
+
+  // If no access token but refresh token exists, attempt silent refresh
+  if (!token && refreshToken) {
+    try {
+      const { data } = await api.post('/refresh', { refreshToken });
+      const nextAccess = data?.accessToken ?? data?.data?.accessToken;
+      if (nextAccess) {
+        token = nextAccess;
+        const res = NextResponse.next();
+        // set new access cookie for subsequent requests
+        res.cookies.set('access_token', nextAccess, {
+          path: '/',
+          httpOnly: false,
+          sameSite: 'lax'
+        });
+        return res;
+      }
+    } catch {}
+  }
 
   // If user is not logged in and tries to access dashboard → redirect
   if (!token && req.nextUrl.pathname.startsWith('/dashboard')) {

@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/auth.service';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import {
   DropdownMenu,
@@ -25,17 +24,20 @@ import {
   IconChevronsDown
 } from '@tabler/icons-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logoutAction } from '@/server/action/userAuth/user';
 import type { SidebarUser } from '@/hooks/use-auth-user';
 
 export function SidebarFooterUserMenu({ user }: { user: SidebarUser }) {
   const router = useRouter();
 
   async function handleLogout() {
+    // Clear client cache early for snappy UI
     try {
-      await AuthService.logout();
-    } finally {
-      router.replace('/auth/sign-in');
-    }
+      localStorage.removeItem('current_user');
+      window.dispatchEvent(new Event('auth:user'));
+    } catch {}
+    // Call server action which also redirects
+    await logoutAction();
   }
 
   return (

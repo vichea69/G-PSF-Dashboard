@@ -1,10 +1,10 @@
 {
-  "name": "next-shadcn-dashboard-starter",
+  "name": "G-PSF Dashboard",
   "version": "1.0.0",
   "private": true,
   "author": {
-    "name": "Kiran",
-    "url": "https://github.com/Kiranism"
+    "name": "vichea",
+    "url": "https://github.com/vichea69"
   },
   "scripts": {
     "dev": "next dev --turbopack",

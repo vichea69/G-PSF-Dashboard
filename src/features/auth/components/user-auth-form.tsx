@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
-import { AuthService } from '@/services/auth.service';
+import { loginAction } from '@/server/action/userAuth/user';
+import { saveUserToLocalStorage } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -41,8 +42,12 @@ export default function UserAuthForm() {
   const onSubmit = async (data: UserFormValue) => {
     startTransition(async () => {
       try {
-        // demo password flow or simple magic-link style
-        await AuthService.login({ email: data.email, password: 'password' });
+        // demo flow: use fixed password for sample
+        const res = await loginAction({
+          email: data.email,
+          password: 'password'
+        });
+        if (res?.user) saveUserToLocalStorage(res.user as any);
         toast.success('Signed In Successfully!');
         router.replace(callbackUrl || '/dashboard/overview');
       } catch (e) {

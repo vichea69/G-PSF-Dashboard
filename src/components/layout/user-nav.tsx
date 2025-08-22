@@ -1,11 +1,11 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { AuthService } from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { getUserFromLocalStorage } from '@/services/auth.service';
+import { getUserFromLocalStorage } from '@/lib/auth-client';
+import { logoutAction } from '@/server/action/userAuth/user';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,9 +57,10 @@ export function UserNav() {
 
   async function handleLogout() {
     try {
-      await AuthService.logout();
+      localStorage.removeItem('current_user');
+      window.dispatchEvent(new Event('auth:user'));
     } catch {}
-    router.replace('/auth/sign-in');
+    await logoutAction();
   }
 
   if (!isMobile) return null;

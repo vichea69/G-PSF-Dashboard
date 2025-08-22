@@ -15,7 +15,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 // import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { OrgSwitcher } from '../org-switcher';
-import { getUserFromLocalStorage } from '@/services/auth.service';
+import { getUserFromLocalStorage } from '@/lib/auth-client';
 import { SidebarFooterUserMenu } from '@/components/layout/sidebar-footer-user-menu';
 import { SidebarNavItems } from './nav-items-sidebar';
 
