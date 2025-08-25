@@ -9,6 +9,11 @@ export type CategoryRow = {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: {
+    id: number;
+    displayName: string;
+    email: string;
+  };
 };
 
 export const categoryColumns: ColumnDef<CategoryRow>[] = [
@@ -53,6 +58,12 @@ export const categoryColumns: ColumnDef<CategoryRow>[] = [
     cell: ({ cell }) => (
       <div className='max-w-[360px] truncate'>{cell.getValue<string>()}</div>
     )
+  },
+  {
+    id: 'createdBy',
+    accessorFn: (row) => row.createdBy?.displayName ?? '',
+    header: 'Created By',
+    cell: ({ cell }) => <div>{cell.getValue<string>()}</div>
   },
   {
     accessorKey: 'createdAt',

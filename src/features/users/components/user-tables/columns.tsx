@@ -2,6 +2,7 @@
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDate } from '@/lib/format';
 
 export type UserRow = {
   id: number;
@@ -10,6 +11,7 @@ export type UserRow = {
   bio?: string;
   image?: string;
   role: string;
+  lastLogin?: string;
 };
 
 export const userColumns: ColumnDef<UserRow>[] = [
@@ -55,6 +57,13 @@ export const userColumns: ColumnDef<UserRow>[] = [
     header: 'Role',
     cell: ({ cell }) => (
       <div className='max-w-[320px] truncate'>{cell.getValue<string>()}</div>
+    )
+  },
+  {
+    accessorKey: 'lastLogin',
+    header: 'Last Login',
+    cell: ({ cell }) => (
+      <span>{formatDate(cell.getValue<string>(), { month: 'short' })}</span>
     )
   }
 ];

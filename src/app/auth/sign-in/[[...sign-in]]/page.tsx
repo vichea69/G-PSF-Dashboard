@@ -39,7 +39,7 @@ export default function AdminLogin() {
           window.dispatchEvent(new Event('auth:user'));
         }
       } catch {}
-      router.replace('/dashboard/overview');
+      router.replace('/admin/overview');
     } catch (error: any) {
       // Login error
       setErr(

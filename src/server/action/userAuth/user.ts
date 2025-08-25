@@ -63,7 +63,7 @@ export async function loginAction(input: LoginInput) {
   }
 
   // Revalidate key pages where auth state matters
-  revalidatePath('/dashboard/overview');
+  revalidatePath('/admin/overview');
   revalidatePath('/');
 
   const result: LoginResult = { user, tokens, meta };
@@ -79,6 +79,6 @@ export async function logoutAction() {
   await deleteCookie('access_token');
   await deleteCookie('refresh_token');
   revalidatePath('/');
-  revalidatePath('/dashboard/overview');
+  revalidatePath('/admin/overview');
   redirect('/auth/sign-in');
 }

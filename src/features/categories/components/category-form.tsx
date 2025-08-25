@@ -51,7 +51,7 @@ export default function CategoryForm({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category created successfully');
-      router.replace('/dashboard/category');
+      router.replace('/admin/category');
     }
   });
   const updateMutation = useMutation({
@@ -61,7 +61,7 @@ export default function CategoryForm({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category updated successfully');
-      router.replace('/dashboard/category');
+      router.replace('/admin/category');
     }
   });
 
@@ -128,7 +128,7 @@ export default function CategoryForm({
               <Button
                 type='button'
                 variant='outline'
-                onClick={() => router.push('/dashboard/category')}
+                onClick={() => router.push('/admin/category')}
               >
                 Cancel
               </Button>

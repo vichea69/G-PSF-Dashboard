@@ -26,14 +26,14 @@ export async function middleware(req: NextRequest) {
   }
 
   // If user is not logged in and tries to access dashboard → redirect
-  if (!token && req.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!token && req.nextUrl.pathname.startsWith('/admin')) {
     const loginUrl = new URL('/auth/sign-in', req.url);
     return NextResponse.redirect(loginUrl);
   }
 
   // If logged in and tries to go to login page → redirect to dashboard
   if (token && req.nextUrl.pathname.startsWith('/auth/sign-in')) {
-    const dashboardUrl = new URL('/dashboard/overview', req.url);
+    const dashboardUrl = new URL('/admin/overview', req.url);
     return NextResponse.redirect(dashboardUrl);
   }
 
@@ -42,7 +42,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*', // protect dashboard
+    '/admin/:path*', // protect admin
     '/auth/:path*' // handle auth redirection
   ]
 };

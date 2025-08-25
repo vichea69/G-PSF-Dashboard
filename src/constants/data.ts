@@ -15,7 +15,7 @@ export type Product = {
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
-    url: '/dashboard/overview',
+    url: '/admin/overview',
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
@@ -23,7 +23,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Product',
-    url: '/dashboard/product',
+    url: '/admin/product',
     icon: 'product',
     shortcut: ['p', 'p'],
     isActive: false,
@@ -38,7 +38,7 @@ export const navItems: NavItem[] = [
     items: [
       {
         title: 'Profile',
-        url: '/dashboard/profile',
+        url: '/admin/profile',
         icon: 'userPen',
         shortcut: ['m', 'm']
       },
@@ -52,7 +52,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Kanban',
-    url: '/dashboard/kanban',
+    url: '/admin/kanban',
     icon: 'kanban',
     shortcut: ['k', 'k'],
     isActive: false,
@@ -61,19 +61,26 @@ export const navItems: NavItem[] = [
 ];
 export const contentItems: NavItem[] = [
   {
-    title: 'content',
-    url: '/dashboard',
+    title: 'Content',
+    url: '/admin',
     icon: 'page',
     shortcut: ['c', 'c'],
     isActive: true,
     items: [
       {
         title: 'category',
-        url: '/dashboard/category',
-        icon: 'page',
+        url: '/admin/category',
+        icon: 'media',
         shortcut: ['c', 'c'],
         isActive: true,
         items: [] // No child items
+      },
+      {
+        title: 'Page',
+        url: '/admin/page',
+        icon: 'page',
+        shortcut: ['c', 'c'],
+        isActive: true
       }
     ] // No child items
   }
@@ -81,7 +88,7 @@ export const contentItems: NavItem[] = [
 export const userItems: NavItem[] = [
   {
     title: 'user',
-    url: '/dashboard/users',
+    url: '/admin/users',
     icon: 'user',
     shortcut: ['u', 'u'],
     isActive: true,

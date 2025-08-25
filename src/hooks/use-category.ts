@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 
 async function fetchCategories() {
   const res = await api.get('/categories');
+  console.log(res.data);
   return res.data;
 }
 
