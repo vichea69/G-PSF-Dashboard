@@ -81,6 +81,13 @@ export const contentItems: NavItem[] = [
         icon: 'page',
         shortcut: ['c', 'c'],
         isActive: true
+      },
+      {
+        title: 'Post',
+        url: '/admin/post',
+        icon: 'post',
+        shortcut: ['p', 'p'],
+        isActive: true
       }
     ] // No child items
   }
