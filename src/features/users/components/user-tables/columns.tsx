@@ -1,6 +1,7 @@
 'use client';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Column, ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDate } from '@/lib/format';
 
@@ -55,9 +56,28 @@ export const userColumns: ColumnDef<UserRow>[] = [
   {
     accessorKey: 'role',
     header: 'Role',
-    cell: ({ cell }) => (
-      <div className='max-w-[320px] truncate'>{cell.getValue<string>()}</div>
-    )
+    cell: ({ cell }) => {
+      const raw = (cell.getValue<string>() ?? '').toString();
+      const role = raw.toLowerCase();
+
+      const variant =
+        role === 'admin'
+          ? ('destructive' as const)
+          : role === 'editor'
+            ? ('info' as const)
+            : ('secondary' as const);
+
+      return (
+        <Badge
+          variant={variant}
+          appearance='light'
+          size='sm'
+          className='capitalize'
+        >
+          {raw}
+        </Badge>
+      );
+    }
   },
   {
     accessorKey: 'lastLogin',
