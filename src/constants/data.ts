@@ -61,35 +61,28 @@ export const navItems: NavItem[] = [
 ];
 export const contentItems: NavItem[] = [
   {
-    title: 'Content',
-    url: '/admin',
+    title: 'Category',
+    url: '/admin/category',
+    icon: 'media',
+    shortcut: ['c', 'c'],
+    isActive: true,
+    items: []
+  },
+  {
+    title: 'Page',
+    url: '/admin/page',
     icon: 'page',
     shortcut: ['c', 'c'],
     isActive: true,
-    items: [
-      {
-        title: 'category',
-        url: '/admin/category',
-        icon: 'media',
-        shortcut: ['c', 'c'],
-        isActive: true,
-        items: [] // No child items
-      },
-      {
-        title: 'Page',
-        url: '/admin/page',
-        icon: 'page',
-        shortcut: ['c', 'c'],
-        isActive: true
-      },
-      {
-        title: 'Post',
-        url: '/admin/post',
-        icon: 'post',
-        shortcut: ['p', 'p'],
-        isActive: true
-      }
-    ] // No child items
+    items: []
+  },
+  {
+    title: 'Post',
+    url: '/admin/post',
+    icon: 'post',
+    shortcut: ['p', 'p'],
+    isActive: true,
+    items: []
   }
 ];
 export const userItems: NavItem[] = [

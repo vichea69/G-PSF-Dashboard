@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/sidebar';
 import {
   IconBell,
-  IconCreditCard,
   IconLogout,
   IconUserCircle,
   IconChevronsDown
@@ -94,15 +93,9 @@ export function SidebarFooterUserMenu({ user }: { user: SidebarUser }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                onClick={() => router.push('/dashboard/profile')}
-              >
+              <DropdownMenuItem onClick={() => router.push('/admin/profile')}>
                 <IconUserCircle className='mr-2 h-4 w-4' />
                 Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard className='mr-2 h-4 w-4' />
-                Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconBell className='mr-2 h-4 w-4' />
