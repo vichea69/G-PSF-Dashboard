@@ -17,10 +17,10 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar';
 import {
-  IconBell,
   IconLogout,
   IconUserCircle,
-  IconChevronsDown
+  IconChevronsDown,
+  IconSettings
 } from '@tabler/icons-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { logoutAction } from '@/server/action/userAuth/user';
@@ -98,8 +98,8 @@ export function SidebarFooterUserMenu({ user }: { user: SidebarUser }) {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconBell className='mr-2 h-4 w-4' />
-                Notifications
+                <IconSettings className='mr-2 h-4 w-4' />
+                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

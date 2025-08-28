@@ -6,6 +6,13 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { LoginInput, LoginResult } from './types';
 
+// Exported helper to forward auth in server actions
+export async function getAuthHeaders() {
+  const c = await cookies();
+  const token = c.get('access_token')?.value;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // Helper to set cookies in a consistent manner
 async function setCookie(
   name: string,

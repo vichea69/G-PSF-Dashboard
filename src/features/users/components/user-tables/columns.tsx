@@ -3,7 +3,8 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatDate } from '@/lib/format';
+import { RelativeTime } from '@/components/ui/relative-time';
+import { UsersCellAction } from './cell-action';
 
 export type UserRow = {
   id: number;
@@ -20,14 +21,14 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: 'image',
     header: 'AVATAR',
     cell: ({ row }) => {
-      const src = (row.getValue('image') as string) || '';
+      const src =
+        (row.getValue('image') as string) || 'https://github.com/shadcn.png';
       const username = (row.getValue('username') as string) || '';
-      const email = (row.getValue('email') as string) || '';
-      const base = username || email;
+      const base = username;
       const initials = base.slice(0, 2).toUpperCase() || 'US';
       return (
         <Avatar className='h-10 w-10 rounded-lg'>
-          {src && <AvatarImage src={src} alt={username || email} />}
+          <AvatarImage src={src} alt={username} />
           <AvatarFallback className='rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-700 dark:text-indigo-200'>
             {initials}
           </AvatarFallback>
@@ -40,11 +41,8 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: 'username',
     header: ({ column }: { column: Column<UserRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Username' />
-    )
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email'
+    ),
+    meta: { variant: 'text', label: 'Username', placeholder: 'Search username' }
   },
   {
     accessorKey: 'bio',
@@ -82,8 +80,12 @@ export const userColumns: ColumnDef<UserRow>[] = [
   {
     accessorKey: 'lastLogin',
     header: 'Last Login',
-    cell: ({ cell }) => (
-      <span>{formatDate(cell.getValue<string>(), { month: 'short' })}</span>
-    )
+    cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} short />
+  },
+  {
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => <UsersCellAction data={row.original} />,
+    enableHiding: false
   }
 ];

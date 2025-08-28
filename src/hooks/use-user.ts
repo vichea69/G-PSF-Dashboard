@@ -8,7 +8,6 @@ export const useUser = () => {
     queryKey: ['users'],
     queryFn: async () => {
       const response = await api.get('/users');
-      console.log(response.data);
       return response.data;
     }
   });
