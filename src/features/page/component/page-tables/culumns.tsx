@@ -2,6 +2,7 @@
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { CellAction } from './cell-action';
 
 export type PageRow = {
   id: number;
@@ -98,10 +99,45 @@ export const pageColumns: ColumnDef<PageRow>[] = [
   },
   {
     accessorKey: 'publishedAt',
-    header: 'Published At'
+    header: 'Published At',
+    cell: ({ cell }) => {
+      const value = (cell.getValue<string>() ?? '').toString();
+      return value ? (
+        <span>{value}</span>
+      ) : (
+        <span className='text-muted-foreground italic'>Not yet publish</span>
+      );
+    }
   },
   {
-    accessorKey: 'authorId.displayName',
-    header: 'Created By'
+    id: 'author',
+    accessorFn: (row) => row.authorId?.displayName ?? '',
+    header: 'Created By',
+    cell: ({ cell }) => {
+      const raw = (cell.getValue<string>() ?? '').toString();
+      const role = raw.toLowerCase();
+
+      const variant =
+        role === 'admin'
+          ? ('destructive' as const)
+          : role === 'editor'
+            ? ('info' as const)
+            : ('primary' as const);
+
+      return (
+        <Badge
+          variant={variant}
+          appearance='light'
+          size='sm'
+          className='capitalize'
+        >
+          {raw}
+        </Badge>
+      );
+    }
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => <CellAction data={row.original as any} />
   }
 ];

@@ -89,13 +89,18 @@ export function UserUpsertDialog({
 
   const createMutation = useMutation({
     mutationFn: async (payload: FormValues) => {
-      const body = {
+      const base = {
         username: payload.username,
         email: payload.email,
         role: payload.role,
         password: payload.password!
       } as const;
-      console.log('Create user request body', { user: body });
+      // Extend only if backend supports extra fields in create
+      const body = {
+        ...base,
+        ...(payload.bio ? { bio: payload.bio } : {}),
+        ...(payload.image ? { image: payload.image } : {})
+      } as any;
       return await createAdminUser(body);
     },
     onSuccess: () => {
@@ -111,13 +116,18 @@ export function UserUpsertDialog({
 
   const updateMutation = useMutation({
     mutationFn: async (payload: FormValues) => {
-      const body = {
+      const base = {
         id: initialData?.id!,
         username: payload.username,
         email: payload.email,
         role: payload.role
       } as const;
-      console.log('Update user request body', { user: body });
+      // Extend only if backend supports extra fields in update
+      const body = {
+        ...base,
+        ...(payload.bio ? { bio: payload.bio } : {}),
+        ...(payload.image ? { image: payload.image } : {})
+      } as any;
       return await updateAdminUser(body);
     },
     onSuccess: () => {
@@ -132,8 +142,6 @@ export function UserUpsertDialog({
   });
 
   const onSubmit = (values: FormValues) => {
-    // Debug: log all form input values
-    console.log('UserUpsertDialog submit', { mode, values });
     if (mode === 'create') return createMutation.mutate(values);
     return updateMutation.mutate(values);
   };
@@ -198,6 +206,40 @@ export function UserUpsertDialog({
                     <Input
                       type='email'
                       placeholder='john@example.com'
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='bio'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio (optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder='Short bio...'
+                      className='resize-none'
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='image'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='url'
+                      placeholder='https://example.com/avatar.png'
                       {...field}
                     />
                   </FormControl>

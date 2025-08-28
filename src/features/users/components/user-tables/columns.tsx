@@ -29,9 +29,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
       return (
         <Avatar className='h-10 w-10 rounded-lg'>
           <AvatarImage src={src} alt={username} />
-          <AvatarFallback className='rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-700 dark:text-indigo-200'>
-            {initials}
-          </AvatarFallback>
+          <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
       );
     }
@@ -43,6 +41,13 @@ export const userColumns: ColumnDef<UserRow>[] = [
       <DataTableColumnHeader column={column} title='Username' />
     ),
     meta: { variant: 'text', label: 'Username', placeholder: 'Search username' }
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+    cell: ({ cell }) => (
+      <div className='max-w-[320px] truncate'>{cell.getValue<string>()}</div>
+    )
   },
   {
     accessorKey: 'bio',
