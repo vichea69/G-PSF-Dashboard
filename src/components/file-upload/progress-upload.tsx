@@ -47,6 +47,9 @@ interface ProgressUploadProps {
   className?: string;
   onFilesChange?: (files: FileWithPreview[]) => void;
   simulateUpload?: boolean;
+  // Optional: override or disable default demo images
+  initialFiles?: FileMetadata[];
+  useDefaults?: boolean; // true => show demo defaults
 }
 
 export default function ProgressUpload({
@@ -56,7 +59,9 @@ export default function ProgressUpload({
   multiple = true,
   className,
   onFilesChange,
-  simulateUpload = true
+  simulateUpload = true,
+  initialFiles,
+  useDefaults = true
 }: ProgressUploadProps) {
   // Create default images using FileMetadata type
   const defaultImages: FileMetadata[] = [
@@ -76,8 +81,10 @@ export default function ProgressUpload({
     }
   ];
 
-  // Convert default images to FileUploadItem format
-  const defaultUploadFiles: FileUploadItem[] = defaultImages.map((image) => ({
+  const initial = (useDefaults ? defaultImages : initialFiles) ?? [];
+
+  // Convert initial images to FileUploadItem format
+  const defaultUploadFiles: FileUploadItem[] = initial.map((image) => ({
     id: image.id,
     file: {
       name: image.name,
@@ -109,7 +116,7 @@ export default function ProgressUpload({
     maxSize,
     accept,
     multiple,
-    initialFiles: defaultImages,
+    initialFiles: initial,
     onFilesChange: (newFiles) => {
       // Convert to upload items when files change, preserving existing status
       const newUploadFiles = newFiles.map((file) => {
@@ -125,15 +132,15 @@ export default function ProgressUpload({
             ...file // Update any changed properties from the file
           };
         } else {
-          // New file - set to uploading
+          // New file
           return {
             ...file,
-            progress: 0,
-            status: 'uploading' as const
+            progress: simulateUpload ? 0 : 100,
+            status: simulateUpload ? 'uploading' : 'completed'
           };
         }
       });
-      setUploadFiles(newUploadFiles);
+      setUploadFiles(newUploadFiles as unknown as FileUploadItem[]);
       onFilesChange?.(newFiles);
     }
   });

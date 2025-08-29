@@ -38,7 +38,6 @@ export async function updateAdminUser(adminUser: AdminUserUpdate) {
       (typeof detail === 'string' ? detail : undefined) ||
       e?.message ||
       'Update failed';
-    console.error('updateAdminUser error', e?.response?.status, detail);
     throw new Error(msg);
   }
 }
@@ -58,7 +57,6 @@ export async function deleteAdminUser(id: string) {
       (typeof detail === 'string' ? detail : undefined) ||
       e?.message ||
       'Delete failed';
-    console.error('deleteAdminUser error', e?.response?.status, detail);
     throw new Error(msg);
   }
 }

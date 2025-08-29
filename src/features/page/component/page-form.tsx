@@ -67,32 +67,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
 
   return (
     <div className='space-y-6'>
-      {/* Header */}
-      <Card className='border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50'>
-        <CardHeader>
-          <div className='flex items-center gap-4'>
-            <Button
-              variant='ghost'
-              size='sm'
-              onClick={onCancel}
-              className='hover:bg-white/50'
-            >
-              <ArrowLeft className='h-4 w-4' />
-            </Button>
-            <div>
-              <CardTitle className='text-xl text-blue-900'>
-                {editingPage ? 'Edit Page' : 'Create New Page'}
-              </CardTitle>
-              <CardDescription className='text-blue-700'>
-                {editingPage
-                  ? 'Update your page content and settings'
-                  : 'Add a new page to your website'}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
       {/* Form Content */}
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
         {/* Main Content */}
@@ -105,9 +79,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                   Required
                 </Badge>
               </CardTitle>
-              <CardDescription>
-                Basic information about your page
-              </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div>
@@ -122,9 +93,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                   placeholder='Enter a clear, descriptive title'
                   className='mt-1'
                 />
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  This will be displayed as the main heading on your page
-                </p>
               </div>
 
               <div>
@@ -144,9 +112,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                     className='rounded-l-none'
                   />
                 </div>
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  The URL-friendly version of your page title
-                </p>
               </div>
 
               {/* Removed excerpt - not required by API */}
@@ -269,11 +234,8 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
           <Card>
             <CardContent className='pt-6'>
               <div className='space-y-3'>
-                <Button
-                  onClick={handleSubmit}
-                  className='w-full bg-blue-600 hover:bg-blue-700'
-                >
-                  <Save className='mr-2 h-4 w-4' />
+                <Button onClick={handleSubmit} className='w-full'>
+                  <Save />
                   {editingPage ? 'Update Page' : 'Create Page'}
                 </Button>
 
@@ -284,7 +246,8 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                   </Button>
                 )}
 
-                <Button variant='ghost' onClick={onCancel} className='w-full'>
+                <Button variant='outline' onClick={onCancel} className='w-full'>
+                  <ArrowLeft />
                   Cancel
                 </Button>
               </div>

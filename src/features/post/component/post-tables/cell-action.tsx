@@ -11,20 +11,50 @@ import {
 import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import type { PostRow } from './culumns';
+import { useQueryClient } from '@tanstack/react-query';
+import type { PostRow } from './columns';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
 
 interface CellActionProps {
   data: PostRow;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const qc = useQueryClient();
 
   const onConfirm = async () => {
-    // Implement delete post action here
-    setOpen(false);
+    try {
+      setLoading(true);
+      // Optimistically remove from cache for instant UI feedback
+      qc.setQueryData(['posts'], (prev: any) => {
+        if (!prev) return prev;
+        const remove = (arr: any[]) =>
+          arr.filter((p) => String(p?.id) !== String(data.id));
+        if (Array.isArray(prev)) return remove(prev);
+        if (Array.isArray(prev?.data))
+          return { ...prev, data: remove(prev.data) };
+        if (Array.isArray(prev?.items))
+          return { ...prev, items: remove(prev.items) };
+        return prev;
+      });
+
+      await api.delete(`/posts/${encodeURIComponent(String(data.id))}`);
+      toast.success('Post deleted');
+      setOpen(false);
+      // Keep data fresh in background
+      qc.invalidateQueries({ queryKey: ['posts'], exact: false });
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || 'Delete failed';
+      toast.error(msg);
+      // Refetch to rollback if needed
+      qc.invalidateQueries({ queryKey: ['posts'], exact: false });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

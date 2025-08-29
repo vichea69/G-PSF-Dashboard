@@ -19,7 +19,7 @@ import {
   SidebarMenuSubItem
 } from '@/components/ui/sidebar';
 import { IconChevronRight } from '@tabler/icons-react';
-import { contentItems, userItems } from '@/constants/data';
+import { contentItems, siteItems, userItems } from '@/constants/data';
 
 type IconKey = keyof typeof Icons;
 type NavItem = {
@@ -94,6 +94,24 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
       <SidebarGroupLabel>Content Management</SidebarGroupLabel>
       <SidebarMenu>
         {contentItems.map((item) => {
+          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
+          return (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={pathname === item.url}
+              >
+                <Link href={item.url}>
+                  <IconComp />
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+        <SidebarGroupLabel>Site Menu</SidebarGroupLabel>
+        {siteItems.map((item) => {
           const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
           return (
             <SidebarMenuItem key={item.title}>

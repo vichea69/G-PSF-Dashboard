@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { postColumns, type PostRow } from './culumns';
+import { postColumns, type PostRow } from './columns';
 
 export function PostTableList({ data }: { data: PostRow[] }) {
   const columns = useMemo(() => postColumns, []);

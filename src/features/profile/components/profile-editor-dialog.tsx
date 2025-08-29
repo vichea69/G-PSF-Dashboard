@@ -1,8 +1,6 @@
 'use client';
-
 import { useId } from 'react';
 import { CheckIcon, ImagePlusIcon, XIcon } from 'lucide-react';
-
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
-// Pretend we have initial image files
 const initialBgImage = [
   {
     name: 'profile-bg.jpg',
@@ -29,7 +26,6 @@ const initialBgImage = [
     id: 'profile-bg-123456789'
   }
 ];
-
 const initialAvatarImage = [
   {
     name: 'avatar-72-01.jpg',
@@ -40,15 +36,14 @@ const initialAvatarImage = [
   }
 ];
 
-export default function ProfilePage() {
+export default function ProfileEditorDialog() {
   const id = useId();
-
   const maxLength = 180;
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant='outline'>Profile</Button>
+        <Button variant='outline'>Edit Profile</Button>
       </DialogTrigger>
       <DialogContent className='flex flex-col gap-0 overflow-y-visible p-0 sm:max-w-lg [&>button:last-child]:top-3.5'>
         <DialogHeader className='contents space-y-0 text-left'>
@@ -57,8 +52,7 @@ export default function ProfilePage() {
           </DialogTitle>
         </DialogHeader>
         <DialogDescription className='sr-only'>
-          Make changes to your profile here. You can change your photo and set a
-          username.
+          Edit your profile info
         </DialogDescription>
         <div className='overflow-y-auto'>
           <ProfileBg />
@@ -160,13 +154,8 @@ export default function ProfilePage() {
 
 function ProfileBg() {
   const [{ files }, { removeFile, openFileDialog, getInputProps }] =
-    useFileUpload({
-      accept: 'image/*',
-      initialFiles: initialBgImage
-    });
-
+    useFileUpload({ accept: 'image/*', initialFiles: initialBgImage });
   const currentImage = files[0]?.preview || null;
-
   return (
     <div className='h-32'>
       <div className='bg-muted relative flex size-full items-center justify-center overflow-hidden'>
@@ -218,9 +207,7 @@ function Avatar() {
     accept: 'image/*',
     initialFiles: initialAvatarImage
   });
-
   const currentImage = files[0]?.preview || null;
-
   return (
     <div className='-mt-10 px-6'>
       <div className='border-background bg-muted relative flex size-20 items-center justify-center overflow-hidden rounded-full border-4 shadow-xs shadow-black/10'>

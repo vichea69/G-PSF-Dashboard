@@ -28,7 +28,7 @@ export default async function Page() {
           </Link>
         </div>
         <Separator />
-        {/* <PageStatsClient /> */}
+        <PageStatsClient />
         <Suspense fallback={<DataTableSkeleton columnCount={5} rowCount={8} />}>
           <PagesListPage />
         </Suspense>
