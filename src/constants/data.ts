@@ -105,17 +105,9 @@ export const userItems: NavItem[] = [
 ];
 export const siteItems: NavItem[] = [
   {
-    title: 'Nav Main Menu',
-    url: '/admin/nav-main-menu',
+    title: 'Menu',
+    url: '/admin/menu',
     icon: 'menu',
-    shortcut: ['s', 's'],
-    isActive: true,
-    items: [] // No child items
-  },
-  {
-    title: 'Footer Menu',
-    url: '/admin/footer-menu',
-    icon: 'footer',
     shortcut: ['s', 's'],
     isActive: true,
     items: [] // No child items

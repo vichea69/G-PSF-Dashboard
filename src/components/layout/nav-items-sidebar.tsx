@@ -110,7 +110,7 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
             </SidebarMenuItem>
           );
         })}
-        <SidebarGroupLabel>Site Menu</SidebarGroupLabel>
+        <SidebarGroupLabel>Site Menu Management</SidebarGroupLabel>
         {siteItems.map((item) => {
           const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
           return (
