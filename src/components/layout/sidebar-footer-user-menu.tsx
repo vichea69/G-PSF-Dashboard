@@ -95,11 +95,7 @@ export function SidebarFooterUserMenu({ user }: { user: SidebarUser }) {
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => router.push('/admin/profile')}>
                 <IconUserCircle className='mr-2 h-4 w-4' />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconSettings className='mr-2 h-4 w-4' />
-                Settings
+                Profile & Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

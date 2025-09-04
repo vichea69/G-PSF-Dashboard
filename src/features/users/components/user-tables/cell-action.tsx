@@ -20,7 +20,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UserUpsertDialog } from '../user-upsert-dialog';
 import { deleteAdminUser } from '@/server/action/admin/admin';
-import { UserViewDialog } from '../user-view-dialog';
 
 interface CellActionProps {
   data: UserRow;
@@ -47,7 +46,7 @@ export function UsersCellAction({ data }: CellActionProps) {
         (typeof e?.message === 'string' ? e.message : undefined) ||
         'Delete failed';
       toast.error(msg);
-      console.error('Delete user error', e?.response?.status, detail, e);
+      // console.error('Delete user error', e?.response?.status, detail, e);
     }
   });
 
@@ -72,8 +71,6 @@ export function UsersCellAction({ data }: CellActionProps) {
         initialData={data}
       />
 
-      <UserViewDialog open={openView} onOpenChange={setOpenView} user={data} />
-
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
@@ -83,14 +80,12 @@ export function UsersCellAction({ data }: CellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => setOpenView(true)}>
-            <IconEye className='mr-2 h-4 w-4' /> View
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <IconEdit className='mr-2 h-4 w-4' /> Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
+            <IconTrash className='mr-2 h-4 w-4 text-red-500' />
+            <span className='text-red-500'>Delete </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

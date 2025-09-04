@@ -7,6 +7,7 @@ export type AuthClientUser = {
   bio?: string;
   image?: string;
   role?: string;
+  lastLogin?: string;
   token?: string;
 };
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -20,7 +21,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Upload } from 'lucide-react';
+import { Save, Upload } from 'lucide-react';
 import ProgressUpload from '@/components/file-upload/progress-upload';
 import { useCategories } from '@/hooks/use-category';
 import { usePage } from '@/hooks/use-page';
@@ -57,6 +58,16 @@ export default function PostForm({
     image: undefined
   });
 
+  const objectUrlRef = useRef<string | null>(null);
+  const [previewSrc, setPreviewSrc] = useState<string>(() => {
+    const candidate =
+      (typeof editingPost?.imageUrl === 'string' && editingPost.imageUrl) ||
+      (typeof editingPost?.image === 'string' && editingPost.image) ||
+      (typeof editingPost?.image?.url === 'string' && editingPost.image.url) ||
+      '';
+    return candidate || '';
+  });
+
   const { data: categoriesData } = useCategories();
   const categories = useMemo(() => {
     const raw = (categoriesData?.data ?? categoriesData) as any;
@@ -74,6 +85,15 @@ export default function PostForm({
   const handleSubmit = () => {
     onSave(formData);
   };
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current && objectUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div className='space-y-6'>
@@ -124,6 +144,18 @@ export default function PostForm({
               <CardDescription>Upload a cover image</CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
+              {previewSrc ? (
+                <div className='relative h-24 w-24 overflow-hidden rounded-md border'>
+                  <Image
+                    src={previewSrc}
+                    alt='Cover image preview'
+                    fill
+                    sizes='96px'
+                    className='object-cover'
+                    unoptimized
+                  />
+                </div>
+              ) : null}
               <div className='space-y-2'>
                 <Label>Cover Image</Label>
                 <ProgressUpload
@@ -142,16 +174,31 @@ export default function PostForm({
                         ...p,
                         image: f instanceof File ? f : undefined
                       }));
+                      if (f instanceof File) {
+                        if (
+                          objectUrlRef.current &&
+                          objectUrlRef.current.startsWith('blob:')
+                        ) {
+                          URL.revokeObjectURL(objectUrlRef.current);
+                        }
+                        const url = URL.createObjectURL(f);
+                        objectUrlRef.current = url;
+                        setPreviewSrc(url);
+                      }
                     }, 0);
                   }}
                 />
-                {!formData.image ? (
+                {!previewSrc ? (
                   <p className='text-muted-foreground flex items-center gap-1 text-xs'>
                     <Upload className='h-3 w-3' /> Optional, used as thumbnail
                   </p>
-                ) : (
+                ) : formData.image ? (
                   <p className='text-muted-foreground text-xs'>
                     Image selected: {formData.image.name}
+                  </p>
+                ) : (
+                  <p className='text-muted-foreground text-xs'>
+                    Existing image
                   </p>
                 )}
               </div>
@@ -228,10 +275,15 @@ export default function PostForm({
                 </Select>
               </div>
 
-              <Button onClick={handleSubmit}>
-                <Save />
-                {editingPost ? 'Update Post' : 'Create Post'}
-              </Button>
+              <div className='flex items-center gap-2'>
+                <Button variant='outline' onClick={onCancel}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit}>
+                  <Save className='mr-2 h-4 w-4' />
+                  {editingPost ? 'Update Post' : 'Create Post'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

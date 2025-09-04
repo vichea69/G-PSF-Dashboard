@@ -61,6 +61,14 @@ export const navItems: NavItem[] = [
 ];
 export const contentItems: NavItem[] = [
   {
+    title: 'Logo',
+    url: '/admin/logo',
+    icon: 'logo',
+    shortcut: ['l', 'l'],
+    isActive: false,
+    items: [] // Empty array as there are no child items
+  },
+  {
     title: 'Category',
     url: '/admin/category',
     icon: 'media',

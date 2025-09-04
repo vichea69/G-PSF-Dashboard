@@ -2,6 +2,7 @@
 //fecth all users from api
 import { api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import { getUserFromLocalStorage } from '@/lib/auth-client';
 
 export const useUser = () => {
   return useQuery({

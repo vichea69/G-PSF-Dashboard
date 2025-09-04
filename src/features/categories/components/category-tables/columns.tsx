@@ -18,10 +18,17 @@ export type CategoryRow = {
 
 export const categoryColumns: ColumnDef<CategoryRow>[] = [
   {
+    accessorKey: 'id',
+    header: 'ID',
+    cell: ({ cell }) => (
+      <div className='w-[80px]'>{cell.getValue<number>()}</div>
+    )
+  },
+  {
     id: 'name',
     accessorKey: 'name',
     header: ({ column }: { column: Column<CategoryRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Name' />
+      <DataTableColumnHeader column={column} title='Category Title' />
     ),
     cell: ({ cell }) => {
       const value = (cell.getValue<string>() ?? '').toString();

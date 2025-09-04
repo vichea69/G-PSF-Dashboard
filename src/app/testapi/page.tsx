@@ -1,8 +1,8 @@
 'use client';
-import { useMenu } from '@/hooks/use-menu';
+import { useLogo } from '@/hooks/use-logo';
 
 export default function TestApiPage() {
-  const { data: menus, isLoading, error } = useMenu();
+  const { data: logo, isLoading, error } = useLogo();
 
   return (
     <div className='min-h-screen bg-gray-50 p-6'>
@@ -14,10 +14,10 @@ export default function TestApiPage() {
         {isLoading && <p className='text-gray-500'>Loading...</p>}
         {error && <p className='text-red-500'>Error: {error.message}</p>}
 
-        {menus && (
+        {logo && (
           <div className='/* 👈 constrain height so it can overflow */ /* 👈 enable both axes */ max-h-[70vh] overflow-x-auto overflow-y-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-green-200'>
             <pre className='whitespace-pre'>
-              {JSON.stringify(menus, null, 2)}
+              {JSON.stringify(logo, null, 2)}
             </pre>
           </div>
         )}

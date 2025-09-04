@@ -43,12 +43,15 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       });
 
       await api.delete(`/posts/${encodeURIComponent(String(data.id))}`);
-      toast.success('Post deleted');
+      toast.success('Post deleted successfully');
       setOpen(false);
       // Keep data fresh in background
       qc.invalidateQueries({ queryKey: ['posts'], exact: false });
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || 'Delete failed';
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        'Delete failed please try again';
       toast.error(msg);
       // Refetch to rollback if needed
       qc.invalidateQueries({ queryKey: ['posts'], exact: false });
@@ -77,7 +80,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <DropdownMenuItem
             onClick={() => router.push(`/admin/post/${data.id}`)}
           >
-            <IconEdit className='mr-2 h-4 w-4' /> Update
+            <IconEdit className='mr-2 h-4 w-4' /> Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpen(true)}>
             <IconTrash className='mr-2 h-4 w-4' /> Delete
