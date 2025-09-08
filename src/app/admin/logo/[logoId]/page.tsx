@@ -4,15 +4,19 @@ import { Suspense } from 'react';
 import LogoViewPage from '@/features/logo/components/logo-view-page';
 
 export const metadata = {
-  title: 'Dashboard: New Logo'
+  title: 'Dashboard: Edit Logo'
 };
 
-export default function Page() {
+export default function EditLogoPage({
+  params
+}: {
+  params: { logoId: string };
+}) {
   return (
     <PageContainer scrollable>
       <div className='flex-1 space-y-4'>
         <Suspense fallback={<FormCardSkeleton />}>
-          <LogoViewPage logoId={'new'} />
+          <LogoViewPage logoId={params.logoId} />
         </Suspense>
       </div>
     </PageContainer>

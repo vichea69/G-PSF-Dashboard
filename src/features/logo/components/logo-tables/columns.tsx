@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { RelativeTime } from '@/components/ui/relative-time';
+import { CellAction } from './cell-action';
 
 export type LogoRow = {
   id: number;
@@ -62,6 +63,9 @@ export const logoColumns: ColumnDef<LogoRow>[] = [
     accessorFn: (row) => (row as LogoRow).createdAt ?? '',
     header: 'Created',
     cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} short />
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => <CellAction data={row.original as LogoRow} />
   }
-  // CRUD actions removed; table is read-only
 ];
