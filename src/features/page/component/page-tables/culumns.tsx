@@ -51,6 +51,13 @@ const getStatusBadge = (status: string) => {
 };
 export const pageColumns: ColumnDef<PageRow>[] = [
   {
+    id: 'id',
+    accessorKey: 'id',
+    header: ({ column }: { column: Column<PageRow, unknown> }) => (
+      <DataTableColumnHeader column={column} title='ID' />
+    )
+  },
+  {
     id: 'name',
     accessorKey: 'title',
     header: ({ column }: { column: Column<PageRow, unknown> }) => (

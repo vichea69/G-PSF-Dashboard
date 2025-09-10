@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import ProfileSettings from '@/features/profile/components/profile-settings';
 
 export const metadata = {
-  title: 'Dashboard : Profile'
+  title: 'User Profile'
 };
 
 export default async function Page() {

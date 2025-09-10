@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 export const metadata = {
-  title: 'Dashboard: Pages'
+  title: 'Site Pages'
 };
 
 export default async function Page() {

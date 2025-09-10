@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import LogoViewPage from '@/features/logo/components/logo-view-page';
 
 export const metadata = {
-  title: 'Dashboard: New Logo'
+  title: 'New Logo'
 };
 
 export default function Page() {
