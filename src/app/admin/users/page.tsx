@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { Suspense } from 'react';
 import UsersViewPage from '@/features/users/components/users-page';
 
-export const metadata = { title: 'Dashboard: Users' };
+export const metadata = { title: 'Users' };
 
 export default async function UsersPage() {
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,25 +8,11 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import {
-  getUserFromLocalStorage,
-  saveUserToLocalStorage,
-  type AuthClientUser
-} from '@/lib/auth-client';
-
-const DEFAULT_USER: AuthClientUser = {
-  id: 5,
-  username: 'Admin',
-  email: 'admin@gmail.com',
-  bio: 'Admin',
-  image:
-    'https://res.cloudinary.com/dlpsmv2k8/image/upload/v1753329092/photo_2024-05-25_23.00.43_mmr6nw.jpg',
-  role: 'admin',
-  lastLogin: '2025-09-04'
-};
+import { type AuthClientUser } from '@/lib/auth-client';
+import { redirect } from 'next/navigation';
 
 export default function ProfileSettings() {
-  const [user, setUser] = useState<AuthClientUser | null>(null);
+  const [user] = useState<AuthClientUser | null>(null);
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -36,36 +22,6 @@ export default function ProfileSettings() {
   });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
-    const current = getUserFromLocalStorage();
-    if (current) {
-      // Prime UI with cached user while API loads
-      setUser(current);
-      setForm({
-        username: current.username ?? '',
-        email: current.email ?? '',
-        bio: current.bio ?? '',
-        password: '',
-        image: current.image
-      });
-    } else {
-      // Fallback for first-time UX
-      setUser(DEFAULT_USER);
-      setForm({
-        username: DEFAULT_USER.username,
-        email: DEFAULT_USER.email,
-        bio: DEFAULT_USER.bio ?? '',
-        password: '',
-        image: DEFAULT_USER.image
-      });
-    }
-  }, []);
-
-  const initials = useMemo(() => {
-    const base = user?.username || user?.email?.split('@')[0] || '';
-    return base.slice(0, 2).toUpperCase() || 'U';
-  }, [user]);
-
   const handleAvatarPick = () => fileInputRef.current?.click();
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,33 +29,15 @@ export default function ProfileSettings() {
     const url = URL.createObjectURL(file);
     setForm((prev) => ({ ...prev, image: url }));
   };
-
+  //cancel button
   const handleCancel = () => {
-    if (!user) return;
-    setForm({
-      username: user.username ?? '',
-      email: user.email ?? '',
-      bio: user.bio ?? '',
-      password: '',
-      image: user.image
-    });
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    redirect('/admin/overview');
   };
 
   const handleSave = () => {
-    if (!user) return;
-    const next: AuthClientUser = {
-      ...user,
-      username: form.username,
-      email: form.email,
-      bio: form.bio,
-      image: form.image ?? user.image
-    };
-    setUser(next);
-    saveUserToLocalStorage(next);
-    toast('Profile saved');
-    setForm((f) => ({ ...f, password: '' }));
+    toast.success('Implement save logic here');
   };
+
   return (
     <div className='flex flex-col gap-6'>
       <Card className='overflow-hidden'>
@@ -213,7 +151,9 @@ export default function ProfileSettings() {
               <Button variant='outline' onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button onClick={handleSave}>Save</Button>
+              <Button onClick={handleSave} disabled={false}>
+                Save
+              </Button>
             </div>
           </div>
         </CardContent>
