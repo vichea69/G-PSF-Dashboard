@@ -24,7 +24,7 @@ async function setCookie(
   c.set({
     name,
     value,
-    httpOnly: false, // middleware reads it; backend may also set httpOnly cookie
+    httpOnly: false,
     path: '/',
     sameSite: 'lax',
     maxAge
@@ -37,10 +37,19 @@ async function deleteCookie(name: string) {
 }
 
 export async function loginAction(input: LoginInput) {
-  // Call backend. Many backends expect { user: { email, password } }
-  const { data } = await api.post('/login', { user: input });
+  // Prefer sending only the required fields
+  const { email, password, rememberMe } = input;
 
-  const payload: any = data;
+  // Some backends expect { user: { email, password } }, others { email, password }
+  let payload: any;
+  try {
+    const res = await api.post('/auth/login', { user: { email, password } });
+    payload = res.data;
+  } catch (err: any) {
+    // Fallback to flat payload if nested failed
+    const res = await api.post('/auth/login', { email, password });
+    payload = res.data;
+  }
   const user = payload?.user ?? payload?.data?.user;
   const tokens = payload?.tokens ?? payload?.data?.tokens;
   const meta = payload?.meta ?? payload?.data?.meta;
@@ -54,19 +63,30 @@ export async function loginAction(input: LoginInput) {
   // Prefer backend-set cookies (httpOnly). If tokens returned, set a readable cookie for middleware.
   const accessToken: string | undefined = user?.token || tokens?.accessToken;
   if (accessToken) {
-    // Prefer longer-lived window for UX if refresh TTL provided
-    const maxAge =
-      meta?.refreshTokenExpiresIn ??
-      meta?.accessTokenExpiresIn ??
-      60 * 60 * 24 * 7;
-    await setCookie('access_token', accessToken, { maxAge });
+    // Choose persistence based on rememberMe: session (no maxAge) or persistent (maxAge)
+    if (rememberMe) {
+      const maxAge =
+        meta?.refreshTokenExpiresIn ??
+        meta?.accessTokenExpiresIn ??
+        60 * 60 * 24 * 7; // default 7 days
+      await setCookie('access_token', accessToken, { maxAge });
+    } else {
+      // Session cookie: expires when browser closes
+      await setCookie('access_token', accessToken, {
+        maxAge: undefined as any
+      });
+    }
   }
 
   // Optionally mirror refresh token for client flows (non-httpOnly)
   if (tokens?.refreshToken && meta?.refreshTokenExpiresIn) {
-    await setCookie('refresh_token', tokens.refreshToken, {
-      maxAge: meta.refreshTokenExpiresIn
-    });
+    if (rememberMe) {
+      await setCookie('refresh_token', tokens.refreshToken, {
+        maxAge: meta.refreshTokenExpiresIn
+      });
+    } else {
+      // Do not persist refresh token for session-only
+    }
   }
 
   // Revalidate key pages where auth state matters
@@ -79,7 +99,7 @@ export async function loginAction(input: LoginInput) {
 
 export async function logoutAction() {
   try {
-    await api.post('/logout', {}, { withCredentials: true });
+    await api.post('/auth/logout', {}, { withCredentials: true });
   } catch {
     // Swallow network errors; proceed to clear cookies
   }

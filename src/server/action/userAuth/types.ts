@@ -3,6 +3,7 @@
 export type LoginInput = {
   email: string;
   password: string;
+  rememberMe?: boolean;
 };
 
 export type AuthUser = {
@@ -20,8 +21,8 @@ export type TokenPair = {
 };
 
 export type TokenMeta = {
-  accessTokenExpiresIn?: number; // seconds
-  refreshTokenExpiresIn?: number; // seconds
+  accessTokenExpiresIn?: number;
+  refreshTokenExpiresIn?: number;
 };
 
 export type LoginResult = {

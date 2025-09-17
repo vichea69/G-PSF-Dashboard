@@ -2,7 +2,6 @@
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { getUserFromLocalStorage } from '@/lib/auth-client';
 import { logoutAction } from '@/server/action/userAuth/user';
@@ -15,16 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  IconBell,
-  IconCreditCard,
-  IconLogout,
-  IconUserCircle
-} from '@tabler/icons-react';
+import { IconLogout, IconUserCircle } from '@tabler/icons-react';
 
 export function UserNav() {
   const router = useRouter();
-  const isMobile = useIsMobile();
   const [user, setUser] = React.useState<any | null>(null);
 
   React.useEffect(() => {
@@ -63,8 +56,6 @@ export function UserNav() {
     await logoutAction();
   }
 
-  if (!isMobile) return null;
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -89,17 +80,9 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
+          <DropdownMenuItem onClick={() => router.push('/admin/profile')}>
             <IconUserCircle className='mr-2 h-4 w-4' />
-            Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <IconCreditCard className='mr-2 h-4 w-4' />
-            Billing
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <IconBell className='mr-2 h-4 w-4' />
-            Notifications
+            Profile & Setting
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

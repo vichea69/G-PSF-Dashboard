@@ -4,7 +4,6 @@ import { api } from '@/lib/api';
 
 async function fetchPages() {
   const res = await api.get('/pages');
-  console.log(res.data);
   return res.data;
 }
 

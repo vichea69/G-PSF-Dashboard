@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { type AuthClientUser } from '@/lib/auth-client';
 import { redirect } from 'next/navigation';
+import { useAuth } from '@/store/auth';
 
-export default function ProfileSettings() {
-  const [user] = useState<AuthClientUser | null>(null);
+type Props = {
+  updateProfile?: (payload: any) => Promise<any>;
+};
+
+export default function ProfileSettings({ updateProfile }: Props) {
+  const { user, hydrate, setUser } = useAuth();
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -20,7 +25,28 @@ export default function ProfileSettings() {
     password: '',
     image: undefined as string | undefined
   });
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    if (user) {
+      // Log current logged-in user for debugging
+      console.log('[ProfileSettings] Current logged-in user:', user);
+      setForm((prev) => ({
+        ...prev,
+        username: user.username ?? '',
+        email: user.email ?? '',
+        bio: user.bio ?? '',
+        image: user.image
+      }));
+    } else {
+      console.log('[ProfileSettings] No user logged in');
+    }
+  }, [user]);
 
   const handleAvatarPick = () => fileInputRef.current?.click();
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +60,46 @@ export default function ProfileSettings() {
     redirect('/admin/overview');
   };
 
-  const handleSave = () => {
-    toast.success('Implement save logic here');
+  const handleSave = async () => {
+    if (!user) {
+      toast.error('No user is logged in');
+      return;
+    }
+    try {
+      setSaving(true);
+      const payload: any = {
+        username: form.username,
+        email: form.email,
+        bio: form.bio,
+        image: form.image
+      };
+      if (form.password) payload.password = form.password;
+
+      console.log('[ProfileSettings] Submitting payload:', payload);
+
+      if (updateProfile) {
+        try {
+          const data: any = await updateProfile(payload);
+          console.log('[ProfileSettings] Server result:', data);
+        } catch (err) {
+          // Re-throw to hit outer catch and show toast
+          throw err;
+        }
+      }
+
+      // Optimistically update local store regardless of server response shape
+      const merged: AuthClientUser = { ...user, ...payload } as AuthClientUser;
+      setUser(merged);
+      // Clear password field after save
+      setForm((f) => ({ ...f, password: '' }));
+      toast.success('Update successfully 🔥');
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message || err?.message || 'Update failed';
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -151,8 +215,8 @@ export default function ProfileSettings() {
               <Button variant='outline' onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button onClick={handleSave} disabled={false}>
-                Save
+              <Button onClick={handleSave} disabled={saving}>
+                Save Change
               </Button>
             </div>
           </div>

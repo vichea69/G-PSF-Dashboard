@@ -1,5 +1,4 @@
 'use client';
-// dropdown primitives moved into SidebarFooterUserMenu
 import {
   Sidebar,
   SidebarContent,
@@ -7,12 +6,8 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar';
-// profile UI handled by SidebarFooterUserMenu
 import { navItems } from '@/constants/data';
 import { useMediaQuery } from '@/hooks/use-media-query';
-// icons handled in child components
-// links handled in child components
-// import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { OrgSwitcher } from '../org-switcher';
 import { getUserFromLocalStorage } from '@/lib/auth-client';
@@ -73,10 +68,10 @@ export default function AppSidebar() {
       <SidebarContent className='overflow-x-hidden'>
         <SidebarNavItems items={navItems} />
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <SidebarFooterUserMenu user={user} />
       </SidebarFooter>
-      <SidebarRail />
+      <SidebarRail /> */}
     </Sidebar>
   );
 }

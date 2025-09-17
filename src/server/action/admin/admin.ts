@@ -11,7 +11,7 @@ import { getAuthHeaders } from '../userAuth/user';
 export async function createAdminUser(adminUser: AdminUserCreate) {
   const headers = await getAuthHeaders();
   const res = await api.post(
-    '/admin/users',
+    '/users',
     { user: adminUser },
     { headers, withCredentials: true }
   );
@@ -22,7 +22,7 @@ export async function updateAdminUser(adminUser: AdminUserUpdate) {
   const { id, ...payload } = adminUser as any;
   try {
     const res = await api.put(
-      `/admin/users/${id}`,
+      `/users/${id}`,
       { user: payload },
       {
         headers,
@@ -44,7 +44,7 @@ export async function updateAdminUser(adminUser: AdminUserUpdate) {
 export async function deleteAdminUser(id: string) {
   const headers = await getAuthHeaders();
   try {
-    const res = await api.delete(`/admin/users/${id}`, {
+    const res = await api.delete(`/users/${id}`, {
       headers,
       withCredentials: true
     });

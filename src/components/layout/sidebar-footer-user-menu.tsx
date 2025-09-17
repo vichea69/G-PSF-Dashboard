@@ -19,8 +19,7 @@ import {
 import {
   IconLogout,
   IconUserCircle,
-  IconChevronsDown,
-  IconSettings
+  IconChevronsDown
 } from '@tabler/icons-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { logoutAction } from '@/server/action/userAuth/user';
