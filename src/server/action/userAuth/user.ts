@@ -64,7 +64,6 @@ export async function loginAction(input: LoginInput) {
   // Prefer backend-set cookies (httpOnly). If tokens returned, set a readable cookie for middleware.
   const accessToken: string | undefined = user?.token || tokens?.accessToken;
   if (accessToken) {
-    // Choose persistence based on rememberMe: session (no maxAge) or persistent (maxAge)
     if (rememberMe) {
       const maxAge =
         meta?.refreshTokenExpiresIn ??
@@ -79,7 +78,6 @@ export async function loginAction(input: LoginInput) {
     }
   }
 
-  // Optionally mirror refresh token for client flows (non-httpOnly)
   if (tokens?.refreshToken && meta?.refreshTokenExpiresIn) {
     if (rememberMe) {
       await setCookie('refresh_token', tokens.refreshToken, {
