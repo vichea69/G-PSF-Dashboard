@@ -19,6 +19,5 @@ export default async function ResetPasswordPage({
     : typeof rawToken === 'string'
       ? rawToken
       : '';
-
   return <ResetPassword token={token} />;
 }
