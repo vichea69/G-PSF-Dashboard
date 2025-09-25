@@ -7,12 +7,17 @@ export const emailSchema = z
 
 export type EmailSchema = z.infer<typeof emailSchema>;
 // validate reset password form
-export const resetPasswordSchema = z.object({
-  password: z.string().min(1, { message: 'Password is required' }),
-  confirmPassword: z
-    .string()
-    .min(1, { message: 'Confirm password is required' })
-});
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(1, { message: 'Password is required' }),
+    confirmPassword: z
+      .string()
+      .min(1, { message: 'Confirm password is required' })
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords must match',
+    path: ['confirmPassword']
+  });
 
 export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
 // validate login form

@@ -1,10 +1,12 @@
 'use server';
 import 'server-only';
 import { api } from '@/lib/api';
+import { isAxiosError } from 'axios';
+
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { LoginInput, LoginResult } from './types';
+import type { LoginInput, LoginResult, ResetPassword } from './types';
 
 // Exported helper to forward auth in server actions
 export async function getAuthHeaders() {
@@ -40,7 +42,6 @@ export async function loginAction(input: LoginInput) {
   // Prefer sending only the required fields
   const { email, password, rememberMe } = input;
 
-  // Some backends expect { user: { email, password } }, others { email, password }
   let payload: any;
   try {
     const res = await api.post('/auth/login', { user: { email, password } });
@@ -92,7 +93,6 @@ export async function loginAction(input: LoginInput) {
   // Revalidate key pages where auth state matters
   revalidatePath('/admin/overview');
   revalidatePath('/');
-
   const result: LoginResult = { user, tokens, meta };
   return result;
 }
@@ -108,4 +108,73 @@ export async function logoutAction() {
   revalidatePath('/');
   revalidatePath('/admin/overview');
   redirect('/auth/sign-in');
+}
+
+export async function forgotPassword({ email }: { email: string }) {
+  const trimmedEmail = email.trim();
+
+  if (!trimmedEmail) {
+    return { success: false, error: 'Email is required' };
+  }
+
+  try {
+    const res = await api.post('/auth/forgot-password', {
+      email: trimmedEmail
+    });
+    const data = res.data ?? {};
+
+    return {
+      success: true,
+      message:
+        data?.message ??
+        data?.data?.message ??
+        'Check your email for the reset link'
+    };
+  } catch (error: unknown) {
+    if (isAxiosError(error)) {
+      const message =
+        (error.response?.data as any)?.message ??
+        error.message ??
+        'Failed to send reset link';
+      return { success: false, error: message };
+    }
+
+    const message =
+      error instanceof Error ? error.message : 'Failed to send reset link';
+    return { success: false, error: message };
+  }
+}
+
+export async function resetPassword({ token, password }: ResetPassword) {
+  const trimmedToken = token.trim();
+
+  if (!trimmedToken) {
+    return { success: false, error: 'Reset token is required' };
+  }
+
+  try {
+    const res = await api.post('/auth/reset-password', {
+      token: trimmedToken,
+      password
+    });
+    const data = res.data ?? {};
+
+    return {
+      success: true,
+      message:
+        data?.message ?? data?.data?.message ?? 'Password reset successfully'
+    };
+  } catch (error: unknown) {
+    if (isAxiosError(error)) {
+      const message =
+        (error.response?.data as any)?.message ??
+        error.message ??
+        'Failed to reset password';
+      return { success: false, error: message };
+    }
+
+    const message =
+      error instanceof Error ? error.message : 'Failed to reset password';
+    return { success: false, error: message };
+  }
 }

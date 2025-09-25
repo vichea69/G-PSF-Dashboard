@@ -30,3 +30,8 @@ export type LoginResult = {
   tokens?: TokenPair;
   meta?: TokenMeta;
 };
+
+export type ResetPassword = {
+  token: string;
+  password: string;
+};

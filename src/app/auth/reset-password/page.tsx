@@ -5,12 +5,20 @@ export const metadata: Metadata = {
   title: 'Reset Password'
 };
 
-const ResetPasswordPage = () => {
-  return (
-    <div>
-      <ResetPassword />
-    </div>
-  );
+type ResetPasswordPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default ResetPasswordPage;
+export default async function ResetPasswordPage({
+  searchParams
+}: ResetPasswordPageProps) {
+  const resolvedParams = await searchParams;
+  const rawToken = resolvedParams?.token;
+  const token = Array.isArray(rawToken)
+    ? rawToken[0]
+    : typeof rawToken === 'string'
+      ? rawToken
+      : '';
+
+  return <ResetPassword token={token} />;
+}
