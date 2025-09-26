@@ -6,6 +6,7 @@ import SearchInput from '../search-input';
 import { UserNav } from './user-nav';
 import { ThemeSelector } from '../theme-selector';
 import { ModeToggle } from './ThemeToggle/theme-toggle';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 export default function Header() {
   return (
@@ -22,6 +23,7 @@ export default function Header() {
           <SearchInput />
         </div>
         <UserNav />
+        <LanguageSwitcher />
         <ModeToggle />
         <ThemeSelector />
       </div>

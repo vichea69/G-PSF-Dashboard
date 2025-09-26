@@ -34,7 +34,11 @@ type PermissionKey =
   | 'view_results'
   | 'view_security_logs'
   | 'manage_firewall'
-  | 'admin_access';
+  | 'admin_access'
+  | 'view'
+  | 'create'
+  | 'edit'
+  | 'delete';
 
 type PermissionItem = {
   key: PermissionKey;
@@ -58,47 +62,77 @@ type User = {
 
 const CATEGORIES: PermissionCategory[] = [
   {
-    title: 'Dashboard',
+    title: 'Logo',
     items: [
       {
-        key: 'view_overview',
-        title: 'View Overview',
-        description: 'Access to main dashboard'
+        key: 'view',
+        title: 'View logo',
+        description: ''
       },
       {
-        key: 'view_analytics',
-        title: 'View Analytics',
-        description: 'Access to charts and metrics'
+        key: 'create',
+        title: 'Create logo',
+        description: ''
       },
       {
-        key: 'export_data',
-        title: 'Export Data',
-        description: 'Download dashboard reports'
+        key: 'edit',
+        title: 'Edit logo',
+        description: ''
+      },
+      {
+        key: 'delete',
+        title: 'Delete logo',
+        description: ''
       }
     ]
   },
   {
-    title: 'Laboratory',
+    title: 'Category',
     items: [
       {
-        key: 'run_experiments',
-        title: 'Run Experiments',
-        description: 'Execute lab processes'
+        key: 'view',
+        title: 'View Category',
+        description: ''
       },
       {
-        key: 'manage_samples',
-        title: 'Manage Samples',
-        description: 'Create and edit samples'
+        key: 'create',
+        title: 'Create Category',
+        description: ''
       },
       {
-        key: 'view_results',
-        title: 'View Results',
-        description: 'Access experiment results'
+        key: 'edit',
+        title: 'Edit Category',
+        description: ''
+      },
+      {
+        key: 'delete',
+        title: 'Delete Category',
+        description: ''
       }
     ]
   },
   {
-    title: 'Security',
+    title: 'Page',
+    items: [
+      {
+        key: 'view_security_logs',
+        title: 'View Security Logs',
+        description: 'Access system security logs'
+      },
+      {
+        key: 'manage_firewall',
+        title: 'Manage Firewall',
+        description: 'Configure firewall settings'
+      },
+      {
+        key: 'admin_access',
+        title: 'Admin Access',
+        description: 'Full administrative privileges'
+      }
+    ]
+  },
+  {
+    title: 'Post',
     items: [
       {
         key: 'view_security_logs',
