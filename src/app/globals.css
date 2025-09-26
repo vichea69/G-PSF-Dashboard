@@ -122,6 +122,11 @@
   }
 }
 
+body[data-language='kh'] [data-sidebar='sidebar'] {
+  --font-sans: var(--font-khmer);
+  font-family: var(--font-khmer), 'Noto Sans Khmer', system-ui, sans-serif;
+}
+
 /* View Transition Wave Effect */
 ::view-transition-old(root),
 ::view-transition-new(root) {

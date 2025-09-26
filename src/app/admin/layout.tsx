@@ -4,6 +4,8 @@ import Header from '@/components/layout/header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { LanguageProvider } from '@/context/language-context';
+import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'G-PSF Dashboard',
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
 export default async function DashboardLayout({
   children
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
@@ -21,13 +23,15 @@ export default async function DashboardLayout({
   return (
     <KBar>
       <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar />
-        <SidebarInset>
-          <Header />
-          {/* page main content */}
-          {children}
-          {/* page main content ends */}
-        </SidebarInset>
+        <LanguageProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <Header />
+            {/* page main content */}
+            {children}
+            {/* page main content ends */}
+          </SidebarInset>
+        </LanguageProvider>
       </SidebarProvider>
     </KBar>
   );

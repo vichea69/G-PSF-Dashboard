@@ -4,6 +4,7 @@ import {
   Instrument_Sans,
   Inter,
   Mulish,
+  Noto_Sans_Khmer,
   Noto_Sans_Mono
 } from 'next/font/google';
 
@@ -39,11 +40,19 @@ const fontInter = Inter({
   variable: '--font-inter'
 });
 
+const fontKhmer = Noto_Sans_Khmer({
+  subsets: ['khmer'],
+  variable: '--font-khmer',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap'
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
   fontInstrument.variable,
   fontNotoMono.variable,
   fontMullish.variable,
-  fontInter.variable
+  fontInter.variable,
+  fontKhmer.variable
 );

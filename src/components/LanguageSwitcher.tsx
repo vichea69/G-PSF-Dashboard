@@ -1,16 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { Languages } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-
-type Language = 'en' | 'kh';
-
-const languageNames: Record<Language, string> = {
-  en: 'English',
-  kh: 'Khmer'
-};
+import { useLanguage, type Language } from '@/context/language-context';
 
 const languageLabels: Record<Language, string> = {
   en: 'EN',
@@ -18,19 +11,19 @@ const languageLabels: Record<Language, string> = {
 };
 
 export default function LanguageSwitcher() {
-  const [activeLanguage, setActiveLanguage] = useState<Language>('en');
-  const nextLanguage = activeLanguage === 'en' ? 'kh' : 'en';
+  const { language, toggleLanguage } = useLanguage();
+  const nextLanguage = language === 'en' ? 'kh' : 'en';
 
   return (
     <Button
       variant='foreground'
       size='sm'
       className='gap-1.5 rounded-full px-3 text-xs font-semibold uppercase'
-      onClick={() => setActiveLanguage(nextLanguage)}
-      aria-label={`Switch to ${languageNames[nextLanguage]}`}
+      onClick={toggleLanguage}
+      aria-label={`Switch to ${nextLanguage === 'en' ? 'English' : 'Khmer'}`}
     >
       <Languages className='size-4' aria-hidden='true' />
-      {languageLabels[activeLanguage]}
+      {languageLabels[language]}
     </Button>
   );
 }
