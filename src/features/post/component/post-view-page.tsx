@@ -69,7 +69,21 @@ export default function PostViewPage({ postId }: { postId: string }) {
           fd.append('categoryId', String(formData.categoryId));
         if (formData.pageId !== undefined && formData.pageId !== null)
           fd.append('pageId', String(formData.pageId));
-        if (formData.image) fd.append('image', formData.image);
+        if (formData.newImages?.length) {
+          formData.newImages.forEach((file) => {
+            fd.append('images[]', file);
+          });
+        }
+        if (formData.existingImageIds?.length) {
+          formData.existingImageIds.forEach((id) => {
+            fd.append('existingImageIds[]', String(id));
+          });
+        }
+        if (formData.removedImageIds?.length) {
+          formData.removedImageIds.forEach((id) => {
+            fd.append('removedImageIds[]', String(id));
+          });
+        }
         const config = {
           headers: { 'Content-Type': 'multipart/form-data' }
         } as const;

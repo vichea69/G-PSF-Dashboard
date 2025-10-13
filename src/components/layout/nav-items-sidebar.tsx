@@ -43,9 +43,10 @@ const SIDEBAR_TRANSLATIONS: Record<Language, Record<string, string>> = {
     Post: 'ប្រកាស',
     'Site Menu Management': 'ការគ្រប់គ្រងម៉ឺនុយវេបសាយ',
     Menu: 'ម៉ឺនុយ',
-    'User Management': 'ការគ្រប់គ្រងអ្នកប្រើ',
-    Users: 'អ្នកប្រើប្រាស់',
-    'Roles & Permissions': 'តួនាទី និងសិទ្ធិ'
+    Administration: 'ការគ្រប់គ្រងអ្នកប្រើ',
+    User: 'អ្នកប្រើប្រាស់',
+    'Roles & Permissions': 'តួនាទី និងសិទ្ធិ',
+    Role: 'តួនាទី'
   }
 };
 
@@ -59,7 +60,9 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
   const overviewLabel = translateLabel('Overview', language);
   const contentLabel = translateLabel('Content Management', language);
   const siteLabel = translateLabel('Site Menu Management', language);
-  const userLabel = translateLabel('User Management', language);
+  // const user = translateLabel('Users', language);
+  const userLabel = translateLabel('Administration', language);
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{overviewLabel}</SidebarGroupLabel>

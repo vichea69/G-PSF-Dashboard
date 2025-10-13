@@ -47,20 +47,29 @@ export const contentItems: NavItem[] = [
 ];
 export const userItems: NavItem[] = [
   {
-    title: 'Users',
+    title: 'User',
     url: '/admin/users',
     icon: 'user',
     shortcut: ['u', 'u'],
     isActive: true,
     items: [] // No child items
   },
+
   {
-    title: 'Roles & Permissions',
-    url: '/admin/user-role',
+    title: 'Role',
+    url: '/admin/roles',
     icon: 'shield',
     shortcut: ['r', 'r'],
     isActive: true,
-    items: [] // No child items
+    items: []
+  },
+  {
+    title: 'test',
+    url: '/admin/payment',
+    icon: 'shield',
+    shortcut: ['r', 'r'],
+    isActive: true,
+    items: []
   }
 ];
 export const siteItems: NavItem[] = [

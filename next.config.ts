@@ -35,6 +35,12 @@ const baseConfig: NextConfig = {
         hostname: 'pub-5ad5f7c802a843e0a594defda4055bb9.r2.dev',
         port: '',
         pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'github.com',
+        port: '',
+        pathname: '/**'
       }
     ]
   },

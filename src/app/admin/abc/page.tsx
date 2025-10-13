@@ -1,8 +1,6 @@
+import RolesTablePage from '@/features/role/components/role-table/page';
+
 const abcPage = () => {
-  return (
-    <div>
-      <h1>This is React Hook testing</h1>
-    </div>
-  );
+  return <RolesTablePage />;
 };
 export default abcPage;

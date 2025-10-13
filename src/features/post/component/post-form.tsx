@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -23,6 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Save, Upload } from 'lucide-react';
 import ProgressUpload from '@/components/file-upload/progress-upload';
+import type { FileWithPreview } from '@/hooks/use-file-upload';
 import { useCategories } from '@/hooks/use-category';
 import { usePage } from '@/hooks/use-page';
 
@@ -32,7 +32,9 @@ export type PostFormData = {
   content?: string;
   categoryId?: number | string;
   pageId?: number | string;
-  image?: File;
+  newImages: File[];
+  existingImageIds: number[];
+  removedImageIds: number[];
 };
 
 type PostFormProps = {
@@ -46,6 +48,66 @@ export default function PostForm({
   onSave,
   onCancel
 }: PostFormProps) {
+  type EditingImage = {
+    key: string;
+    id?: number;
+    url: string;
+    sortOrder: number;
+    fileName: string;
+    size: number;
+    mimeType: string;
+  };
+
+  const editingImages: EditingImage[] = useMemo(() => {
+    if (!Array.isArray(editingPost?.images)) return [];
+    return editingPost.images
+      .filter((img: any) => img && typeof img === 'object')
+      .map((img: any, index: number) => {
+        const id = typeof img.id === 'number' ? img.id : undefined;
+        const key = id !== undefined ? String(id) : `existing-${index}`;
+        const url = typeof img.url === 'string' ? img.url : '';
+        return {
+          key,
+          id,
+          url,
+          sortOrder: typeof img.sortOrder === 'number' ? img.sortOrder : index,
+          fileName:
+            typeof img.fileName === 'string' && img.fileName.length > 0
+              ? img.fileName
+              : `Image ${index + 1}`,
+          size: typeof img.size === 'number' ? img.size : 0,
+          mimeType:
+            typeof img.mimeType === 'string' && img.mimeType.length > 0
+              ? img.mimeType
+              : 'image/*'
+        } as EditingImage;
+      })
+      .sort(
+        (a: { sortOrder: number }, b: { sortOrder: number }) =>
+          a.sortOrder - b.sortOrder
+      );
+  }, [editingPost]);
+
+  const existingImageIdMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const img of editingImages) {
+      if (typeof img.id === 'number') {
+        map.set(img.key, img.id);
+      }
+    }
+    return map;
+  }, [editingImages]);
+
+  const initialFileMetadata = useMemo(() => {
+    return editingImages.map((img) => ({
+      id: img.key,
+      name: img.fileName,
+      size: img.size,
+      type: img.mimeType,
+      url: img.url
+    }));
+  }, [editingImages]);
+
   const [formData, setFormData] = useState<PostFormData>({
     title: editingPost?.title || '',
     status:
@@ -55,18 +117,37 @@ export default function PostForm({
     content: editingPost?.content || '',
     categoryId: editingPost?.category?.id,
     pageId: editingPost?.page?.id,
-    image: undefined
+    newImages: [],
+    existingImageIds: editingImages
+      .map((img) => img.id)
+      .filter((id): id is number => typeof id === 'number'),
+    removedImageIds: []
   });
 
-  const objectUrlRef = useRef<string | null>(null);
-  const [previewSrc, setPreviewSrc] = useState<string>(() => {
-    const candidate =
-      (typeof editingPost?.imageUrl === 'string' && editingPost.imageUrl) ||
-      (typeof editingPost?.image === 'string' && editingPost.image) ||
-      (typeof editingPost?.image?.url === 'string' && editingPost.image.url) ||
-      '';
-    return candidate || '';
-  });
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>(() =>
+    initialFileMetadata.map((file) => ({
+      id: file.id,
+      file,
+      preview: file.url
+    }))
+  );
+
+  useEffect(() => {
+    setUploadedFiles(
+      initialFileMetadata.map((file) => ({
+        id: file.id,
+        file,
+        preview: file.url
+      }))
+    );
+    setFormData((prev) => ({
+      ...prev,
+      existingImageIds: editingImages
+        .map((img) => img.id)
+        .filter((id): id is number => typeof id === 'number'),
+      removedImageIds: []
+    }));
+  }, [editingImages, initialFileMetadata]);
 
   const { data: categoriesData } = useCategories();
   const categories = useMemo(() => {
@@ -86,14 +167,15 @@ export default function PostForm({
     onSave(formData);
   };
 
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current && objectUrlRef.current.startsWith('blob:')) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
-    };
-  }, []);
+  const previewImages = useMemo(() => {
+    return uploadedFiles
+      .filter((file) => typeof file.preview === 'string' && file.preview)
+      .map((file) => ({
+        id: file.id,
+        src: file.preview as string,
+        isNew: file.file instanceof File
+      }));
+  }, [uploadedFiles]);
 
   return (
     <div className='space-y-6'>
@@ -141,64 +223,70 @@ export default function PostForm({
           <Card>
             <CardHeader>
               <CardTitle className='text-sm'>Media</CardTitle>
-              <CardDescription>Upload a cover image</CardDescription>
+              <CardDescription>Upload and manage post images</CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
-              {previewSrc ? (
-                <div className='relative h-24 w-24 overflow-hidden rounded-md border'>
-                  <Image
-                    src={previewSrc}
-                    alt='Cover image preview'
-                    fill
-                    sizes='96px'
-                    className='object-cover'
-                    unoptimized
-                  />
+              {previewImages.length > 0 ? (
+                <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
+                  {previewImages.map((image) => (
+                    <div
+                      key={image.id}
+                      className='relative h-24 w-full overflow-hidden rounded-md border'
+                    >
+                      <img
+                        src={image.src}
+                        alt='Uploaded preview'
+                        className='h-full w-full object-cover'
+                      />
+                      {image.isNew ? (
+                        <span className='text-background absolute right-1 bottom-1 rounded bg-emerald-500/90 px-1 text-[10px] font-semibold uppercase'>
+                          New
+                        </span>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               ) : null}
               <div className='space-y-2'>
-                <Label>Cover Image</Label>
+                <Label>Images</Label>
                 <ProgressUpload
-                  maxFiles={1}
-                  multiple={false}
+                  maxFiles={10}
+                  multiple
                   accept={'image/*'}
                   maxSize={5 * 1024 * 1024}
                   simulateUpload={false}
                   useDefaults={false}
+                  initialFiles={initialFileMetadata}
                   onFilesChange={(files) => {
-                    const first = files?.[0];
-                    const f = first?.file;
-                    // Defer state updates to avoid setting parent state during child render
+                    setUploadedFiles(files);
                     setTimeout(() => {
-                      setFormData((p) => ({
-                        ...p,
-                        image: f instanceof File ? f : undefined
+                      const newImages = files
+                        .filter((file) => file.file instanceof File)
+                        .map((file) => file.file as File);
+                      const keptExistingIds = files
+                        .map((file) => existingImageIdMap.get(file.id))
+                        .filter((id): id is number => typeof id === 'number');
+                      const removedImageIds = Array.from(
+                        existingImageIdMap.values()
+                      ).filter((id) => !keptExistingIds.includes(id));
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        newImages,
+                        existingImageIds: keptExistingIds,
+                        removedImageIds
                       }));
-                      if (f instanceof File) {
-                        if (
-                          objectUrlRef.current &&
-                          objectUrlRef.current.startsWith('blob:')
-                        ) {
-                          URL.revokeObjectURL(objectUrlRef.current);
-                        }
-                        const url = URL.createObjectURL(f);
-                        objectUrlRef.current = url;
-                        setPreviewSrc(url);
-                      }
                     }, 0);
                   }}
                 />
-                {!previewSrc ? (
+                {previewImages.length === 0 ? (
                   <p className='text-muted-foreground flex items-center gap-1 text-xs'>
-                    <Upload className='h-3 w-3' /> Optional, used as thumbnail
-                  </p>
-                ) : formData.image ? (
-                  <p className='text-muted-foreground text-xs'>
-                    Image selected: {formData.image.name}
+                    <Upload className='h-3 w-3' /> Optional, will appear in the
+                    gallery and thumbnail
                   </p>
                 ) : (
                   <p className='text-muted-foreground text-xs'>
-                    Existing image
+                    Remove existing images or add more as needed
                   </p>
                 )}
               </div>

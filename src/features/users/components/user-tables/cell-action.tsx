@@ -14,6 +14,7 @@ import {
   IconTrash,
   IconEye
 } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { UserRow } from './columns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,7 +29,7 @@ interface CellActionProps {
 export function UsersCellAction({ data }: CellActionProps) {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [openView, setOpenView] = useState(false);
+  const router = useRouter();
   const qc = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -80,9 +81,18 @@ export function UsersCellAction({ data }: CellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
+          <DropdownMenuItem
+            onClick={() => router.push(`/admin/roles?userId=${data.id}`)}
+          >
+            <IconEye className='mr-2 h-4 w-4 text-green-500' />
+            <span className='text-green-500'>Permission</span>
           </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+            <IconEdit className='mr-2 h-4 w-4 text-fuchsia-500' />
+            <span className='text-fuchsia-500'> Edit Data </span>
+          </DropdownMenuItem>
+
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <IconTrash className='mr-2 h-4 w-4 text-red-500' />
             <span className='text-red-500'>Delete </span>

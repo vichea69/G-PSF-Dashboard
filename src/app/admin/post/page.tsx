@@ -4,7 +4,6 @@ import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import PostsListPage from '@/features/post/component/post-list';
-import PostStatsClient from '@/features/post/component/post-stats-client';
 import { cn } from '@/lib/utils';
 import { IconPlus } from '@tabler/icons-react';
 import Link from 'next/link';

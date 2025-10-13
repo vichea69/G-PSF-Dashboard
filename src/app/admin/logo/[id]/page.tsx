@@ -7,16 +7,12 @@ export const metadata = {
   title: 'Dashboard: Edit Logo'
 };
 
-export default function EditLogoPage({
-  params
-}: {
-  params: { logoId: string };
-}) {
+export default function EditLogoPage({ params }: { params: { id: string } }) {
   return (
     <PageContainer scrollable>
       <div className='flex-1 space-y-4'>
         <Suspense fallback={<FormCardSkeleton />}>
-          <LogoViewPage logoId={params.logoId} />
+          <LogoViewPage logoId={params.id} />
         </Suspense>
       </div>
     </PageContainer>

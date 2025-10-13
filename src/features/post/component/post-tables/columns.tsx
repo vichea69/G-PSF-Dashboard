@@ -12,7 +12,7 @@ export type PostRow = {
   slug: string;
   content?: string;
   status: 'published' | 'draft' | string;
-  imageUrl?: string;
+  images?: { id: number; url: string; sortOrder?: number | null }[];
   updatedAt: string;
   category?: { id: number; name: string } | undefined;
   page?: { id: number; title: string; slug: string } | undefined;
@@ -20,11 +20,19 @@ export type PostRow = {
 
 export const postColumns: ColumnDef<PostRow>[] = [
   {
-    accessorKey: 'imageUrl',
+    id: 'image',
+    accessorFn: (row) => row.images?.[0]?.url ?? '',
     header: 'IMAGE',
     cell: ({ row }) => {
       const original = row.original as any;
-      const src = (row.getValue('imageUrl') as string) || original?.image || '';
+      const images = Array.isArray(original?.images) ? original.images : [];
+      const src =
+        images?.[0]?.url ||
+        (row.getValue('image') as string) ||
+        original?.imageUrl ||
+        original?.image ||
+        '';
+
       return src ? (
         <div className='relative h-20 w-20'>
           <Image
@@ -33,6 +41,11 @@ export const postColumns: ColumnDef<PostRow>[] = [
             fill
             className='rounded-md object-cover'
           />
+          {images.length > 1 ? (
+            <span className='bg-background/80 text-muted-foreground absolute right-1 bottom-1 rounded px-1 text-[10px] font-medium shadow-sm'>
+              +{images.length - 1}
+            </span>
+          ) : null}
         </div>
       ) : (
         <div className='bg-muted h-20 w-20 rounded-md' />

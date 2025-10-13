@@ -35,7 +35,7 @@ export default function ProfileSettings({ updateProfile }: Props) {
   useEffect(() => {
     if (user) {
       // Log current logged-in user for debugging
-      console.log('[ProfileSettings] Current logged-in user:', user);
+
       setForm((prev) => ({
         ...prev,
         username: user.username ?? '',
@@ -44,7 +44,6 @@ export default function ProfileSettings({ updateProfile }: Props) {
         image: user.image
       }));
     } else {
-      console.log('[ProfileSettings] No user logged in');
     }
   }, [user]);
 
@@ -75,12 +74,9 @@ export default function ProfileSettings({ updateProfile }: Props) {
       };
       if (form.password) payload.password = form.password;
 
-      console.log('[ProfileSettings] Submitting payload:', payload);
-
       if (updateProfile) {
         try {
           const data: any = await updateProfile(payload);
-          console.log('[ProfileSettings] Server result:', data);
         } catch (err) {
           // Re-throw to hit outer catch and show toast
           throw err;

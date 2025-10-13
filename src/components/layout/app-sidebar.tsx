@@ -2,16 +2,13 @@
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail
+  SidebarHeader
 } from '@/components/ui/sidebar';
 import { navItems } from '@/constants/data';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import * as React from 'react';
 import { OrgSwitcher } from '../org-switcher';
 import { getUserFromLocalStorage } from '@/lib/auth-client';
-import { SidebarFooterUserMenu } from '@/components/layout/sidebar-footer-user-menu';
 import { SidebarNavItems } from './nav-items-sidebar';
 
 export default function AppSidebar() {
@@ -68,10 +65,6 @@ export default function AppSidebar() {
       <SidebarContent className='overflow-x-hidden'>
         <SidebarNavItems items={navItems} />
       </SidebarContent>
-      {/* <SidebarFooter>
-        <SidebarFooterUserMenu user={user} />
-      </SidebarFooter>
-      <SidebarRail /> */}
     </Sidebar>
   );
 }
