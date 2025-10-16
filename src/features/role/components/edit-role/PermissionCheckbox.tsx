@@ -10,7 +10,6 @@ interface PermissionCheckboxProps {
   label: string;
 }
 
-// Simple checkbox + label block so we can reuse it in multiple sections.
 export const PermissionCheckbox: React.FC<PermissionCheckboxProps> = ({
   id,
   checked,

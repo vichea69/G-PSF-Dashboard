@@ -1,12 +1,12 @@
 'use client';
 import { useCallback, useState } from 'react';
+
 import {
   type PermissionKey,
   type PermissionState
-} from '@/features/permission/type/permissionType';
-import { createDefaultPermission } from '@/features/permission/data/permissionData';
+} from '../type/permissionType';
+import { createDefaultPermission } from '../data/permissionData';
 
-// Small helper to build default permissions for every section.
 const buildDefaultPermissions = (sectionKeys: string[]): PermissionState => {
   return sectionKeys.reduce<PermissionState>((acc, key) => {
     acc[key] = createDefaultPermission();
@@ -14,12 +14,10 @@ const buildDefaultPermissions = (sectionKeys: string[]): PermissionState => {
   }, {});
 };
 
-// Hook that wraps the permission logic so components stay easy to read.
 export const usePermission = (
   sectionKeys: string[],
   initialState?: PermissionState
 ) => {
-  // State that tracks the current permissions per section.
   const [permissions, setPermissions] = useState<PermissionState>(() => {
     if (initialState) {
       return initialState;
@@ -28,12 +26,10 @@ export const usePermission = (
     return buildDefaultPermissions(sectionKeys);
   });
 
-  // Check if every toggle is active.
   const isAllSelected = Object.values(permissions).every((section) => {
     return Object.values(section).every(Boolean);
   });
 
-  // Count all available toggles.
   const totalPermissions = Object.values(permissions).reduce(
     (total, section) => {
       return total + Object.keys(section).length;
@@ -41,13 +37,11 @@ export const usePermission = (
     0
   );
 
-  // Count the toggles that are turned on.
   const totalGranted = Object.values(permissions).reduce((total, section) => {
     const grantedCount = Object.values(section).filter(Boolean).length;
     return total + grantedCount;
   }, 0);
 
-  // Update a single permission like "view" for a given section.
   const handlePermissionChange = useCallback(
     (sectionKey: string, permissionKey: PermissionKey, value: boolean) => {
       setPermissions((prev) => {
@@ -68,7 +62,6 @@ export const usePermission = (
     []
   );
 
-  // Toggle every permission inside one section (Logo, Page, etc.).
   const handleSelectAll = useCallback((sectionKey: string) => {
     setPermissions((prev) => {
       const section = prev[sectionKey];
@@ -90,7 +83,6 @@ export const usePermission = (
     });
   }, []);
 
-  // Toggle every permission across every section at once.
   const handleGlobalSelectAll = useCallback(() => {
     const nextValue = !isAllSelected;
 

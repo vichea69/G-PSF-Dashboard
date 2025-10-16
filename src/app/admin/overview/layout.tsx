@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import React from 'react';
-
 export default function OverViewLayout({
   sales,
   pie_stats,

@@ -12,21 +12,16 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { ResourceSummary } from '@/features/role/components/shared/ResourceSummary';
 
-import {
-  sections,
-  createDefaultPermission
-} from '@/features/permission/data/permissionData';
-import { PermissionsAccordion } from '@/features/permission/components/PermissionsAccordion';
-import { ResourceSummary } from '@/features/permission/components/ResourceSummary';
-import { type PermissionState } from '@/features/permission/type/permissionType';
-import { usePermission } from '@/features/permission/hook/usePermission';
-import RoleDetailsForm from '@/features/permission/components/RoleDetailsForm';
+import { sections, createDefaultPermission } from './data/permissionData';
+import { PermissionsAccordion } from './PermissionsAccordion';
+import { type PermissionState } from './type/permissionType';
+import { usePermission } from './hook/usePermission';
+import RoleDetailsForm from './RoleDetailsForm';
 
-// Number of resources shown in the summary badge.
 const resourceCount = 154;
 
-// Basic initial data for the Logo section.
 const initialPermissions: PermissionState = {
   logo: {
     viewAny: false,
@@ -40,12 +35,9 @@ const initialPermissions: PermissionState = {
   post: createDefaultPermission()
 };
 
-// Main component that stitches the smaller blocks together.
 export const PermissionManager: React.FC = () => {
-  // Keep the key list handy so the hook knows which sections to prepare.
   const sectionKeys = sections.map((section) => section.key);
 
-  // Local form state for text inputs and accordion behaviour.
   const [roleName, setRoleName] = useState<string>('Super Admin');
   const [guardName, setGuardName] = useState<string>(
     'Description about this role'
@@ -53,7 +45,6 @@ export const PermissionManager: React.FC = () => {
   const [expandedSections, setExpandedSections] =
     useState<string[]>(sectionKeys);
 
-  // Hook keeps all permission toggles in one place.
   const {
     permissions,
     isAllSelected,
@@ -64,7 +55,6 @@ export const PermissionManager: React.FC = () => {
     handleGlobalSelectAll
   } = usePermission(sectionKeys, initialPermissions);
 
-  // Fake save handler so the UI gives feedback.
   const handleSave = () => {
     toast.success('Role permissions saved');
   };

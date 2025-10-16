@@ -27,3 +27,14 @@ export type AdminUserUpdate = {
   // include password if your backend supports updating it
   password?: string;
 };
+
+export type RolePermissionInput = {
+  resource: string;
+  actions: string[];
+};
+
+export type CreateRole = {
+  name: string;
+  description: string;
+  permissions: RolePermissionInput[];
+};

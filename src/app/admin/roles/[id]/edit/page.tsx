@@ -1,10 +1,6 @@
 import PageContainer from '@/components/layout/page-container';
-import { PermissionManager } from '@/features/permission';
+import { PermissionManager } from '@/features/role/components/edit-role/PermissionManager';
 
-// export const metadata = {
-//   title: 'Permissions'
-// };
-// Page that wires the layout to the permission feature.
 const editRole = () => {
   return (
     <PageContainer>

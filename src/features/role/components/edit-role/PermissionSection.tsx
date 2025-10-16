@@ -7,12 +7,9 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 
-import { permissionConfigs } from '@/features/permission/data/permissionData';
-import { PermissionCheckbox } from '@/features/permission/components/PermissionCheckbox';
-import {
-  type Permission,
-  type PermissionKey
-} from '@/features/permission/type/permissionType';
+import { permissionConfigs } from './data/permissionData';
+import { PermissionCheckbox } from './PermissionCheckbox';
+import { type Permission, type PermissionKey } from './type/permissionType';
 
 interface PermissionSectionProps {
   title: string;
@@ -23,7 +20,6 @@ interface PermissionSectionProps {
   onPermissionChange: (permissionKey: PermissionKey, value: boolean) => void;
 }
 
-// Accordion item that shows the toggles for a single resource section.
 export const PermissionSection: React.FC<PermissionSectionProps> = ({
   title,
   description,

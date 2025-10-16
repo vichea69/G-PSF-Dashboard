@@ -64,9 +64,17 @@ export const userItems: NavItem[] = [
     items: []
   },
   {
-    title: 'test',
-    url: '/admin/payment',
-    icon: 'shield',
+    title: 'Site Setting',
+    url: '/admin/site-setting',
+    icon: 'settings',
+    shortcut: ['r', 'r'],
+    isActive: true,
+    items: []
+  },
+  {
+    title: 'Media Manager',
+    url: '/admin/media',
+    icon: 'media2',
     shortcut: ['r', 'r'],
     isActive: true,
     items: []

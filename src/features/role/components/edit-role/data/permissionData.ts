@@ -1,6 +1,5 @@
-import { SectionConfig } from '@/features/permission/type/permissionType';
+import { SectionConfig } from '../type/permissionType';
 
-// Simple static data so components can share the same labels and sections.
 export const permissionConfigs = [
   { key: 'view' as const, label: 'View' },
   { key: 'create' as const, label: 'Create' },

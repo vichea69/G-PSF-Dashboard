@@ -1,28 +1,67 @@
-import { Checkbox } from '@/components/ui/checkbox';
+import { useMemo } from 'react';
 
-import { AVAILABLE_ACTIONS, type Action, type Permission } from './types';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { RoleResourceDefinition } from '@/features/role/type/role';
+
+import type { PermissionSelection } from './types';
 
 type PermissionsTableProps = {
-  permissions: Permission[];
-  onToggleAction: (resource: string, action: Action, checked: boolean) => void;
+  resources: RoleResourceDefinition[];
+  selected: PermissionSelection[];
+  onToggleAction: (resource: string, action: string, checked: boolean) => void;
   onToggleAll: (resource: string, checked: boolean) => void;
 };
 
 type CheckboxState = boolean | 'indeterminate';
 
+type ActionColumn = {
+  action: string;
+  label: string;
+};
+
 export function PermissionsTable({
-  permissions,
+  resources,
+  selected,
   onToggleAction,
   onToggleAll
 }: PermissionsTableProps) {
+  const selectedMap = useMemo(() => {
+    return new Map(selected.map((entry) => [entry.resource, entry.actions]));
+  }, [selected]);
+
+  const actionColumns = useMemo<ActionColumn[]>(() => {
+    const seen = new Map<string, string>();
+    for (const resource of resources) {
+      for (const action of resource.actions) {
+        if (!seen.has(action.action)) {
+          seen.set(action.action, action.label);
+        }
+      }
+    }
+    return Array.from(seen.entries()).map(([action, label]) => ({
+      action,
+      label
+    }));
+  }, [resources]);
+
+  if (resources.length === 0) {
+    return (
+      <div className='text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm'>
+        No resources available.
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-3'>
-      <PermissionsHeaderRow />
+      <PermissionsHeaderRow actionColumns={actionColumns} />
       <div className='divide-border border-border divide-y overflow-hidden rounded-lg border'>
-        {permissions.map((permission) => (
+        {resources.map((resource) => (
           <PermissionRow
-            key={permission.resource}
-            permission={permission}
+            key={resource.resource}
+            resource={resource}
+            actionColumns={actionColumns}
+            selectedActions={selectedMap.get(resource.resource) ?? []}
             onToggleAction={onToggleAction}
             onToggleAll={onToggleAll}
           />
@@ -32,13 +71,17 @@ export function PermissionsTable({
   );
 }
 
-function PermissionsHeaderRow() {
+function PermissionsHeaderRow({
+  actionColumns
+}: {
+  actionColumns: ActionColumn[];
+}) {
   return (
     <div className='text-muted-foreground grid grid-cols-6 items-center gap-4 px-5 py-3 text-sm font-medium'>
-      <span className='col-span-2'>Resource</span>
-      {AVAILABLE_ACTIONS.map((action) => (
-        <span key={action} className='text-center capitalize'>
-          {action}
+      <span className='col-span-2 text-left'>Resource</span>
+      {actionColumns.map((column) => (
+        <span key={column.action} className='text-center'>
+          {column.label || column.action}
         </span>
       ))}
     </div>
@@ -46,43 +89,67 @@ function PermissionsHeaderRow() {
 }
 
 type PermissionRowProps = {
-  permission: Permission;
-  onToggleAction: (resource: string, action: Action, checked: boolean) => void;
+  resource: RoleResourceDefinition;
+  actionColumns: ActionColumn[];
+  selectedActions: string[];
+  onToggleAction: (resource: string, action: string, checked: boolean) => void;
   onToggleAll: (resource: string, checked: boolean) => void;
 };
 
 function PermissionRow({
-  permission,
+  resource,
+  actionColumns,
+  selectedActions,
   onToggleAction,
   onToggleAll
 }: PermissionRowProps) {
-  const selectAllState = getSelectAllState(permission.actions);
+  const availableActions = resource.actions.map((action) => action.action);
+  const availableSet = new Set(availableActions);
+  const selectAllState = getSelectAllState(selectedActions, availableActions);
 
   return (
     <div className='bg-background hover:bg-muted/40 grid grid-cols-6 items-center gap-4 px-5 py-3 transition-colors'>
-      <div className='col-span-2 flex items-center gap-3'>
+      <div className='col-span-2 flex items-start gap-3'>
         <Checkbox
           checked={selectAllState}
           onCheckedChange={(checked) =>
-            onToggleAll(permission.resource, checked === true)
+            onToggleAll(resource.resource, checked === true)
           }
-          aria-label={`Toggle all permissions for ${permission.resource}`}
+          aria-label={`Toggle all permissions for ${resource.label || resource.resource}`}
         />
-        <span className='text-foreground text-sm font-medium capitalize'>
-          {permission.resource}
-        </span>
+        <div className='flex flex-col'>
+          <span className='text-foreground text-sm font-medium'>
+            {resource.label || resource.resource}
+          </span>
+          {resource.description ? (
+            <span className='text-muted-foreground text-xs'>
+              {resource.description}
+            </span>
+          ) : null}
+        </div>
       </div>
 
-      {AVAILABLE_ACTIONS.map((action) => {
-        const isChecked = permission.actions.includes(action);
+      {actionColumns.map((column) => {
+        const isAvailable = availableSet.has(column.action);
+        const isChecked =
+          isAvailable && selectedActions.includes(column.action);
+
         return (
-          <div key={action} className='flex items-center justify-center'>
+          <div key={column.action} className='flex items-center justify-center'>
             <Checkbox
-              aria-label={`Allow ${action} on ${permission.resource}`}
+              aria-label={`Allow ${column.label || column.action} on ${resource.label || resource.resource}`}
               checked={isChecked}
-              onCheckedChange={(checked) =>
-                onToggleAction(permission.resource, action, checked === true)
-              }
+              disabled={!isAvailable}
+              onCheckedChange={(checked) => {
+                if (!isAvailable) {
+                  return;
+                }
+                onToggleAction(
+                  resource.resource,
+                  column.action,
+                  checked === true
+                );
+              }}
             />
           </div>
         );
@@ -91,14 +158,25 @@ function PermissionRow({
   );
 }
 
-function getSelectAllState(actions: Action[]): CheckboxState {
-  if (actions.length === AVAILABLE_ACTIONS.length) {
+function getSelectAllState(
+  selectedActions: string[],
+  availableActions: string[]
+): CheckboxState {
+  if (availableActions.length === 0) {
+    return false;
+  }
+
+  const selectedSet = new Set(
+    selectedActions.filter((action) => availableActions.includes(action))
+  );
+
+  if (selectedSet.size === 0) {
+    return false;
+  }
+
+  if (selectedSet.size === availableActions.length) {
     return true;
   }
 
-  if (actions.length > 0) {
-    return 'indeterminate';
-  }
-
-  return false;
+  return 'indeterminate';
 }

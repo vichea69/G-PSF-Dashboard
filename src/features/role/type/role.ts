@@ -17,3 +17,15 @@ export interface ApiResponse<T> {
   timestamp: string;
   version: string;
 }
+
+export type RoleResourceAction = {
+  action: string;
+  label: string;
+};
+
+export type RoleResourceDefinition = {
+  resource: string;
+  label: string;
+  description?: string | null;
+  actions: RoleResourceAction[];
+};

@@ -36,7 +36,7 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
       await DeleteRole(roleId);
     },
     onSuccess: () => {
-      toast.success(`Role "${role.name}" deleted`);
+      toast.success(`Role "${role.name}" deleted successfully`);
       setOpenDelete(false);
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
     },

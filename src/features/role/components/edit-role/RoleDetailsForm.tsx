@@ -10,8 +10,8 @@ export default function RoleDetailsForm({
 }: {
   roleName: string;
   guardName: string;
-  onRoleName: (v: string) => void;
-  onGuardName: (v: string) => void;
+  onRoleName: (value: string) => void;
+  onGuardName: (value: string) => void;
 }) {
   return (
     <div className='grid gap-6 sm:grid-cols-2'>
@@ -25,7 +25,7 @@ export default function RoleDetailsForm({
         <Input
           id='role-name'
           value={roleName}
-          onChange={(e) => onRoleName(e.target.value)}
+          onChange={(event) => onRoleName(event.target.value)}
           placeholder='your_name'
           required
         />
@@ -35,7 +35,7 @@ export default function RoleDetailsForm({
         <Input
           id='guard-name'
           value={guardName}
-          onChange={(e) => onGuardName(e.target.value)}
+          onChange={(event) => onGuardName(event.target.value)}
           placeholder='About this role...'
         />
       </div>

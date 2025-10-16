@@ -11,7 +11,6 @@ interface ResourceSummaryProps {
   onToggleAll: () => void;
 }
 
-// Displays the counts and the global select/deselect button.
 export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   resourceCount,
   totalPermissions,
