@@ -1,7 +1,7 @@
 export default function Page() {
   return (
-    <div>
-      <h1>media</h1>
+    <div className='text-destructive flex h-full items-center justify-center text-center'>
+      <h1>Media Setting !!</h1>
     </div>
   );
 }

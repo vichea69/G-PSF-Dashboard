@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 const DEFAULT_THEMES = [
   {
@@ -50,22 +51,30 @@ const MONO_THEMES = [
   }
 ];
 
-export function ThemeSelector() {
+interface ThemeSelectorProps {
+  className?: string;
+  triggerClassName?: string;
+}
+
+export function ThemeSelector({
+  className,
+  triggerClassName
+}: ThemeSelectorProps = {}) {
   const { activeTheme, setActiveTheme } = useThemeConfig();
 
   return (
-    <div className='flex items-center gap-2'>
+    <div className={cn('flex items-center gap-2', className)}>
       <Label htmlFor='theme-selector' className='sr-only'>
         Theme
       </Label>
       <Select value={activeTheme} onValueChange={setActiveTheme}>
         <SelectTrigger
           id='theme-selector'
-          className='justify-start *:data-[slot=select-value]:w-12'
+          className={cn(
+            'justify-start *:data-[slot=select-value]:w-12',
+            triggerClassName
+          )}
         >
-          {/* <span className='text-muted-foreground hidden sm:block'>
-            Select a theme:
-          </span> */}
           <span className='text-muted-foreground block sm:hidden'>Theme</span>
           <SelectValue placeholder='Select a theme' />
         </SelectTrigger>

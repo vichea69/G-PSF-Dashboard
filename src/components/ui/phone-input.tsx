@@ -39,7 +39,6 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
           value={value ?? ''}
           onChange={handleChange}
           inputMode='tel'
-          pattern='[0-9]*'
           {...props}
           className={cn('rounded-l-none border-l-0', inputClassName)}
         />

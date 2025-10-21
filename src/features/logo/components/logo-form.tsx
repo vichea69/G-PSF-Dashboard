@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Save, Upload } from 'lucide-react';
 import ProgressUpload from '@/components/file-upload/progress-upload';
 
@@ -105,9 +104,6 @@ export default function LogoForm({
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 Logo Details
-                <Badge variant='secondary' className='text-xs'>
-                  Required
-                </Badge>
               </CardTitle>
               <CardDescription>Set your company name and logo</CardDescription>
             </CardHeader>
@@ -120,9 +116,21 @@ export default function LogoForm({
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, title: e.target.value }))
                   }
-                  placeholder='Enter company or brand name'
+                  placeholder='name'
                   className='mt-1'
                 />
+              </div>
+            </CardContent>
+            <CardContent className='space-y-4'>
+              <div>
+                <Label htmlFor='description'>Description</Label>
+                <Input placeholder='description' className='mt-1' />
+              </div>
+            </CardContent>
+            <CardContent className='space-y-4'>
+              <div>
+                <Label htmlFor='link'>Link</Label>
+                <Input placeholder='link url' className='mt-1' />
               </div>
             </CardContent>
           </Card>
@@ -212,7 +220,7 @@ export default function LogoForm({
                 </Button>
                 <Button onClick={handleSubmit}>
                   <Save className='mr-2 h-4 w-4' />
-                  {editingLogo ? 'Update Logo' : 'Create Logo'}
+                  {editingLogo ? 'Save change' : 'Create'}
                 </Button>
               </div>
             </CardContent>

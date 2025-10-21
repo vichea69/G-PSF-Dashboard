@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { IconLogout, IconUserCircle } from '@tabler/icons-react';
+import { PaletteIcon } from 'lucide-react';
+import { ThemeSelector } from '../theme-selector';
 
 export function UserNav() {
   const router = useRouter();
@@ -85,6 +87,11 @@ export function UserNav() {
             Profile & Setting
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <PaletteIcon className='mr-2 h-4 w-4' />
+          Theme colors
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <IconLogout className='mr-2 h-4 w-4' />

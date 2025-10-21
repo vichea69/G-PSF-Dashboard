@@ -1,9 +1,9 @@
 'use client';
 
-import { useRoleBySlug } from '@/features/role/hook/use-role';
+import { useSiteSetting } from '@/features/site-setting/hook/use-site-setting';
 
 export default function TestApiPage() {
-  const { data: logo, isLoading, error } = useRoleBySlug('test');
+  const { data: logo, isLoading, error } = useSiteSetting();
   return (
     <div className='min-h-screen bg-gray-50 p-6'>
       <div className='mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-md'>

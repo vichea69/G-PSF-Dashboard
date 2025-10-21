@@ -17,13 +17,8 @@ export function RoleInfoSection({
 }: RoleInfoSectionProps) {
   return (
     <div className='grid gap-6 sm:grid-cols-2'>
-      <div className='space-y-2'>
-        <Label htmlFor='role-name'>
-          Role name
-          <span aria-hidden className='text-destructive'>
-            *
-          </span>
-        </Label>
+      <div className='space-y-'>
+        <Label htmlFor='role-name'>Role name</Label>
         <Input
           id='role-name'
           placeholder='Enter role name'
@@ -32,14 +27,13 @@ export function RoleInfoSection({
         />
       </div>
 
-      <div className='space-y-2 sm:col-span-2'>
+      <div>
         <Label htmlFor='role-description'>Description</Label>
-        <Textarea
+        <Input
           id='role-description'
-          placeholder='Optional details for this role'
+          placeholder='short description about this role'
           value={description}
           onChange={(event) => onDescriptionChange(event.target.value)}
-          rows={3}
         />
       </div>
     </div>

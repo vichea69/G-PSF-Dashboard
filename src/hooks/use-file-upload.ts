@@ -3,6 +3,7 @@
 import type React from 'react';
 import {
   useCallback,
+  useEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -83,6 +84,71 @@ export const useFileUpload = (
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const lastInitialHashRef = useRef<string | null>(null);
+  const shouldSkipNotificationRef = useRef(false);
+  const onFilesChangeRef =
+    useRef<FileUploadOptions['onFilesChange']>(onFilesChange);
+
+  useEffect(() => {
+    onFilesChangeRef.current = onFilesChange;
+  }, [onFilesChange]);
+
+  useEffect(() => {
+    if (!Array.isArray(initialFiles)) {
+      return;
+    }
+
+    const nextFiles: FileWithPreview[] = initialFiles.map((file) => ({
+      file,
+      id: file.id,
+      preview: file.url
+    }));
+
+    const serialize = (file: FileWithPreview) => {
+      const base = `${file.id}:${file.preview ?? ''}`;
+
+      if (file.file instanceof File) {
+        return `${base}:${file.file.name}:${file.file.size}:${file.file.type}`;
+      }
+
+      return `${base}:${file.file.name}:${file.file.size}:${file.file.type}:${file.file.url ?? ''}`;
+    };
+
+    const nextSignature = nextFiles.map(serialize);
+    const nextHash = nextSignature.join('|');
+
+    let didUpdateState = false;
+
+    setState((prev) => {
+      const hasChanges =
+        prev.files.length !== nextFiles.length ||
+        prev.files.some(
+          (file, index) => serialize(file) !== (nextSignature[index] ?? '')
+        );
+
+      if (!hasChanges) {
+        return prev;
+      }
+
+      didUpdateState = true;
+
+      return {
+        ...prev,
+        files: nextFiles,
+        errors: []
+      };
+    });
+
+    const shouldNotify =
+      didUpdateState || lastInitialHashRef.current !== nextHash;
+
+    if (shouldNotify) {
+      shouldSkipNotificationRef.current = !didUpdateState;
+    }
+
+    lastInitialHashRef.current = nextHash;
+  }, [initialFiles]);
+
   const validateFile = useCallback(
     (file: File | FileMetadata): string | null => {
       if (file instanceof File) {
@@ -140,7 +206,6 @@ export const useFileUpload = (
 
   const clearFiles = useCallback(() => {
     setState((prev) => {
-      // Clean up object URLs
       prev.files.forEach((file) => {
         if (
           file.preview &&
@@ -155,16 +220,15 @@ export const useFileUpload = (
         inputRef.current.value = '';
       }
 
-      const newState = {
+      shouldSkipNotificationRef.current = false;
+
+      return {
         ...prev,
         files: [],
         errors: []
       };
-
-      onFilesChange?.(newState.files);
-      return newState;
     });
-  }, [onFilesChange]);
+  }, []);
 
   const addFiles = useCallback(
     (newFiles: FileList | File[]) => {
@@ -178,7 +242,26 @@ export const useFileUpload = (
 
       // In single file mode, clear existing files first
       if (!multiple) {
-        clearFiles();
+        setState((prev) => {
+          prev.files.forEach((file) => {
+            if (
+              file.preview &&
+              file.file instanceof File &&
+              file.file.type.startsWith('image/')
+            ) {
+              URL.revokeObjectURL(file.preview);
+            }
+          });
+          if (inputRef.current) {
+            inputRef.current.value = '';
+          }
+          shouldSkipNotificationRef.current = false;
+          return {
+            ...prev,
+            files: [],
+            errors: []
+          };
+        });
       }
 
       // Check if adding these files would exceed maxFiles (only in multiple mode)
@@ -240,7 +323,7 @@ export const useFileUpload = (
           const newFiles = !multiple
             ? validFiles
             : [...prev.files, ...validFiles];
-          onFilesChange?.(newFiles);
+          shouldSkipNotificationRef.current = false;
           return {
             ...prev,
             files: newFiles,
@@ -267,37 +350,47 @@ export const useFileUpload = (
       validateFile,
       createPreview,
       generateUniqueId,
-      clearFiles,
-      onFilesChange,
       onFilesAdded
     ]
   );
 
-  const removeFile = useCallback(
-    (id: string) => {
-      setState((prev) => {
-        const fileToRemove = prev.files.find((file) => file.id === id);
-        if (
-          fileToRemove &&
-          fileToRemove.preview &&
-          fileToRemove.file instanceof File &&
-          fileToRemove.file.type.startsWith('image/')
-        ) {
-          URL.revokeObjectURL(fileToRemove.preview);
-        }
+  const removeFile = useCallback((id: string) => {
+    setState((prev) => {
+      const fileToRemove = prev.files.find((file) => file.id === id);
+      if (
+        fileToRemove &&
+        fileToRemove.preview &&
+        fileToRemove.file instanceof File &&
+        fileToRemove.file.type.startsWith('image/')
+      ) {
+        URL.revokeObjectURL(fileToRemove.preview);
+      }
 
-        const newFiles = prev.files.filter((file) => file.id !== id);
-        onFilesChange?.(newFiles);
+      const newFiles = prev.files.filter((file) => file.id !== id);
+      shouldSkipNotificationRef.current = false;
 
-        return {
-          ...prev,
-          files: newFiles,
-          errors: []
-        };
-      });
-    },
-    [onFilesChange]
-  );
+      return {
+        ...prev,
+        files: newFiles,
+        errors: []
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    const callback = onFilesChangeRef.current;
+
+    if (!callback) {
+      return;
+    }
+
+    if (shouldSkipNotificationRef.current) {
+      shouldSkipNotificationRef.current = false;
+      return;
+    }
+
+    callback(state.files);
+  }, [state.files]);
 
   const clearErrors = useCallback(() => {
     setState((prev) => ({

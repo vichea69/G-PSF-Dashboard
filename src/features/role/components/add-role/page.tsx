@@ -6,14 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ResourceSummary } from '@/features/role/components/shared/ResourceSummary';
@@ -22,7 +15,6 @@ import { CreateRole as createRole } from '@/server/action/admin/role';
 import type { CreateRole as CreateRolePayload } from '@/server/action/admin/types';
 import type { RoleResourceDefinition } from '@/features/role/type/role';
 
-import { NewRoleHeader } from './NewRoleHeader';
 import { PermissionsTable } from './PermissionsTable';
 import { RoleInfoSection } from './RoleInfoSection';
 import type { PermissionSelection } from './types';
@@ -309,19 +301,9 @@ export default function AddRolePage() {
 
   return (
     <section className='space-y-6'>
-      <NewRoleHeader />
-
       <form onSubmit={handleSubmit}>
         <Card>
-          <CardHeader className='border-b'>
-            <CardTitle className='text-xl'>Role details</CardTitle>
-            <CardDescription>
-              Update the basic information and default permissions for this
-              role.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className='space-y-6 pt-6'>
+          <CardContent className='space-y-6'>
             <RoleInfoSection
               name={name}
               description={description}

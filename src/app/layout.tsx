@@ -19,6 +19,11 @@ const META_THEME_COLORS = {
 export const metadata: Metadata = {
   title: 'GFSM Dashboard',
   description: 'GFSM Dashboard'
+  // icons: {
+  //   icon: '/assets/kh.svg',
+  //   shortcut: '/assets/kh.svg',
+  //   apple: '/assets/kh.svg'
+  // },
 };
 
 export const viewport: Viewport = {

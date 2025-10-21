@@ -2,14 +2,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ResourceSummary } from '@/features/role/components/shared/ResourceSummary';
@@ -61,12 +54,6 @@ export const PermissionManager: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className='border-b'>
-        <CardTitle className='text-xl'>Role details</CardTitle>
-        <CardDescription>
-          Update the name, guard, and resource permissions for this role.
-        </CardDescription>
-      </CardHeader>
       <CardContent className='space-y-6'>
         <RoleDetailsForm
           roleName={roleName}

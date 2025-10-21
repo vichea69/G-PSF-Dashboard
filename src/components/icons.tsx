@@ -33,7 +33,7 @@ import {
   IconMenu2,
   IconLayoutBottombar
 } from '@tabler/icons-react';
-import { ImageUpIcon } from 'lucide-react';
+import { ImageUpIcon, PaletteIcon } from 'lucide-react';
 
 export type Icon = React.ComponentType<IconProps>;
 
@@ -70,5 +70,6 @@ export const Icons = {
   shield: IconShield,
   menu: IconMenu2,
   footer: IconLayoutBottombar,
-  media2: ImageUpIcon
+  media2: ImageUpIcon,
+  PaletteIcon: PaletteIcon
 };

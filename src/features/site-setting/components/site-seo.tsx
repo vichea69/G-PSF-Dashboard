@@ -24,11 +24,9 @@ import { Separator } from '@/components/ui/separator';
 
 export const siteSeoFormSchema = z.object({
   siteName: z.string().min(1, { message: 'Site name is required.' }),
-  siteDescription: z
-    .string()
-    .min(1, {
-      message: 'Description helps search engines understand your site.'
-    }),
+  siteDescription: z.string().min(1, {
+    message: 'Description helps search engines understand your site.'
+  }),
   siteKeywords: z.string().min(1, { message: 'Add at least one keyword.' }),
   supportPhone: z.string().min(1, { message: 'Phone number is required.' }),
   siteAuthor: z.string().min(1, { message: 'Author is required.' }),
@@ -38,12 +36,12 @@ export const siteSeoFormSchema = z.object({
 export type SiteSeoFormValues = z.infer<typeof siteSeoFormSchema>;
 
 export const siteSeoDefaultValues: SiteSeoFormValues = {
-  siteName: '',
-  siteDescription: '',
-  siteKeywords: '',
-  supportPhone: '',
-  siteAuthor: '',
-  contactEmail: ''
+  siteName: 'G-PSF',
+  siteDescription: 'About G-PSF',
+  siteKeywords: 'programming, tech, blog',
+  supportPhone: '060 896 949',
+  siteAuthor: 'Srin Vichea',
+  contactEmail: 'smart.vichea@gmail.com'
 };
 
 export default function SiteSeoForm() {
@@ -65,7 +63,7 @@ export default function SiteSeoForm() {
           name='siteName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Site name</FormLabel>
+              <FormLabel>Site Name</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -80,7 +78,7 @@ export default function SiteSeoForm() {
           name='siteDescription'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Site description</FormLabel>
+              <FormLabel>Site Description</FormLabel>
               <FormControl>
                 <Textarea className='resize-none' {...field} />
               </FormControl>
@@ -111,7 +109,7 @@ export default function SiteSeoForm() {
             name='supportPhone'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Support phone</FormLabel>
+                <FormLabel>Site Phone</FormLabel>
                 <FormControl>
                   <PhoneInput {...field} />
                 </FormControl>

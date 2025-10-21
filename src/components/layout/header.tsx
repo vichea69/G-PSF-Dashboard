@@ -18,14 +18,13 @@ export default function Header() {
       </div>
 
       <div className='flex items-center gap-2 px-4'>
-        {/* <CtaGithub /> */}
         <div className='hidden md:flex'>
           <SearchInput />
         </div>
         <UserNav />
         <LanguageSwitcher />
-        <ModeToggle />
-        <ThemeSelector />
+        {/* <ModeToggle />
+        <ThemeSelector /> */}
       </div>
     </header>
   );

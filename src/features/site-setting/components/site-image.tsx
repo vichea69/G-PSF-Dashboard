@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import {
   formatBytes,
   useFileUpload,
+  type FileMetadata,
   type FileWithPreview
 } from '@/hooks/use-file-upload';
 import { Separator } from '@/components/ui/separator';
@@ -27,6 +28,7 @@ import Image from 'next/image';
 interface SiteImageProps {
   onProfileImageChange?: (files: FileWithPreview[]) => void;
   onLogoImageChange?: (files: FileWithPreview[]) => void;
+  initialLogoFiles?: FileMetadata[];
 }
 
 interface ImageUploadFieldProps {
@@ -36,17 +38,20 @@ interface ImageUploadFieldProps {
   accept: string;
   maxSize: number;
   onChange?: (files: FileWithPreview[]) => void;
+  initialFiles?: FileMetadata[];
 }
 
 function ImageUploadField({
   accept,
   maxSize,
-  onChange
+  onChange,
+  initialFiles
 }: ImageUploadFieldProps) {
   const [{ files, isDragging, errors }, actions] = useFileUpload({
     accept,
     maxSize,
     multiple: false,
+    initialFiles,
     onFilesChange: onChange
   });
 
@@ -173,7 +178,10 @@ function ImageUploadField({
   );
 }
 
-export default function SiteImage({ onLogoImageChange }: SiteImageProps) {
+export default function SiteImage({
+  onLogoImageChange,
+  initialLogoFiles
+}: SiteImageProps) {
   return (
     <Card>
       <CardHeader>
@@ -191,6 +199,8 @@ export default function SiteImage({ onLogoImageChange }: SiteImageProps) {
           accept='image/png,image/jpeg,image/svg+xml'
           maxSize={3 * 1024 * 1024}
           onChange={onLogoImageChange}
+          initialFiles={initialLogoFiles}
+          key={initialLogoFiles?.[0]?.id ?? 'site-logo-field'}
         />
       </CardContent>
     </Card>
