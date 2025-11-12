@@ -85,7 +85,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
   {
     accessorKey: 'lastLogin',
     header: 'Last Login',
-    cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} short />
+    cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} />
   },
   {
     id: 'actions',

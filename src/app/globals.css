@@ -1,10 +1,11 @@
+@import '../styles/_variables.scss';
+@import '../styles/_keyframe-animations.scss';
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
+@import './theme.css';
 
 @custom-variant dark (&:is(.dark *));
-
-@import './theme.css';
 
 :root {
   --radius: 0.625rem;
@@ -76,6 +77,7 @@
 }
 
 @theme inline {
+  --color-pink-500: #ec4899;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

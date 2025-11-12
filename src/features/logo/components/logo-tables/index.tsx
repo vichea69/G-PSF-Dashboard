@@ -1,6 +1,8 @@
 'use client';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
+  ColumnFiltersState,
+  getFilteredRowModel,
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
@@ -8,16 +10,25 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { logoColumns, type LogoRow } from './columns';
+import { logoColumns } from './columns';
+import { LogoType } from '@/features/logo/type/logo-type';
 
-export function LogoTableList({ data }: { data: LogoRow[] }) {
+export function LogoTableList({ data }: { data: LogoType[] }) {
   const columns = useMemo(() => logoColumns, []);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel()
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      columnFilters
+    }
   });
 
   return (

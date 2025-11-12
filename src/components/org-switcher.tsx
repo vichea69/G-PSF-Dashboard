@@ -39,7 +39,7 @@ export function OrgSwitcher() {
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          size='lg'
+          size='default'
           className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
         >
           <Link href='/admin/overview'>

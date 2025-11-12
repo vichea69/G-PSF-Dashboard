@@ -1,15 +1,14 @@
 'use client';
-
-import { useSiteSetting } from '@/features/site-setting/hook/use-site-setting';
+import { useLogo } from '@/features/logo/hook/use-logo';
 
 export default function TestApiPage() {
-  const { data: logo, isLoading, error } = useSiteSetting();
+  const { data: logo, isLoading, error } = useLogo();
   return (
-    <div className='min-h-screen bg-gray-50 p-6'>
-      <div className='mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-md'>
-        <h1 className='mb-4 text-2xl font-bold text-gray-800'>
-          Test API Response
-        </h1>
+    <div className='min-h-screen p-6'>
+      <div className='rounded-x mx-auto max-w-3xl bg-blue-700 p-6 shadow-md'>
+        <p className='mb-4 cursor-pointer bg-pink-400 text-center text-2xl text-pink-600'>
+          Testing API Response
+        </p>
 
         {isLoading && <p className='text-gray-500'>Loading...</p>}
         {error && <p className='text-red-500'>Error: {error.message}</p>}

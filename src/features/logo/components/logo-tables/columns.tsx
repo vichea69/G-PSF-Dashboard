@@ -1,55 +1,38 @@
 'use client';
 import Image from 'next/image';
-import { Column, ColumnDef } from '@tanstack/react-table';
-import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
+import { ColumnDef } from '@tanstack/react-table';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { CellAction } from './cell-action';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
+import { LogoType } from '@/features/logo/type/logo-type';
+import * as React from 'react';
 
-export type LogoRow = {
-  id: number;
-  title: string;
-  url: string;
-  link: string;
-  description: string;
-  updatedAt: string;
-  createdAt: string;
-};
-
-export const logoColumns: ColumnDef<LogoRow>[] = [
+export const logoColumns: ColumnDef<LogoType>[] = [
   {
-    id: 'id',
-    accessorFn: (row) => String((row as LogoRow).id ?? ''),
+    accessorKey: 'id',
     header: 'ID'
   },
   {
-    id: 'url',
     header: 'Logo',
+    accessorKey: 'url',
     cell: ({ row }) => {
-      const src = (row.original as LogoRow).url;
-      const alt = (row.original as LogoRow).title || 'logo';
-      return src ? (
+      const { url: src, title = 'logo' } = row.original;
+      return (
         <div className='relative h-16 w-16'>
           <Image
             src={src}
-            alt={alt}
+            alt={title}
             fill
             className='rounded-md object-contain'
           />
         </div>
-      ) : (
-        <div className='bg-muted h-16 w-16 rounded-md' />
       );
     }
   },
   {
-    id: 'title',
-    accessorFn: (row) => (row as LogoRow).title,
-    header: ({ column }: { column: Column<LogoRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Company Name' />
-    ),
-    enableColumnFilter: true,
+    accessorKey: 'title',
+    header: 'Name',
     meta: {
       label: 'Company Name',
       placeholder: 'Search company name...',
@@ -57,21 +40,14 @@ export const logoColumns: ColumnDef<LogoRow>[] = [
     }
   },
   {
-    id: 'description',
-    accessorFn: (row) => (row as LogoRow).description,
-    header: ({ column }: { column: Column<LogoRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Description' />
-    ),
-    enableColumnFilter: true
+    accessorKey: 'description',
+    header: 'Description'
   },
   {
-    id: 'link',
-    accessorFn: (row) => (row as LogoRow).link,
-    header: ({ column }: { column: Column<LogoRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='URL' />
-    ),
+    accessorKey: 'link',
+    header: 'Link',
     cell: ({ row }) => {
-      const link = (row.original as LogoRow).link;
+      const link = (row.original as LogoType).link;
 
       if (!link) {
         return (
@@ -101,12 +77,12 @@ export const logoColumns: ColumnDef<LogoRow>[] = [
 
   {
     id: 'updatedAt',
-    accessorFn: (row) => (row as LogoRow).updatedAt ?? '',
+    accessorFn: (row) => (row as LogoType).updatedAt ?? '',
     header: 'Updated',
     cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} />
   },
   {
     id: 'actions',
-    cell: ({ row }) => <CellAction data={row.original as LogoRow} />
+    cell: ({ row }) => <CellAction data={row.original as LogoType} />
   }
 ];

@@ -1,8 +1,0 @@
-SiteSetting {
-    siteName
-    SiteDescription
-    SiteKeyword
-    SitePhone
-    SiteAuthor
-    SiteLogo
-}

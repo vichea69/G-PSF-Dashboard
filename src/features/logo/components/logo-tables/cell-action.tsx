@@ -10,14 +10,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { LogoRow } from './columns';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { LogoType } from '@/features/logo/type/logo-type';
 
 interface CellActionProps {
-  data: LogoRow;
+  data: LogoType;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {

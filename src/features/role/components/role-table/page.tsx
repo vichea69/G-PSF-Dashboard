@@ -11,7 +11,6 @@ export default function RolesTablePage() {
 
   if (isLoading)
     return <DataTableSkeleton columnCount={6} filterCount={6} rowCount={8} />;
-
   if (isError) return <div className='text-destructive'>Server down</div>;
 
   return <DataTable columns={tableColumns} data={data ?? []} />;
