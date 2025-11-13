@@ -2,12 +2,15 @@
 //fecth all users from api
 import { api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import { getAuthHeaders } from '@/server/action/userAuth/user';
 
 export const useUser = () => {
   return useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const response = await api.get('/users');
+      const headers = await getAuthHeaders();
+      const response = await api.get('/users', { headers });
+      console.log(response);
       return response.data;
     }
   });
