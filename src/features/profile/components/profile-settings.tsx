@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { type AuthClientUser } from '@/lib/auth-client';
 import { redirect } from 'next/navigation';
-import { useAuth } from '@/store/auth';
+import { useAuth } from '@/store/auth.store';
 
 type Props = {
   updateProfile?: (payload: any) => Promise<any>;
