@@ -78,31 +78,31 @@ export const userItems: NavItem[] = [
     shortcut: ['r', 'r'],
     isActive: true,
     items: []
-  },
-  {
-    title: 'Test Tab',
-    url: '/admin/testcomponent/tab',
-    icon: 'PaletteIcon',
-    shortcut: ['r', 'r'],
-    isActive: true,
-    items: []
-  },
-  {
-    title: 'Test RichEditor',
-    url: '/admin/testcomponent/editor',
-    icon: 'close',
-    shortcut: ['r', 'r'],
-    isActive: true,
-    items: []
-  },
-  {
-    title: 'Test Image-Uploader',
-    url: '/admin/testcomponent',
-    icon: 'close',
-    shortcut: ['r', 'r'],
-    isActive: true,
-    items: []
   }
+  // {
+  //   title: 'Test Tab',
+  //   url: '/admin/testcomponent/tab',
+  //   icon: 'PaletteIcon',
+  //   shortcut: ['r', 'r'],
+  //   isActive: true,
+  //   items: []
+  // },
+  // {
+  //   title: 'Test RichEditor',
+  //   url: '/admin/testcomponent/editor',
+  //   icon: 'close',
+  //   shortcut: ['r', 'r'],
+  //   isActive: true,
+  //   items: []
+  // },
+  // {
+  //   title: 'Test Image-Uploader',
+  //   url: '/admin/testcomponent',
+  //   icon: 'close',
+  //   shortcut: ['r', 'r'],
+  //   isActive: true,
+  //   items: []
+  // }
 ];
 export const siteItems: NavItem[] = [
   {
