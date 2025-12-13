@@ -3,21 +3,12 @@
   <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/9113740/201498152-b171abb8-9225-487a-821c-6ff49ee48579.png">
 </picture>
 
-<div align="center"><strong>Next.js Admin Dashboard Starter Template With Shadcn-ui</strong></div>
-<div align="center">Built with the Next.js 15 App Router</div>
-<br />
-<div align="center">
-<a href="https://dub.sh/shadcn-dashboard">View Demo</a>
-<span>
-</div>
-
 ## Overview tech-stack
 
 This is a starter template using the following stack:
 
 - Framework - [Next.js 15](https://nextjs.org/13)
 - Language - [TypeScript](https://www.typescriptlang.org)
-- Auth - [Clerk](https://go.clerk.com/ILdYhn7)
 - Error tracking - [<picture><img alt="Sentry" src="public/assets/sentry.svg">
   </picture>](https://sentry.io/for/nextjs/?utm_source=github&utm_medium=paid-community&utm_campaign=general-fy26q2-nextjs&utm_content=github-banner-project-tryfree)
 - Styling - [Tailwind CSS v4](https://tailwindcss.com)
