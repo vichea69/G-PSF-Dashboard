@@ -1,8 +1,8 @@
 'use client';
-import { useLogo } from '@/features/logo/hook/use-logo';
+import { useMedia } from '@/features/media/hook/use-media';
 
 export default function TestApiPage() {
-  const { data: logo, isLoading, error } = useLogo();
+  const { data: media, isLoading, error } = useMedia();
   return (
     <div className='min-h-screen p-6'>
       <div className='rounded-x mx-auto max-w-3xl bg-blue-700 p-6 shadow-md'>
@@ -13,10 +13,10 @@ export default function TestApiPage() {
         {isLoading && <p className='text-gray-500'>Loading...</p>}
         {error && <p className='text-red-500'>Error: {error.message}</p>}
 
-        {logo && (
+        {media && (
           <div className='/* 👈 constrain height so it can overflow */ /* 👈 enable both axes */ max-h-[70vh] overflow-x-auto overflow-y-auto rounded-lg bg-gray-900 p-4 font-mono text-sm text-green-200'>
             <pre className='whitespace-pre'>
-              {JSON.stringify(logo, null, 2)}
+              {JSON.stringify(media, null, 2)}
             </pre>
           </div>
         )}
