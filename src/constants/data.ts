@@ -119,7 +119,7 @@ export const systemItem: NavItem[] = [
   {
     title: 'Activity Log',
     url: '/admin/',
-    icon: 'menu',
+    icon: 'activity',
     shortcut: ['s', 's'],
     isActive: true,
     items: [] // No child items

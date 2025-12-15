@@ -31,13 +31,15 @@ import {
   IconBrandGithub,
   IconShield,
   IconMenu2,
-  IconLayoutBottombar
+  IconLayoutBottombar,
+  IconActivity
 } from '@tabler/icons-react';
 import { ImageUpIcon, PaletteIcon } from 'lucide-react';
 
 export type Icon = React.ComponentType<IconProps>;
 
 export const Icons = {
+  activity: IconActivity,
   dashboard: IconLayoutDashboard,
   logo: IconCommand,
   login: IconLogin,
