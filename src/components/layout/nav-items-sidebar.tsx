@@ -19,7 +19,12 @@ import {
   SidebarMenuSubItem
 } from '@/components/ui/sidebar';
 import { IconChevronRight } from '@tabler/icons-react';
-import { contentItems, siteItems, userItems } from '@/constants/data';
+import {
+  contentItems,
+  siteItems,
+  systemItem,
+  userItems
+} from '@/constants/data';
 import { useLanguage, type Language } from '@/context/language-context';
 
 type IconKey = keyof typeof Icons;
@@ -46,7 +51,9 @@ const SIDEBAR_TRANSLATIONS: Record<Language, Record<string, string>> = {
     Administration: 'ការគ្រប់គ្រងអ្នកប្រើ',
     User: 'អ្នកប្រើប្រាស់',
     'Roles & Permissions': 'តួនាទី និងសិទ្ធិ',
-    Role: 'តួនាទី'
+    Role: 'តួនាទី',
+    'System Log': 'កំណត់ហេតុប្រព័ន្ធ',
+    'Activity Log': 'សកម្មភាពប្រព័ន្ធ'
   }
 };
 
@@ -62,6 +69,7 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
   const siteLabel = translateLabel('Site Menu Management', language);
   // const user = translateLabel('Users', language);
   const userLabel = translateLabel('Administration', language);
+  const systemLabel = translateLabel('System Log', language);
 
   return (
     <SidebarGroup>
@@ -167,6 +175,25 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
         })}
         <SidebarGroupLabel>{userLabel}</SidebarGroupLabel>
         {userItems.map((item) => {
+          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
+          const itemLabel = translateLabel(item.title, language);
+          return (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                asChild
+                tooltip={itemLabel}
+                isActive={pathname === item.url}
+              >
+                <Link href={item.url}>
+                  <IconComp />
+                  <span>{itemLabel}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
+        <SidebarGroupLabel>{systemLabel}</SidebarGroupLabel>
+        {systemItem.map((item) => {
           const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
           const itemLabel = translateLabel(item.title, language);
           return (

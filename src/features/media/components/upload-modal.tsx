@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,10 +17,14 @@ import {
   FileImage,
   FileVideo,
   FileText,
-  File,
+  File as FileIcon,
   CheckCircle2
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { api } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
+import { toast } from 'sonner';
 
 interface UploadModalProps {
   open: boolean;
@@ -31,64 +35,184 @@ interface UploadFile {
   id: string;
   file: File;
   progress: number;
-  status: 'uploading' | 'complete' | 'error';
+  status: 'pending' | 'uploading' | 'complete' | 'error';
+  error?: string;
 }
+
+const createUploadId = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
 
 export function UploadModal({ open, onOpenChange }: UploadModalProps) {
   const [uploads, setUploads] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  const progressTimers = useRef<Map<string, ReturnType<typeof setInterval>>>(
+    new Map()
+  );
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
+  const clearProgressTimer = useCallback((id: string) => {
+    const timer = progressTimers.current.get(id);
+    if (timer) {
+      clearInterval(timer);
+      progressTimers.current.delete(id);
+    }
   }, []);
 
-  const handleFiles = (files: File[]) => {
+  const clearAllProgressTimers = useCallback(() => {
+    progressTimers.current.forEach((timer) => clearInterval(timer));
+    progressTimers.current.clear();
+  }, []);
+
+  const updateUploadProgress = useCallback((id: string, progress: number) => {
+    setUploads((prev) =>
+      prev.map((u) =>
+        u.id === id
+          ? { ...u, progress: Math.min(100, Math.max(progress, u.progress)) }
+          : u
+      )
+    );
+  }, []);
+
+  const uploadFile = useCallback(
+    async (upload: UploadFile): Promise<boolean> => {
+      clearProgressTimer(upload.id);
+      const timer = setInterval(() => {
+        setUploads((prev) =>
+          prev.map((u) =>
+            u.id === upload.id
+              ? { ...u, progress: Math.min(95, u.progress + 3) }
+              : u
+          )
+        );
+      }, 500);
+      progressTimers.current.set(upload.id, timer);
+
+      setUploads((prev) =>
+        prev.map((u) =>
+          u.id === upload.id
+            ? {
+                ...u,
+                status: 'uploading',
+                progress: u.progress || 1,
+                error: undefined
+              }
+            : u
+        )
+      );
+
+      const formData = new FormData();
+      formData.append('files', upload.file);
+
+      try {
+        await api.post('/media/upload', formData, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (event) => {
+            clearProgressTimer(upload.id);
+            const total = event.total ?? upload.file.size ?? 0;
+            const nextProgress =
+              total > 0
+                ? Math.round((event.loaded * 100) / total)
+                : Math.min(99, upload.progress + 5);
+            updateUploadProgress(upload.id, nextProgress);
+          }
+        });
+
+        setUploads((prev) =>
+          prev.map((u) =>
+            u.id === upload.id
+              ? { ...u, progress: 100, status: 'complete', error: undefined }
+              : u
+          )
+        );
+
+        toast.success(`${upload.file.name} uploaded`);
+        void queryClient.invalidateQueries({ queryKey: ['media'] });
+        return true;
+      } catch (error: unknown) {
+        clearProgressTimer(upload.id);
+        const message = isAxiosError(error)
+          ? ((error.response?.data as any)?.message ??
+            (error.response?.data as any)?.error ??
+            error.message)
+          : error instanceof Error
+            ? error.message
+            : 'Failed to upload file';
+
+        setUploads((prev) =>
+          prev.map((u) =>
+            u.id === upload.id ? { ...u, status: 'error', error: message } : u
+          )
+        );
+
+        toast.error(message);
+        return false;
+      }
+    },
+    [queryClient, updateUploadProgress]
+  );
+
+  const handleFiles = useCallback((files: File[]) => {
+    if (!files.length) return;
+
     const newUploads: UploadFile[] = files.map((file) => ({
-      id: Math.random().toString(36).substring(7),
+      id: createUploadId(),
       file,
       progress: 0,
-      status: 'uploading'
+      status: 'pending'
     }));
 
     setUploads((prev) => [...prev, ...newUploads]);
+  }, []);
 
-    // Simulate upload progress
-    newUploads.forEach((upload) => {
-      simulateUpload(upload.id);
-    });
-  };
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const files = Array.from(e.dataTransfer.files);
+      handleFiles(files);
+    },
+    [handleFiles]
+  );
 
-  const simulateUpload = (id: string) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 30;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setUploads((prev) =>
-          prev.map((u) =>
-            u.id === id ? { ...u, progress: 100, status: 'complete' } : u
-          )
-        );
-      } else {
-        setUploads((prev) =>
-          prev.map((u) => (u.id === id ? { ...u, progress } : u))
-        );
-      }
-    }, 500);
-  };
+  const handleSubmitUploads = useCallback(async () => {
+    const pending = uploads.filter(
+      (u) => u.status === 'pending' || u.status === 'error'
+    );
+
+    if (pending.length === 0) {
+      onOpenChange(false);
+      clearAllProgressTimers();
+      setUploads([]);
+      return;
+    }
+
+    setIsSubmitting(true);
+    const results = await Promise.all(pending.map((u) => uploadFile(u)));
+    setIsSubmitting(false);
+    clearAllProgressTimers();
+
+    const hasError = results.some((r) => r === false);
+    if (!hasError) {
+      onOpenChange(false);
+      setUploads([]);
+    }
+  }, [clearAllProgressTimers, onOpenChange, uploadFile, uploads]);
 
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return <FileImage className='h-8 w-8' />;
     if (type.startsWith('video/')) return <FileVideo className='h-8 w-8' />;
     if (type === 'application/pdf') return <FileText className='h-8 w-8' />;
-    return <File className='h-8 w-8' />;
+    return <FileIcon className='h-8 w-8' />;
   };
 
   const removeUpload = (id: string) => {
+    clearProgressTimer(id);
     setUploads((prev) => prev.filter((u) => u.id !== id));
   };
 
@@ -163,6 +287,11 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                       {Math.round(upload.progress)}%
                     </span>
                   </div>
+                  {upload.status === 'error' && upload.error && (
+                    <p className='text-destructive mt-1 truncate text-xs'>
+                      {upload.error}
+                    </p>
+                  )}
                 </div>
                 {upload.status === 'complete' ? (
                   <CheckCircle2 className='h-5 w-5 text-green-500' />
@@ -181,18 +310,27 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         )}
 
         {/* Actions */}
-        {uploads.some((u) => u.status === 'complete') && (
+        {uploads.length > 0 && (
           <div className='mt-4 flex justify-end gap-2'>
-            <Button variant='outline' onClick={() => setUploads([])}>
-              Clear
-            </Button>
             <Button
+              variant='outline'
               onClick={() => {
-                onOpenChange(false);
+                clearAllProgressTimers();
                 setUploads([]);
               }}
             >
-              Done
+              Clear
+            </Button>
+            <Button
+              onClick={handleSubmitUploads}
+              disabled={
+                isSubmitting ||
+                uploads.every(
+                  (u) => u.status === 'complete' || u.status === 'uploading'
+                )
+              }
+            >
+              {isSubmitting ? 'Uploading...' : 'Done'}
             </Button>
           </div>
         )}

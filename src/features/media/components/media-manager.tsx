@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +10,14 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Search, Upload, Grid3x3, List, FileImage } from 'lucide-react';
-import { mockMediaFiles, type MediaFile } from '@/lib/mock-media-data';
 import { MediaGridView } from '@/features/media/components/media-grid-view';
 import { MediaListView } from '@/features/media/components/media-list-view';
 import { UploadModal } from '@/features/media/components/upload-modal';
 import { PreviewModal } from '@/features/media/components/preview-modal';
+import { useMedia, useDeleteMedia } from '@/features/media/hook/use-media';
+import { type MediaFile } from '@/features/media/types/media-type';
+import { toast } from 'sonner';
+import { AlertModal } from '@/components/modal/alert-modal';
 
 type ViewMode = 'grid' | 'list';
 type SortOption = 'newest' | 'oldest' | 'name' | 'size';
@@ -26,26 +29,46 @@ export function MediaManager() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [confirmState, setConfirmState] = useState<{
+    ids: string[];
+    label: string;
+  } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const {
+    data: mediaFiles = [],
+    isLoading,
+    error,
+    refetch,
+    isFetching
+  } = useMedia();
+  const deleteMediaMutation = useDeleteMedia();
+  const errorMessage =
+    error instanceof Error ? error.message : 'Something went wrong';
 
-  // Filter and sort files
-  const filteredFiles = mockMediaFiles
-    .filter((file) =>
-      file.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return b.uploadedAt.getTime() - a.uploadedAt.getTime();
-        case 'oldest':
-          return a.uploadedAt.getTime() - b.uploadedAt.getTime();
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'size':
-          return b.size - a.size;
-        default:
-          return 0;
-      }
-    });
+  // Filter and sort files from API
+  const filteredFiles = useMemo(
+    () =>
+      mediaFiles
+        .filter((file) =>
+          file.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => {
+          switch (sortBy) {
+            case 'newest':
+              return b.uploadedAt.getTime() - a.uploadedAt.getTime();
+            case 'oldest':
+              return a.uploadedAt.getTime() - b.uploadedAt.getTime();
+            case 'name':
+              return a.name.localeCompare(b.name);
+            case 'size':
+              return b.size - a.size;
+            default:
+              return 0;
+          }
+        }),
+    [mediaFiles, searchQuery, sortBy]
+  );
 
   const toggleFileSelection = (fileId: string) => {
     const newSelection = new Set(selectedFiles);
@@ -57,10 +80,47 @@ export function MediaManager() {
     setSelectedFiles(newSelection);
   };
 
-  const handleDeleteSelected = () => {
-    // Mock delete action
-    console.log('Deleting files:', Array.from(selectedFiles));
-    setSelectedFiles(new Set());
+  const confirmDeleteSelected = () => {
+    const ids = Array.from(selectedFiles);
+    if (ids.length === 0) return;
+    setConfirmState({
+      ids,
+      label: `${ids.length} file${ids.length > 1 ? 's' : ''}`
+    });
+  };
+
+  const confirmDeleteSingle = (file: MediaFile) => {
+    setConfirmState({
+      ids: [file.id],
+      label: `"${file.name}"`
+    });
+  };
+
+  const executeDelete = async () => {
+    if (!confirmState) return;
+
+    const ids = confirmState.ids;
+    setDeleteLoading(true);
+    setDeletingIds(new Set(ids));
+
+    try {
+      await Promise.all(ids.map((id) => deleteMediaMutation.mutateAsync(id)));
+      toast.success('Media deleted successfully');
+
+      setSelectedFiles((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete media';
+      toast.error(message);
+    } finally {
+      setDeleteLoading(false);
+      setDeletingIds(new Set());
+      setConfirmState(null);
+    }
   };
 
   return (
@@ -127,7 +187,8 @@ export function MediaManager() {
             <Button
               variant='destructive'
               size='sm'
-              onClick={handleDeleteSelected}
+              onClick={confirmDeleteSelected}
+              disabled={deletingIds.size > 0}
             >
               Delete ({selectedFiles.size})
             </Button>
@@ -137,7 +198,22 @@ export function MediaManager() {
 
       {/* Content Area */}
       <div className='flex-1 overflow-auto'>
-        {filteredFiles.length === 0 ? (
+        {isLoading || isFetching ? (
+          <div className='flex h-full items-center justify-center'>
+            <p className='text-muted-foreground'>Loading media...</p>
+          </div>
+        ) : error ? (
+          <div className='flex h-full items-center justify-center'>
+            <div className='text-center'>
+              <p className='text-destructive mb-2 text-sm'>
+                Failed to load media: {errorMessage}
+              </p>
+              <Button variant='outline' onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
+          </div>
+        ) : filteredFiles.length === 0 ? (
           <div className='flex h-full items-center justify-center'>
             <div className='text-center'>
               <FileImage className='text-muted-foreground mx-auto h-12 w-12' />
@@ -166,6 +242,8 @@ export function MediaManager() {
             selectedFiles={selectedFiles}
             onToggleSelection={toggleFileSelection}
             onPreview={setPreviewFile}
+            onDelete={confirmDeleteSingle}
+            deletingIds={deletingIds}
           />
         ) : (
           <MediaListView
@@ -173,6 +251,8 @@ export function MediaManager() {
             selectedFiles={selectedFiles}
             onToggleSelection={toggleFileSelection}
             onPreview={setPreviewFile}
+            onDelete={confirmDeleteSingle}
+            deletingIds={deletingIds}
           />
         )}
       </div>
@@ -183,6 +263,12 @@ export function MediaManager() {
         file={previewFile}
         open={!!previewFile}
         onOpenChange={(open) => !open && setPreviewFile(null)}
+      />
+      <AlertModal
+        isOpen={!!confirmState}
+        onClose={() => setConfirmState(null)}
+        onConfirm={executeDelete}
+        loading={deleteLoading}
       />
     </div>
   );

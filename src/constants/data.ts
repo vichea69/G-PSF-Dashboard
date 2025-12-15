@@ -115,6 +115,17 @@ export const siteItems: NavItem[] = [
   }
 ];
 
+export const systemItem: NavItem[] = [
+  {
+    title: 'Activity Log',
+    url: '/admin/',
+    icon: 'menu',
+    shortcut: ['s', 's'],
+    isActive: true,
+    items: [] // No child items
+  }
+];
+
 export interface SaleUser {
   id: number;
   name: string;

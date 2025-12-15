@@ -15,7 +15,7 @@ import {
   formatFileSize,
   formatDate,
   type MediaFile
-} from '@/lib/mock-media-data';
+} from '@/features/media/types/media-type';
 import Image from 'next/image';
 
 interface MediaGridViewProps {
@@ -23,13 +23,17 @@ interface MediaGridViewProps {
   selectedFiles: Set<string>;
   onToggleSelection: (fileId: string) => void;
   onPreview: (file: MediaFile) => void;
+  onDelete: (file: MediaFile) => void;
+  deletingIds?: Set<string>;
 }
 
 export function MediaGridView({
   files,
   selectedFiles,
   onToggleSelection,
-  onPreview
+  onPreview,
+  onDelete,
+  deletingIds
 }: MediaGridViewProps) {
   return (
     <div className='p-6'>
@@ -41,6 +45,8 @@ export function MediaGridView({
             isSelected={selectedFiles.has(file.id)}
             onToggleSelection={onToggleSelection}
             onPreview={onPreview}
+            onDelete={onDelete}
+            isDeleting={deletingIds?.has(file.id)}
           />
         ))}
       </div>
@@ -53,13 +59,17 @@ interface MediaGridItemProps {
   isSelected: boolean;
   onToggleSelection: (fileId: string) => void;
   onPreview: (file: MediaFile) => void;
+  onDelete: (file: MediaFile) => void;
+  isDeleting?: boolean;
 }
 
 function MediaGridItem({
   file,
   isSelected,
   onToggleSelection,
-  onPreview
+  onPreview,
+  onDelete,
+  isDeleting
 }: MediaGridItemProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -121,7 +131,8 @@ function MediaGridItem({
             <Button
               size='sm'
               variant='destructive'
-              onClick={() => console.log('Delete', file.id)}
+              disabled={isDeleting}
+              onClick={() => onDelete(file)}
             >
               <Trash2 className='h-4 w-4' />
             </Button>

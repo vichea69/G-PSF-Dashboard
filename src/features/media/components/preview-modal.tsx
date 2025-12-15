@@ -12,7 +12,7 @@ import {
   formatFileSize,
   formatDate,
   type MediaFile
-} from '@/lib/mock-media-data';
+} from '@/features/media/types/media-type';
 import Image from 'next/image';
 
 interface PreviewModalProps {

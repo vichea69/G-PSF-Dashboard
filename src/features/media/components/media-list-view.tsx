@@ -14,7 +14,7 @@ import {
   formatFileSize,
   formatDate,
   type MediaFile
-} from '@/lib/mock-media-data';
+} from '@/features/media/types/media-type';
 import Image from 'next/image';
 
 interface MediaListViewProps {
@@ -22,13 +22,17 @@ interface MediaListViewProps {
   selectedFiles: Set<string>;
   onToggleSelection: (fileId: string) => void;
   onPreview: (file: MediaFile) => void;
+  onDelete: (file: MediaFile) => void;
+  deletingIds?: Set<string>;
 }
 
 export function MediaListView({
   files,
   selectedFiles,
   onToggleSelection,
-  onPreview
+  onPreview,
+  onDelete,
+  deletingIds
 }: MediaListViewProps) {
   const getFileIcon = (type: MediaFile['type']) => {
     switch (type) {
@@ -122,7 +126,8 @@ export function MediaListView({
                 <Button
                   size='sm'
                   variant='ghost'
-                  onClick={() => console.log('Delete', file.id)}
+                  disabled={deletingIds?.has(file.id)}
+                  onClick={() => onDelete(file)}
                 >
                   <Trash2 className='h-4 w-4' />
                 </Button>
