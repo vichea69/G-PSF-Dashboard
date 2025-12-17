@@ -4,7 +4,7 @@ import { isAxiosError } from 'axios';
 import { api } from '@/lib/api';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 
-//Fetch Media
+//Fetch Media using server action and tankstack
 export type MediaActionResult<T = unknown> = {
   success: boolean;
   data?: T;
