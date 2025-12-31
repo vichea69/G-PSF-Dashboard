@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -25,6 +24,7 @@ import ProgressUpload from '@/components/file-upload/progress-upload';
 import type { FileWithPreview } from '@/hooks/use-file-upload';
 import { useCategories } from '@/hooks/use-category';
 import { usePage } from '@/hooks/use-page';
+import { PostContentEditor } from '@/features/post/component/post-content-editor';
 
 export type PostFormData = {
   title: string;
@@ -185,9 +185,6 @@ export default function PostForm({
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 Post Content
-                <Badge variant='secondary' className='text-xs'>
-                  Required
-                </Badge>
               </CardTitle>
               <CardDescription>Write your post details</CardDescription>
             </CardHeader>
@@ -205,17 +202,17 @@ export default function PostForm({
                 />
               </div>
               <div>
-                <Label htmlFor='content'>Content</Label>
-                <Textarea
-                  id='content'
-                  value={formData.content}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, content: e.target.value }))
-                  }
-                  rows={8}
-                  placeholder='Write the post content...'
-                  className='mt-1'
-                />
+                <Label htmlFor='post-content-editor'>Content</Label>
+                <div className='mt-2'>
+                  <PostContentEditor
+                    id='post-content-editor'
+                    value={formData.content}
+                    onChange={(value) =>
+                      setFormData((prev) => ({ ...prev, content: value }))
+                    }
+                    placeholder='Write the post content...'
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

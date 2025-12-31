@@ -123,10 +123,10 @@ const MainToolbarContent = ({
 
       <ToolbarSeparator />
 
-      <ToolbarGroup>
+      {/* <ToolbarGroup>
         <MarkButton type='superscript' />
         <MarkButton type='subscript' />
-      </ToolbarGroup>
+      </ToolbarGroup> */}
 
       <ToolbarSeparator />
 
