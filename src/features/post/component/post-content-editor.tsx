@@ -116,8 +116,11 @@ export function PostContentEditor({
     const nextContent = value && value.length ? value : EMPTY_HTML;
     if (nextContent === lastSyncedContent.current) return;
     lastSyncedContent.current = nextContent;
-    editor.commands.setContent(nextContent, false, {
-      preserveWhitespace: true
+    editor.commands.setContent(nextContent, {
+      emitUpdate: false,
+      parseOptions: {
+        preserveWhitespace: true
+      }
     });
   }, [value, editor]);
 
