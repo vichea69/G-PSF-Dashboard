@@ -15,25 +15,25 @@ jobs:
 
       - name: Pull latest code
         run: |
-          cd /home/ubuntu/app/G-PSF-Dashboard
+          cd /home/ubuntu/G-PSF-Dashboard
           git fetch origin main
           git reset --hard origin/main
 
       - name: Install dependencies
         run: |
-          cd /home/ubuntu/app/G-PSF-Dashboard
+          cd /home/ubuntu/G-PSF-Dashboard
           pnpm install --frozen-lockfile
 
       - name: Build Next app
         run: |
-          cd /home/ubuntu/app/G-PSF-Dashboard
+          cd /home/ubuntu/G-PSF-Dashboard
           pnpm run build
 
       - name: Start Next app (PNPM + PM2)
         run: |
           export PATH=$PATH:/usr/local/bin
-          cd /home/ubuntu/app/G-PSF-Dashboard
-          APP_NAME=g-psf-dashboard
+          cd /home/ubuntu/G-PSF-Dashboard
+          APP_NAME=admin-gpsf
           pm2 restart $APP_NAME || pm2 start pnpm --name $APP_NAME -- run start
           pm2 save
 
