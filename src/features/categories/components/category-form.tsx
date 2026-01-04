@@ -16,10 +16,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { api } from '@/lib/api';
 import type { Category } from '@/server/action/category/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import {
+  createCategory,
+  updateCategory
+} from '@/server/action/category/category';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -46,8 +49,7 @@ export default function CategoryForm({
 
   const qc = useQueryClient();
   const createMutation = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) =>
-      api.post(`/categories`, values),
+    mutationFn: (values: z.infer<typeof formSchema>) => createCategory(values),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category created successfully');
@@ -56,8 +58,12 @@ export default function CategoryForm({
   });
   const updateMutation = useMutation({
     // Send only editable fields; avoid server-managed fields causing 400
-    mutationFn: (values: z.infer<typeof formSchema>) =>
-      api.put(`/categories/${initialData?.id}`, values),
+    mutationFn: (values: z.infer<typeof formSchema>) => {
+      if (!initialData?.id) {
+        throw new Error('Category id is required');
+      }
+      return updateCategory(String(initialData.id), values);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
       toast.success('Category updated successfully');
