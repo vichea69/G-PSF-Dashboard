@@ -25,11 +25,12 @@ import type { FileWithPreview } from '@/hooks/use-file-upload';
 import { useCategories } from '@/hooks/use-category';
 import { usePage } from '@/hooks/use-page';
 import { PostContentEditor } from '@/features/post/component/post-content-editor';
+import type { PostContent } from '@/server/action/post/types';
 
 export type PostFormData = {
   title: string;
   status: 'published' | 'draft';
-  content?: string;
+  content?: PostContent | string;
   categoryId?: number | string;
   pageId?: number | string;
   newImages: File[];
@@ -148,6 +149,23 @@ export default function PostForm({
       removedImageIds: []
     }));
   }, [editingImages, initialFileMetadata]);
+
+  useEffect(() => {
+    if (!editingPost) return;
+    setFormData((prev) => ({
+      ...prev,
+      title:
+        typeof editingPost?.title === 'string' ? editingPost.title : prev.title,
+      status:
+        editingPost?.status === 'published' || editingPost?.status === 'draft'
+          ? editingPost.status
+          : prev.status,
+      content: editingPost?.content ?? prev.content,
+      categoryId: editingPost?.category?.id ?? prev.categoryId,
+      pageId: editingPost?.page?.id ?? prev.pageId,
+      newImages: []
+    }));
+  }, [editingPost]);
 
   const { data: categoriesData } = useCategories();
   const categories = useMemo(() => {

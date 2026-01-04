@@ -5,54 +5,52 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import PostForm, { type PostFormData } from './post-form';
-import { api } from '@/lib/api';
+import { createPost, getPost, updatePost } from '@/server/action/post/post';
 
-export default function PostViewPage({ postId }: { postId: string }) {
-  const isNew = postId === 'new';
-  const [editingPost, setEditingPost] = useState<any>(isNew ? null : undefined);
-  const [loading, setLoading] = useState(!isNew);
+type PostViewPageProps = {
+  postId: string;
+  initialPost?: any | null;
+};
+
+export default function PostViewPage({
+  postId: _postId,
+  initialPost
+}: PostViewPageProps) {
+  const [editingPost, setEditingPost] = useState<any>(initialPost ?? null);
+  const [isLoading, setIsLoading] = useState(_postId !== 'new' && !initialPost);
   const router = useRouter();
   const qc = useQueryClient();
+  const isEditing = _postId !== 'new';
 
   useEffect(() => {
-    let cancelled = false;
-    if (!isNew) {
-      setLoading(true);
-      const id = String(postId);
-      const url = `/posts/${encodeURIComponent(id)}`;
-      // eslint-disable-next-line no-console
-      console.log('[PostView] GET', `${api.defaults.baseURL ?? ''}${url}`);
-      api
-        .get(url)
-        .then((res) => {
-          if (cancelled) return;
-          const data = res.data?.data ?? res.data;
-          // eslint-disable-next-line no-console
-          console.log('[PostView] GET success', { status: res.status, data });
-          if (!data) {
-            toast.error('Post not found');
-            router.replace('/admin/post');
-            return;
-          }
-          setEditingPost(data);
-        })
-        .catch((e: any) => {
-          if (cancelled) return;
-          const status = e?.response?.status;
-          const err = e?.response?.data || e?.message;
-          // eslint-disable-next-line no-console
-          console.error('[PostView] GET error', { status, url, err });
-          toast.error('Failed to load post');
-          router.replace('/admin/post');
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false);
-        });
+    if (!isEditing) {
+      setEditingPost(null);
+      return;
     }
+    if (initialPost) {
+      setEditingPost(initialPost);
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoading(true);
+    void (async () => {
+      const result = await getPost(_postId);
+      if (cancelled) return;
+      if (result.success) {
+        setEditingPost(result.data ?? null);
+      } else {
+        setEditingPost(null);
+        toast.error(result.error ?? 'Failed to load post');
+      }
+      setIsLoading(false);
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, [isNew, postId, router]);
+  }, [_postId, initialPost, isEditing]);
 
   const handleSave = useCallback(
     async (formData: PostFormData) => {
@@ -62,43 +60,37 @@ export default function PostViewPage({ postId }: { postId: string }) {
         console.log('[PostView] FORM DATA', formData);
 
         const fd = new FormData();
-        fd.append('title', formData.title);
-        if (formData.content) fd.append('content', formData.content);
+        const trimmedTitle = formData.title.trim();
+        fd.append('title', trimmedTitle);
+        const contentField =
+          typeof formData.content === 'string'
+            ? formData.content.trim()
+            : formData.content
+              ? JSON.stringify(formData.content)
+              : '';
+        if (contentField) fd.append('content', contentField);
         fd.append('status', formData.status);
-        if (formData.categoryId !== undefined && formData.categoryId !== null)
-          fd.append('categoryId', String(formData.categoryId));
-        if (formData.pageId !== undefined && formData.pageId !== null)
-          fd.append('pageId', String(formData.pageId));
+        if (formData.categoryId !== undefined && formData.categoryId !== null) {
+          const categoryId = String(formData.categoryId).trim();
+          if (categoryId) fd.append('categoryId', categoryId);
+        }
+        if (formData.pageId !== undefined && formData.pageId !== null) {
+          const pageId = String(formData.pageId).trim();
+          if (pageId) fd.append('pageId', pageId);
+        }
         if (formData.newImages?.length) {
           formData.newImages.forEach((file) => {
-            fd.append('images[]', file);
+            fd.append('images', file);
           });
         }
-        if (formData.existingImageIds?.length) {
-          formData.existingImageIds.forEach((id) => {
-            fd.append('existingImageIds[]', String(id));
-          });
-        }
-        if (formData.removedImageIds?.length) {
-          formData.removedImageIds.forEach((id) => {
-            fd.append('removedImageIds[]', String(id));
-          });
-        }
-        const config = {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        } as const;
-        if (isNew) {
-          // eslint-disable-next-line no-console
-          console.log('[PostView] POST', `${api.defaults.baseURL ?? ''}/posts`);
-          await api.post('/posts', fd, config);
-          toast.success('Post created');
+        // eslint-disable-next-line no-console
+        console.log('[PostView] CREATE', 'server action');
+        if (isEditing) {
+          await updatePost(_postId, fd);
         } else {
-          const url = `/posts/${encodeURIComponent(String(postId))}`;
-          // eslint-disable-next-line no-console
-          console.log('[PostView] PUT', `${api.defaults.baseURL ?? ''}${url}`);
-          await api.put(url, fd, config);
-          toast.success('Post updated');
+          await createPost(fd);
         }
+        toast.success(isEditing ? 'Post updated' : 'Post created');
         qc.invalidateQueries({ queryKey: ['posts'] });
         router.replace('/admin/post');
       } catch (e: any) {
@@ -114,14 +106,20 @@ export default function PostViewPage({ postId }: { postId: string }) {
         toast.error(message);
       }
     },
-    [isNew, postId, qc, router]
+    [_postId, isEditing, qc, router]
   );
 
   const handleCancel = useCallback(() => {
     router.push('/admin/post');
   }, [router]);
 
-  if (loading) return null;
+  if (isEditing && isLoading) {
+    return (
+      <div className='text-muted-foreground rounded-md border border-dashed p-6 text-sm'>
+        Loading post...
+      </div>
+    );
+  }
 
   return (
     <PostForm

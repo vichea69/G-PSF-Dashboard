@@ -39,13 +39,40 @@ import '@/components/tiptap-node/paragraph-node/paragraph-node.scss';
 
 import { handleImageUpload, MAX_FILE_SIZE } from '@/lib/tiptap-utils';
 import { cn } from '@/lib/utils';
+import type { PostContent } from '@/server/action/post/types';
 
-const EMPTY_HTML = '<p></p>';
+type EditorContentValue = PostContent | string;
+
+const EMPTY_CONTENT: PostContent = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }]
+};
+
+const normalizeContent = (value?: EditorContentValue): EditorContentValue => {
+  if (!value) return EMPTY_CONTENT;
+  if (typeof value === 'string') {
+    return value.trim().length ? value : EMPTY_CONTENT;
+  }
+  return value;
+};
+
+const isSameContent = (
+  next: EditorContentValue,
+  current: EditorContentValue
+) => {
+  if (typeof next === 'string' && typeof current === 'string') {
+    return next === current;
+  }
+  if (typeof next === 'string' || typeof current === 'string') {
+    return false;
+  }
+  return JSON.stringify(next) === JSON.stringify(current);
+};
 
 type PostContentEditorProps = {
   id?: string;
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: EditorContentValue;
+  onChange?: (value: PostContent) => void;
   placeholder?: string;
   className?: string;
 };
@@ -57,8 +84,8 @@ export function PostContentEditor({
   placeholder,
   className
 }: PostContentEditorProps) {
-  const lastSyncedContent = React.useRef<string>(
-    value && value.length ? value : EMPTY_HTML
+  const lastSyncedContent = React.useRef<EditorContentValue>(
+    normalizeContent(value)
   );
 
   const editor = useEditor({
@@ -105,16 +132,16 @@ export function PostContentEditor({
       })
     ],
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      lastSyncedContent.current = html;
-      onChange?.(html);
+      const json = editor.getJSON();
+      lastSyncedContent.current = json;
+      onChange?.(json);
     }
   });
 
   React.useEffect(() => {
     if (!editor) return;
-    const nextContent = value && value.length ? value : EMPTY_HTML;
-    if (nextContent === lastSyncedContent.current) return;
+    const nextContent = normalizeContent(value);
+    if (isSameContent(nextContent, lastSyncedContent.current)) return;
     lastSyncedContent.current = nextContent;
     editor.commands.setContent(nextContent, {
       emitUpdate: false,
