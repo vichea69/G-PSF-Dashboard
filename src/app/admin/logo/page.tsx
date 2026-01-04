@@ -15,7 +15,7 @@ export const metadata = {
 
 export default function Page() {
   return (
-    <PageContainer scrollable={false}>
+    <PageContainer scrollable={true}>
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-start justify-between'>
           <Heading title='Logo' description='Site logo settings' />
