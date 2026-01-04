@@ -187,7 +187,10 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                 <Select
                   value={formData.status}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, status: value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      status: value as PageFormData['status']
+                    }))
                   }
                 >
                   <SelectTrigger className='mt-1'>
