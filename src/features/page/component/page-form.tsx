@@ -22,14 +22,25 @@ import {
 import { ArrowLeft, Save, Eye, HelpCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+export type PageFormData = {
+  title: string;
+  slug: string;
+  status: 'published' | 'draft';
+  content: string;
+  seo: {
+    metaTitle: string;
+    metaDescription: string;
+  };
+};
+
 interface PageFormProps {
   editingPage?: any;
-  onSave: (pageData: any) => void;
+  onSave: (pageData: PageFormData) => void;
   onCancel: () => void;
 }
 
 export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PageFormData>({
     title: editingPage?.title || '',
     slug: editingPage?.slug || '',
     status:
