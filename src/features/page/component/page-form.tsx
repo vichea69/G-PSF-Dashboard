@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -43,6 +43,32 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
         editingPage?.metaDescription || editingPage?.seo?.metaDescription || ''
     }
   });
+
+  useEffect(() => {
+    if (!editingPage) return;
+    setFormData((prev) => ({
+      ...prev,
+      title:
+        typeof editingPage?.title === 'string' ? editingPage.title : prev.title,
+      slug:
+        typeof editingPage?.slug === 'string' ? editingPage.slug : prev.slug,
+      status:
+        editingPage?.status === 'published' || editingPage?.status === 'draft'
+          ? editingPage.status
+          : prev.status,
+      content: editingPage?.content ?? prev.content,
+      seo: {
+        metaTitle:
+          editingPage?.metaTitle ||
+          editingPage?.seo?.metaTitle ||
+          prev.seo.metaTitle,
+        metaDescription:
+          editingPage?.metaDescription ||
+          editingPage?.seo?.metaDescription ||
+          prev.seo.metaDescription
+      }
+    }));
+  }, [editingPage]);
 
   const handleTitleChange = (title: string) => {
     const slug = title

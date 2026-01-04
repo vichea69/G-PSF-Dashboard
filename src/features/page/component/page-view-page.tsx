@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageForm } from './page-form';
-import { api } from '@/lib/api';
+import { createPage, getPageById, updatePage } from '@/server/action/page/page';
 
 export default function PageViewPage({ pageId }: { pageId: string }) {
   const isNew = pageId === 'new';
@@ -18,36 +18,28 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
     let cancelled = false;
     if (!isNew) {
       setLoading(true);
-      const requestSlug = String(pageId);
-      const url = `/pages/${encodeURIComponent(requestSlug)}`;
-      // eslint-disable-next-line no-console
-      console.log('[PageView] GET', `${api.defaults.baseURL ?? ''}${url}`);
-      api
-        .get(url)
-        .then((res) => {
+      void (async () => {
+        try {
+          const res = await getPageById(pageId);
           if (cancelled) return;
-          const data = res.data?.data ?? res.data;
-          // eslint-disable-next-line no-console
-          console.log('[PageView] GET success', { status: res.status, data });
+          const data = (res as any)?.data ?? res;
           if (!data) {
             toast.error('Page not found');
             router.replace('/admin/page');
             return;
           }
           setEditingPage(data);
-        })
-        .catch((e: any) => {
+        } catch (e: any) {
           if (cancelled) return;
-          const status = e?.response?.status;
-          const err = e?.response?.data || e?.message;
-          // eslint-disable-next-line no-console
-          console.error('[PageView] GET error', { status, url, err });
-          toast.error('Failed to load page');
+          const resp = e?.response?.data;
+          const message =
+            resp?.message || resp?.error || e?.message || 'Failed to load page';
+          toast.error(message);
           router.replace('/admin/page');
-        })
-        .finally(() => {
+        } finally {
           if (!cancelled) setLoading(false);
-        });
+        }
+      })();
     }
     return () => {
       cancelled = true;
@@ -66,23 +58,10 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
           metaDescription: formData.seo?.metaDescription
         };
         if (isNew) {
-          // eslint-disable-next-line no-console
-          console.log(
-            '[PageView] POST',
-            `${api.defaults.baseURL ?? ''}/pages`,
-            payload
-          );
-          await api.post('/pages', payload);
+          await createPage(payload);
           toast.success('Page created');
         } else {
-          const url = `/pages/${encodeURIComponent(String(pageId))}`;
-          // eslint-disable-next-line no-console
-          console.log(
-            '[PageView] PUT',
-            `${api.defaults.baseURL ?? ''}${url}`,
-            payload
-          );
-          await api.put(url, payload);
+          await updatePage(pageId, payload);
           toast.success('Page updated');
         }
         qc.invalidateQueries({ queryKey: ['pages'] });

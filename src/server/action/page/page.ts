@@ -1,6 +1,7 @@
 'use server';
 import 'server-only';
 import { api } from '@/lib/api';
+import { getAuthHeaders } from '@/server/action/userAuth/user';
 
 export type PageInput = {
   title: string;
@@ -12,21 +13,37 @@ export type PageInput = {
 };
 
 export async function createPage(input: PageInput) {
-  const res = await api.post('/pages', input);
+  const headers = await getAuthHeaders();
+  const res = await api.post('/pages', input, {
+    headers,
+    withCredentials: true
+  });
   return res.data;
 }
 
 export async function updatePage(id: string | number, input: PageInput) {
-  const res = await api.put(`/pages/${id}`, input);
+  const headers = await getAuthHeaders();
+  const res = await api.put(`/pages/${id}`, input, {
+    headers,
+    withCredentials: true
+  });
   return res.data;
 }
 
 export async function deletePage(id: string | number) {
-  const res = await api.delete(`/pages/${id}`);
+  const headers = await getAuthHeaders();
+  const res = await api.delete(`/pages/${id}`, {
+    headers,
+    withCredentials: true
+  });
   return res.data;
 }
 
 export async function getPageById(id: string | number) {
-  const res = await api.get(`/pages/${id}`);
+  const headers = await getAuthHeaders();
+  const res = await api.get(`/pages/${id}`, {
+    headers,
+    withCredentials: true
+  });
   return res.data;
 }
