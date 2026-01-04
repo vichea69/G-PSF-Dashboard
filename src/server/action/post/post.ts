@@ -14,7 +14,7 @@ export async function createPost(payload: PostInput | FormData) {
   });
   return res.data;
 }
-// Update post using server action
+// Update post using server action api
 export async function updatePost(
   postId: number | string,
   payload: PostInput | FormData
