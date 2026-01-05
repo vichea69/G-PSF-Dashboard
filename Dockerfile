@@ -1,45 +1,52 @@
-# syntax=docker/dockerfile:1
-FROM node:22-bookworm-slim AS base
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV CI=true
-
+# Enable pnpm
 RUN corepack enable
 
-# ======================
-# Dependencies
-# ======================
-FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ======================
-# Builder
+# 2️⃣ Builder
 # ======================
-FROM base AS builder
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CI=true
+ENV HUSKY=0
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 RUN pnpm build
-RUN pnpm prune --prod
 
 # ======================
-# Runner
+# 3️⃣ Runner (production)
 # ======================
-FROM base AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
+RUN corepack enable
+
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CI=true
+ENV HUSKY=0
 ENV PORT=3003
 
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --from=builder --chown=node:node /app/.next ./.next
-COPY --from=builder --chown=node:node /app/node_modules ./node_modules
-COPY --from=builder --chown=node:node /app/package.json ./package.json
-COPY --from=builder --chown=node:node /app/next.config.ts ./next.config.ts
+COPY package.json pnpm-lock.yaml ./
 
-USER node
+# Install prod deps only
+RUN pnpm install --prod --frozen-lockfile \
+  && pnpm store prune
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/next.config.ts ./next.config.ts
 
 EXPOSE 3003
-CMD ["node", "node_modules/next/dist/bin/next", "start", "--port", "3003", "--hostname", "0.0.0.0"]
+
+CMD ["pnpm", "start", "--", "-H", "0.0.0.0", "-p", "3003"]
