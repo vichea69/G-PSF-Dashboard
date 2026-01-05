@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.DS_Store
+*.log
+*.tsbuildinfo
+coverage
+dist
+out
+tmp
+temp
+pnpm-store
+node_modules/.cache

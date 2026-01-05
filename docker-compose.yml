@@ -1,0 +1,12 @@
+services:
+  app:
+    container_name: admin-gpsf-website
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+    restart: unless-stopped
