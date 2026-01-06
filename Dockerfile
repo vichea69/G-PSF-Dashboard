@@ -38,4 +38,4 @@ COPY --from=build /app/node_modules ./node_modules
 
 EXPOSE 3003
 
-CMD ["pnpm", "start", "--", "-H", "0.0.0.0", "-p", "3003"]
+CMD ["pnpm", "start"]
