@@ -130,3 +130,44 @@ export async function updateLogo(
     };
   }
 }
+
+export async function deleteLogo(
+  id: string | number
+): Promise<LogoActionResult> {
+  const trimmedId = String(id ?? '').trim();
+
+  if (!trimmedId) {
+    return {
+      success: false,
+      error: 'Logo id is required'
+    };
+  }
+
+  const headers = await getAuthHeaders();
+  const url = `/logo/${encodeURIComponent(trimmedId)}`;
+
+  try {
+    const res = await api.delete(url, {
+      headers,
+      withCredentials: true
+    });
+
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
+
+    return {
+      success: false,
+      error: message ?? 'Failed to delete logo'
+    };
+  }
+}

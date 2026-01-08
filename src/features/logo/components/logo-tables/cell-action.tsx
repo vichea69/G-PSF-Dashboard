@@ -13,8 +13,8 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
 import { LogoType } from '@/features/logo/type/logo-type';
+import { deleteLogo } from '@/server/action/logo/logo';
 
 interface CellActionProps {
   data: LogoType;
@@ -47,7 +47,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         return prev;
       });
 
-      await api.delete(`/logo/${encodeURIComponent(String(data.id))}`);
+      const result = await deleteLogo(String(data.id));
+      if (!result.success) {
+        throw new Error(result.error ?? 'Delete failed');
+      }
       toast.success('Logo deleted successfully');
       setOpen(false);
       qc.invalidateQueries({ queryKey: ['logo'], exact: false });
