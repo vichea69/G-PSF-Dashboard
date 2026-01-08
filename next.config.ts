@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'pub-5ad5f7c455bb9.r2.dev',
+        pathname: '/uploads/**'
+      },
+      {
+        protocol: 'https',
         hostname: 'github.com',
         port: '',
         pathname: '/**'
