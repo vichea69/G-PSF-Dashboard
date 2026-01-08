@@ -6,3 +6,6 @@ export const api = axios.create({
   baseURL,
   withCredentials: true
 });
+
+//using fetch build in function
+export const baseAPI = process.env.NEXT_PUBLIC_API_URL;

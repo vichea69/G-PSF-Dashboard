@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/sidebar';
 import { useSiteSetting } from '@/features/site-setting/hook/use-site-setting';
 
-const FALLBACK_LOGO = '/LOGO_DCX.png';
-const FALLBACK_NAME = 'G-PSF';
+const FALLBACK_LOGO = '/assets/gpsf_logo.png';
+const FALLBACK_NAME = 'G-PSF Dashboard';
 
 export function OrgSwitcher() {
   const { data: siteSetting, isLoading, isError } = useSiteSetting();

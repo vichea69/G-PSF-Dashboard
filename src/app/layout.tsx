@@ -17,13 +17,13 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'GFSM Dashboard',
-  description: 'GFSM Dashboard'
-  // icons: {
-  //   icon: '/assets/kh.svg',
-  //   shortcut: '/assets/kh.svg',
-  //   apple: '/assets/kh.svg'
-  // },
+  title: 'GPSF Dashboard',
+  description: 'Government–Private Sector Forum',
+  icons: {
+    icon: '/assets/gpsf_logo.png',
+    shortcut: '/assets/gpsf_logo.png',
+    apple: '/assets/gpsf_logo.png'
+  }
 };
 
 export const viewport: Viewport = {
