@@ -10,3 +10,4 @@ services:
       NODE_ENV: production
       PORT: 3003
     restart: unless-stopped
+  
