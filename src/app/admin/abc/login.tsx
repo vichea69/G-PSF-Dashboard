@@ -1,91 +1,95 @@
+'use client';
+import { useState } from 'react';
 import Link from 'next/link';
-
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Login triggered');
+  };
   return (
-    <div className='flex min-h-screen flex-col bg-gradient-to-br from-[#4ab1be] to-[#1fc3a2] lg:flex-row'>
-      {/* Left Section - Teal Background with Illustrations */}
-      <div className='relative hidden overflow-hidden lg:block lg:w-2/5'>
-        {/* Decorative circles in bottom left */}
-        <div className='absolute bottom-0 left-0 h-40 w-40 -translate-x-1/3 translate-y-1/3 rounded-full border-[24px] border-white/10 sm:h-52 sm:w-52 sm:border-[32px] lg:h-64 lg:w-64 lg:border-[40px]' />
-        <div className='absolute bottom-12 left-8 h-20 w-20 rounded-full border-[14px] border-white/10 sm:bottom-16 sm:left-12 sm:h-28 sm:w-28 sm:border-[18px] lg:bottom-20 lg:left-20 lg:h-32 lg:w-32 lg:border-[20px]' />
-
-        {/* Content */}
-        <div className='relative z-10 flex w-full flex-col justify-start gap-8 p-8 sm:p-10 lg:justify-between lg:p-12'>
+    <div className='flex min-h-screen w-full flex-col bg-gradient-to-br from-[#4ab1be] to-[#1fc3a2] lg:flex-row'>
+      <div className='relative hidden flex-col items-center justify-center p-8 sm:p-12 lg:flex lg:w-1/2 lg:p-20'>
+        <div className='absolute bottom-0 left-0 h-64 w-64 -translate-x-1/3 translate-y-1/3 rounded-full border-[40px] border-white/10' />
+        <div className='absolute top-10 right-10 h-32 w-32 rounded-full border-[20px] border-white/5' />
+        <div className='relative z-10 flex max-w-lg flex-col gap-8 text-white'>
           <div>
-            <p className='mb-4 text-base text-white sm:mb-6 sm:text-lg'>
-              Welcome!
-            </p>
-            <h1 className='mb-4 text-3xl font-bold text-white sm:mb-6 sm:text-4xl lg:text-5xl'>
-              G-PSF Monitoring System
+            <p className='mb-2 text-lg font-medium opacity-90'>Welcome!</p>
+            <h1 className='mb-6 text-4xl leading-tight font-bold lg:text-5xl'>
+              Government–Private Sector Forum
             </h1>
-            <p className='max-w-md text-base text-white sm:text-lg'>
+            <p className='text-lg leading-relaxed text-white/90'>
               The Royal Government of Cambodia considers the private sector as a
               key partner and engine of national economic growth.
             </p>
           </div>
 
-          {/* Illustration */}
-          <div className='flex justify-center'>
+          <div className='flex justify-center lg:justify-start'>
             <img
-              src='/assets/undraw_online-community_3o0l%201.svg'
+              src='/assets/undraw_online-community_3o0l 1.svg'
               alt='Online community illustration'
-              className='w-full max-w-xs sm:max-w-sm lg:max-w-md'
+              className='w-full max-w-xs drop-shadow-2xl sm:max-w-sm lg:max-w-md'
             />
           </div>
         </div>
       </div>
 
-      {/* Right Section - Login Form */}
-      <div className='flex min-h-screen w-full items-center justify-center p-6 sm:p-12 lg:w-3/5'>
-        <div className='rounded-1xl w-full max-w-[600px] bg-white p-6 shadow-lg sm:rounded-3xl sm:p-8 lg:min-h-[650px] lg:p-10'>
-          {/* Logo */}
-          <div className='mb-4 flex justify-center sm:mb-6'>
+      <div className='flex flex-1 items-center justify-center p-6 sm:p-12'>
+        <div className='h-[700px] w-full max-w-[700px] rounded-3xl rounded-xl border border-white/20 bg-white p-8 shadow-2xl backdrop-blur-md lg:p-12'>
+          <div className='mb-8 flex justify-center'>
             <img
               src='/assets/gpsf_logo.png'
               alt='Cambodia G-PSF Logo'
-              className='h-16 sm:h-20'
+              className='h-20'
             />
           </div>
 
-          {/* Sign in heading */}
-          <h2 className='mb-6 text-center text-lg text-[#717680] sm:mb-10 sm:text-2xl'>
+          <h2 className='mb-10 text-center text-xl font-medium text-[#717680]'>
             Sign in to your account
           </h2>
 
-          {/* Login Form */}
-          <form className='space-y-4 sm:space-y-6'>
+          <form className='space-y-6' onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor='email'
-                className='mb-2 block text-sm font-medium text-[#414651]'
+                className='mb-2 block text-sm font-semibold text-[#414651]'
               >
-                Email
+                Email Address
               </label>
               <input
                 type='email'
                 id='email'
+                required
                 placeholder='privatesectoruser@gmail.com'
-                className='w-full rounded-lg border border-[#e6e6e6] px-4 py-3 text-[#414651] placeholder:text-[#a4a7ae] focus:ring-2 focus:ring-[#144167] focus:outline-none'
+                className='w-full rounded-xl border border-[#e6e6e6] px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-[#4ab1be]'
               />
             </div>
-
-            <div>
+            <div className='relative'>
               <label
                 htmlFor='password'
-                className='mb-2 block text-sm font-medium text-[#414651]'
+                className='mb-2 block text-sm font-semibold text-[#414651]'
               >
                 Password
               </label>
               <input
-                type='password'
+                type={showPassword ? 'text' : 'password'}
                 id='password'
-                placeholder='Your password'
-                className='w-full rounded-lg border border-[#e6e6e6] px-4 py-3 text-[#414651] placeholder:text-[#a4a7ae] focus:ring-2 focus:ring-[#144167] focus:outline-none'
+                required
+                placeholder='••••••••'
+                className='w-full rounded-xl border border-[#e6e6e6] px-4 py-3 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-[#4ab1be]'
               />
+              <button
+                type='button'
+                onClick={() => setShowPassword(!showPassword)}
+                className='absolute top-[38px] right-4 text-xs font-bold text-[#4ab1be] transition-colors hover:text-[#1fc3a2]'
+              >
+                {showPassword}
+              </button>
+
               <div className='mt-2 flex justify-end'>
                 <Link
                   href='/forgot-password'
-                  className='text-sm text-[#000000] underline hover:text-[#144167]'
+                  className='text-sm font-medium text-[#144167] hover:underline'
                 >
                   Forgot password?
                 </Link>
@@ -94,7 +98,7 @@ export default function LoginPage() {
 
             <button
               type='submit'
-              className='mt-6 w-full rounded-lg bg-[#144167] py-3 font-medium text-white transition-colors hover:bg-[#144167]/90 sm:mt-8 sm:py-4'
+              className='mt-4 w-full transform rounded-xl bg-[#144167] py-4 font-bold text-white shadow-lg transition-all hover:bg-[#0f314d] active:scale-[0.98]'
             >
               Sign in
             </button>
