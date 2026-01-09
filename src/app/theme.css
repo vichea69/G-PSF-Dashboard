@@ -32,8 +32,8 @@ body {
   --primary-foreground: var(--color-neutral-50);
 
   @variant dark {
-    --primary: var(--color-neutral-900);
-    --primary-foreground: var(--color-neutral-50);
+    --primary: var(--color-neutral-50);
+    --primary-foreground: var(--color-neutral-900);
   }
 }
 

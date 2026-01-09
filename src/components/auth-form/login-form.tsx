@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, EyeOff, Shield, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -79,11 +80,14 @@ export default function AdminLogin() {
           {/* Logo */}
           <div className='flex justify-center'>
             <div className='relative'>
-              <div className='flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg'>
-                <Shield className='h-8 w-8 text-white' />
-              </div>
-              <div className='absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500'>
-                <div className='h-2 w-2 rounded-full bg-white'></div>
+              <div className='flex items-center justify-center rounded-2xl p-2'>
+                <Image
+                  src='/assets/gpsf_logo.png'
+                  alt='G-PSF logo'
+                  width={150}
+                  height={150}
+                  className='h-full w-full object-contain'
+                />
               </div>
             </div>
             {err ? <div className='text-destructive text-sm'>{err}</div> : null}

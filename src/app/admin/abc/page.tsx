@@ -1,6 +1,7 @@
-import RolesTablePage from '@/features/role/components/role-table/page';
+'use client';
+import LoginPage from './login';
 
 const abcPage = () => {
-  return <RolesTablePage />;
+  return <LoginPage />;
 };
 export default abcPage;

@@ -1,5 +1,6 @@
-import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
+'use client';
+import LoginPage from '../admin/abc/login';
 
 export default function Page() {
-  return <SimpleEditor />;
+  return <LoginPage />;
 }

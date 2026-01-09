@@ -23,8 +23,8 @@ export default function Header() {
         </div>
         <UserNav />
         <LanguageSwitcher />
-        {/* <ModeToggle />
-        <ThemeSelector /> */}
+        <ModeToggle />
+        <ThemeSelector />
       </div>
     </header>
   );

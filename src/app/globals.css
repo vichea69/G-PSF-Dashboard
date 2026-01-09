@@ -2,10 +2,10 @@
 @import '../styles/_keyframe-animations.scss';
 @import 'tailwindcss';
 
+@custom-variant dark (&:is(.dark, .dark *));
+
 @import 'tw-animate-css';
 @import './theme.css';
-
-@custom-variant dark (&:is(.dark *));
 
 :root {
   --radius: 0.625rem;
