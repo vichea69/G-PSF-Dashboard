@@ -6,8 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import Image from 'next/image';
 
-export default function ProfileSettings() {
+interface ProfileSettingsProps {
+  profile?: any;
+}
+
+export default function ProfileSettings({ profile }: ProfileSettingsProps) {
   return (
     <div className='flex flex-col gap-6'>
       <Card className='overflow-hidden'>
@@ -19,9 +24,23 @@ export default function ProfileSettings() {
               <div className='flex items-center justify-between md:col-span-10'>
                 <div className='flex items-center gap-3'>
                   <Avatar className='h-16 w-16'>
-                    <AvatarFallback>
-                      <span className='h-full w-full rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400' />
-                    </AvatarFallback>
+                    {profile?.image ? (
+                      <Image
+                        src={profile.image}
+                        alt='avatar'
+                        className='h-full w-full rounded-full object-cover'
+                        width={100}
+                        height={100}
+                      />
+                    ) : (
+                      <AvatarFallback>
+                        {profile?.username ? (
+                          profile.username.slice(0, 2).toUpperCase()
+                        ) : (
+                          <span className='h-full w-full rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400' />
+                        )}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div className='text-muted-foreground text-sm'>Optional</div>
                 </div>
@@ -37,7 +56,11 @@ export default function ProfileSettings() {
             <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
               <div className='text-sm font-medium md:col-span-2'>Username</div>
               <div className='md:col-span-3'>
-                <Input id='username' placeholder='Your username' />
+                <Input
+                  id='username'
+                  defaultValue={profile?.username}
+                  placeholder='Your username'
+                />
               </div>
             </div>
 
@@ -47,7 +70,12 @@ export default function ProfileSettings() {
             <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
               <div className='text-sm font-medium md:col-span-2'>Email</div>
               <div className='md:col-span-3'>
-                <Input id='email' type='email' placeholder='you@example.com' />
+                <Input
+                  id='email'
+                  type='email'
+                  defaultValue={profile.email}
+                  placeholder='you@example.com'
+                />
               </div>
             </div>
 
@@ -59,6 +87,7 @@ export default function ProfileSettings() {
               <div className='md:col-span-3'>
                 <Textarea
                   id='bio'
+                  defaultValue={profile.bio}
                   rows={4}
                   placeholder='Tell us about yourself'
                 />
