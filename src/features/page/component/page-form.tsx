@@ -112,9 +112,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 Page Content
-                <Badge variant='secondary' className='text-xs'>
-                  Required
-                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
@@ -139,7 +136,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                 </Label>
                 <div className='mt-1 flex items-center'>
                   <span className='text-muted-foreground bg-muted rounded-l-md border border-r-0 px-3 py-2 text-sm'>
-                    yoursite.com/
+                    /
                   </span>
                   <Input
                     id='slug'
@@ -150,8 +147,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                   />
                 </div>
               </div>
-
-              {/* Removed excerpt - not required by API */}
 
               <div>
                 <Label htmlFor='content'>Page Content</Label>
@@ -164,7 +159,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                       content: e.target.value
                     }))
                   }
-                  placeholder='Write your page content here...'
                   rows={12}
                   className='mt-1 font-mono text-sm'
                 />

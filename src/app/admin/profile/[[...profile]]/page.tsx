@@ -20,15 +20,15 @@ export default async function Page() {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    console.error('ERROR RESPONSE:', text);
+    //const text = await res.text();
+    //console.error('ERROR RESPONSE:', text);
     throw new Error('Failed to fetch profile');
   }
 
   const json = await res.json();
   const profile = json.data.user;
 
-  console.log('PROFILE:', profile);
+  //console.log('PROFILE:', profile);
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-4'>

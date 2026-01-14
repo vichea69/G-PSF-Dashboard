@@ -12,6 +12,7 @@ export type PageRow = {
   content: string;
   publishedAt: string;
   updatedAt: string;
+  sectionCount: number;
   authorId: {
     id: number;
     displayName: string;
@@ -103,6 +104,12 @@ export const pageColumns: ColumnDef<PageRow>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ cell }) => getStatusBadge(cell.getValue<string>())
+  },
+  {
+    accessorKey: 'sectionCount',
+    header: ({ column }: { column: Column<PageRow, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Section' />
+    )
   },
   {
     accessorKey: 'publishedAt',

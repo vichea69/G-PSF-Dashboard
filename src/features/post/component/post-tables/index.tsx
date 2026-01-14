@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table';
@@ -16,6 +17,7 @@ export function PostTableList({ data }: { data: PostRow[] }) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel()
   });

@@ -61,15 +61,15 @@ export const postColumns: ColumnDef<PostRow>[] = [
     enableColumnFilter: true,
     meta: { label: 'Title', placeholder: 'Search title...', variant: 'text' }
   },
-  {
-    accessorKey: 'slug',
-    header: 'URL',
-    cell: ({ cell }) => (
-      <code className='bg-muted rounded px-2 py-0.5 font-mono text-xs'>
-        /{cell.getValue<string>()}
-      </code>
-    )
-  },
+  // {
+  //   accessorKey: 'slug',
+  //   header: 'URL',
+  //   cell: ({ cell }) => (
+  //     <code className='bg-muted rounded px-2 py-0.5 font-mono text-xs'>
+  //       /{cell.getValue<string>()}
+  //     </code>
+  //   )
+  // },
   {
     accessorKey: 'status',
     header: 'Status',

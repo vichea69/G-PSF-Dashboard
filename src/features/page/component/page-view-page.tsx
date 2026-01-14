@@ -27,7 +27,7 @@ type PageEntity = {
 type PageFormData = {
   title: string;
   content: string;
-  status: PageStatus | string; // keep flexible if your form returns string
+  status: PageStatus | string;
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
