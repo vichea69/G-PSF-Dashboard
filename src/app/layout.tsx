@@ -17,12 +17,7 @@ const META_THEME_COLORS = {
 
 export const metadata: Metadata = {
   title: 'GPSF Dashboard',
-  description: 'Government–Private Sector Forum',
-  icons: {
-    icon: '/assets/gpsf_logo.png',
-    shortcut: '/assets/gpsf_logo.png',
-    apple: '/assets/gpsf_logo.png'
-  }
+  description: 'Government–Private Sector Forum'
 };
 
 export const viewport: Viewport = {
@@ -52,6 +47,7 @@ export default async function RootLayout({
             `
           }}
         />
+        <link rel='icon' href='/favicon.ico' />
       </head>
       <body
         className={cn(
