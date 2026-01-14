@@ -43,6 +43,14 @@ export const contentItems: NavItem[] = [
     shortcut: ['p', 'p'],
     isActive: true,
     items: []
+  },
+  {
+    title: 'Section',
+    url: '/admin/section',
+    icon: 'section',
+    shortcut: ['p', 'p'],
+    isActive: true,
+    items: []
   }
 ];
 export const userItems: NavItem[] = [
