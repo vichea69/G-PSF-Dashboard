@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useSiteSetting } from '@/features/site-setting/hook/use-site-setting';
 
-const FALLBACK_LOGO = '/assets/favicon.ico';
+const FALLBACK_LOGO = '/assets/gpsf_logo.png';
 const FALLBACK_NAME = 'G-PSF Dashboard';
 
 export function OrgSwitcher() {
