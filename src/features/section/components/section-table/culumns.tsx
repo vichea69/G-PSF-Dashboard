@@ -3,12 +3,14 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
 import { CellAction } from './cell-action';
+import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
+import { type Language } from '@/context/language-context';
 
 export type SectionRow = {
   id: number | string;
   pageSlug?: string;
   blockType?: string;
-  title?: string;
+  title?: LocalizedText;
   data?: { headline?: string; subheadline?: string } | null;
   enabled?: boolean;
   orderIndex?: number;
@@ -31,7 +33,28 @@ const getEnabledBadge = (enabled?: boolean) => {
   );
 };
 
-export const sectionColumns: ColumnDef<SectionRow>[] = [
+const highlightMatch = (value: string, term?: string) => {
+  const trimmed = (term ?? '').trim();
+  if (!trimmed) return <span>{value}</span>;
+  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapeRegExp(trimmed)})`, 'ig');
+  const parts = value.split(regex);
+  return (
+    <>
+      {parts.map((part, index) =>
+        index % 2 === 1 ? (
+          <span key={index}>{part}</span>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </>
+  );
+};
+
+export const getSectionColumns = (
+  language: Language
+): ColumnDef<SectionRow>[] => [
   {
     id: 'id',
     accessorKey: 'id',
@@ -41,30 +64,14 @@ export const sectionColumns: ColumnDef<SectionRow>[] = [
   },
   {
     id: 'title',
-    accessorKey: 'title',
+    accessorFn: (row) => getLocalizedText(row.title ?? '', language),
     header: ({ column }: { column: Column<SectionRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Section Title' />
     ),
     cell: ({ cell }) => {
       const value = (cell.getValue<string>() ?? '').toString();
       const raw = cell.column.getFilterValue() as string | undefined;
-      const term = (raw ?? '').trim();
-      if (!term) return <div>{value}</div>;
-      const escapeRegExp = (s: string) =>
-        s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(${escapeRegExp(term)})`, 'ig');
-      const parts = value.split(regex);
-      return (
-        <div>
-          {parts.map((part, i) =>
-            regex.test(part) ? (
-              <span key={i}>{part}</span>
-            ) : (
-              <span key={i}>{part}</span>
-            )
-          )}
-        </div>
-      );
+      return <div>{highlightMatch(value || 'Untitled', raw)}</div>;
     },
     meta: {
       label: 'Title',

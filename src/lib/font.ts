@@ -3,6 +3,7 @@ import {
   Geist_Mono,
   Instrument_Sans,
   Inter,
+  Kantumruy_Pro,
   Mulish,
   Noto_Sans_Khmer,
   Noto_Sans_Mono
@@ -47,6 +48,13 @@ const fontKhmer = Noto_Sans_Khmer({
   display: 'swap'
 });
 
+const kantumruyPro = Kantumruy_Pro({
+  variable: '--font-kantumruy-pro',
+  subsets: ['khmer', 'latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap'
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
@@ -54,5 +62,6 @@ export const fontVariables = cn(
   fontNotoMono.variable,
   fontMullish.variable,
   fontInter.variable,
-  fontKhmer.variable
+  fontKhmer.variable,
+  kantumruyPro.variable
 );

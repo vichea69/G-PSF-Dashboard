@@ -1,9 +1,9 @@
 import PageContainer from '@/components/layout/page-container';
 import { Suspense } from 'react';
 import { Separator } from '@/components/ui/separator';
-import SiteSettingForm from '@/features/site-setting/components/page';
+import SiteSettingForm from '@/features/site-setting/components/site-setting-list';
 import { Heading } from '@/components/ui/heading';
-import SiteSetting from '@/features/site-setting/components/page';
+import SiteSetting from '@/features/site-setting/components/site-setting-list';
 
 export const metadata = {
   title: 'Site Setting'

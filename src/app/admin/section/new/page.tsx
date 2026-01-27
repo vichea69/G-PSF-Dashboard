@@ -1,20 +1,20 @@
 import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
-import CategoryForm from '@/features/categories/components/category-form';
+import SectionForm from '@/features/section/components/section-form';
 
-export const metadata = { title: 'Dashboard: New Category' };
+export const metadata = { title: 'Dashboard: New Section' };
 
 export default async function Page() {
   return (
-    <PageContainer scrollable>
+    <PageContainer scrollable={true}>
       <div className='flex-1 space-y-4'>
         <Heading
-          title='Create Category'
-          description='Set the category names and descriptions.'
+          title='Create Section'
+          description='Set the section details for your page.'
         />
         <Separator />
-        <CategoryForm initialData={null} />
+        <SectionForm initialData={null} />
       </div>
     </PageContainer>
   );

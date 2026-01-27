@@ -45,12 +45,25 @@ export const contentItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Section',
-    url: '/admin/section',
+    title: 'Content',
+    url: '/admin/overview',
     icon: 'section',
     shortcut: ['p', 'p'],
-    isActive: true,
-    items: []
+    isActive: false,
+    items: [
+      {
+        title: 'Section',
+        url: '/admin/section',
+        isActive: true,
+        items: []
+      },
+      {
+        title: 'Testimonial',
+        url: '/admin/testimonial',
+        isActive: true,
+        items: []
+      }
+    ]
   }
 ];
 export const userItems: NavItem[] = [

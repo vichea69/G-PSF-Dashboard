@@ -121,12 +121,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-kantumruy-pro), system-ui, sans-serif;
   }
 }
 
 body[data-language='kh'] [data-sidebar='sidebar'] {
-  --font-sans: var(--font-khmer);
-  font-family: var(--font-khmer), 'Noto Sans Khmer', system-ui, sans-serif;
+  --font-sans: var(--font-kantumruy-pro);
+  font-family: var(--font-kantumruy-pro), system-ui, sans-serif;
 }
 
 /* View Transition Wave Effect */

@@ -1,15 +1,14 @@
 'use server';
 import 'server-only';
 import { api } from '@/lib/api';
+import type { LocalizedText } from '@/lib/helpers';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 
 export type PageInput = {
-  title: string;
-  slug?: string;
-  content?: string;
+  title: LocalizedText;
   status: 'published' | 'draft';
-  metaTitle?: string;
-  metaDescription?: string;
+  metaTitle: LocalizedText;
+  metaDescription: LocalizedText;
 };
 
 export async function createPage(input: PageInput) {

@@ -1,12 +1,12 @@
 'use server';
 import 'server-only';
 import { api } from '@/lib/api';
-import { Category } from './types';
+import type { LocalizedText } from '@/lib/helpers';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 
 type CategoryInput = {
-  name: string;
-  description?: string;
+  name: LocalizedText;
+  description?: LocalizedText;
 };
 
 //create category using api with server action

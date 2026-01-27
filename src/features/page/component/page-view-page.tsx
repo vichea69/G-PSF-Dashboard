@@ -4,34 +4,29 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { PageForm } from './page-form';
+import { PageForm, type PageFormData } from './page-form';
 import {
   createPage,
   getPageById,
   updatePage,
   type PageInput
 } from '@/server/action/page/page';
+import type { LocalizedText } from '@/lib/helpers';
 
 type PageStatus = 'draft' | 'published';
 
 type PageEntity = {
   id?: string;
-  title: string;
-  content?: string;
-  status: PageStatus;
-  metaTitle?: string;
-  metaDescription?: string;
+  title?: LocalizedText;
   slug?: string;
-};
-
-type PageFormData = {
-  title: string;
-  content: string;
-  status: PageStatus | string;
+  status?: PageStatus;
+  content?: string;
   seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
+    metaTitle?: LocalizedText;
+    metaDescription?: LocalizedText;
   };
+  metaTitle?: LocalizedText;
+  metaDescription?: LocalizedText;
 };
 
 function getErrorMessage(e: any, fallback = 'Something went wrong') {
@@ -94,17 +89,14 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
   const handleSave = useCallback(
     async (formData: PageFormData) => {
       try {
-        // ✅ Fix: force status to be the literal union type
         const status: PageStatus =
           formData.status === 'published' ? 'published' : 'draft';
 
-        // ✅ Fix: explicitly type payload as PageInput
         const payload: PageInput = {
           title: formData.title,
-          content: formData.content,
           status,
-          metaTitle: formData.seo?.metaTitle,
-          metaDescription: formData.seo?.metaDescription
+          metaTitle: formData.metaTitle,
+          metaDescription: formData.metaDescription
         };
 
         if (isNew) {

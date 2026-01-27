@@ -23,6 +23,8 @@ import { Save, Upload } from 'lucide-react';
 import ProgressUpload from '@/components/file-upload/progress-upload';
 import type { FileWithPreview } from '@/hooks/use-file-upload';
 import { useCategories } from '@/hooks/use-category';
+import { useLanguage } from '@/context/language-context';
+import { getLocalizedText } from '@/lib/helpers';
 import { usePage } from '@/hooks/use-page';
 import { PostContentEditor } from '@/features/post/component/post-content-editor';
 import type { PostContent } from '@/server/action/post/types';
@@ -168,16 +170,26 @@ export default function PostForm({
   }, [editingPost]);
 
   const { data: categoriesData } = useCategories();
+  const { language } = useLanguage();
   const categories = useMemo(() => {
     const raw = (categoriesData?.data ?? categoriesData) as any;
-    return Array.isArray(raw) ? raw : [];
-  }, [categoriesData]);
+    if (!Array.isArray(raw)) return [];
+    return raw.map((category) => ({
+      ...category,
+      name: getLocalizedText(category?.name, language),
+      description: getLocalizedText(category?.description, language)
+    }));
+  }, [categoriesData, language]);
 
   const { data: pagesData } = usePage();
   const pages = useMemo(() => {
     const raw = (pagesData?.data ?? pagesData) as any;
-    return Array.isArray(raw) ? raw : [];
-  }, [pagesData]);
+    const rows = Array.isArray(raw) ? raw : [];
+    return rows.map((page) => ({
+      ...page,
+      title: getLocalizedText(page?.title, language) || page?.slug || page?.id
+    }));
+  }, [pagesData, language]);
 
   // Slug removed per request; backend will derive if needed.
 

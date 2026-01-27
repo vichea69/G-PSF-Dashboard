@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -10,6 +10,7 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -19,31 +20,51 @@ import * as z from 'zod';
 import type { Category } from '@/server/action/category/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import type { LocalizedText } from '@/lib/helpers';
 import {
   createCategory,
   updateCategory
 } from '@/server/action/category/category';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  description: z.string().optional()
+  name: z.object({
+    en: z
+      .string()
+      .min(2, { message: 'English name must be at least 2 characters.' }),
+    km: z.string().optional()
+  }),
+  description: z.object({
+    en: z.string().optional(),
+    km: z.string().optional()
+  })
 });
 
 export default function CategoryForm({
-  initialData,
-  pageTitle
+  initialData
 }: {
   initialData: Category | null;
-  pageTitle: string;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
+  const getLocalizedValue = (value: LocalizedText, key: 'en' | 'km') => {
+    if (typeof value === 'string') return value;
+    if (!value || typeof value !== 'object') return '';
+    const candidate = value[key];
+    return typeof candidate === 'string' ? candidate : '';
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     values: {
-      name: initialData?.name ?? '',
-      description: initialData?.description ?? ''
+      name: {
+        en: getLocalizedValue(initialData?.name, 'en'),
+        km: getLocalizedValue(initialData?.name, 'km')
+      },
+      description: {
+        en: getLocalizedValue(initialData?.description, 'en'),
+        km: getLocalizedValue(initialData?.description, 'km')
+      }
     }
   });
 
@@ -87,45 +108,81 @@ export default function CategoryForm({
 
   return (
     <Card className='mx-auto w-full'>
-      <CardHeader>
-        <CardTitle className='text-left text-2xl font-bold'>
-          {pageTitle}
-        </CardTitle>
-      </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-            <FormField
-              control={form.control}
-              name='name'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder='Category name' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Tabs defaultValue='en' className='space-y-4'>
+              <TabsList>
+                <TabsTrigger value='en'>English</TabsTrigger>
+                <TabsTrigger value='km'>Khmer</TabsTrigger>
+              </TabsList>
 
-            <FormField
-              control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder='Description (optional)'
-                      className='resize-none'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <TabsContent value='en' className='space-y-4'>
+                <FormField
+                  control={form.control}
+                  name='name.en'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder='' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='description.en'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder=''
+                          className='resize-none'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value='km' className='space-y-4'>
+                <FormField
+                  control={form.control}
+                  name='name.km'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name </FormLabel>
+                      <FormControl>
+                        <Input placeholder='' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='description.km'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder=''
+                          className='resize-none'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
 
             <div className='flex items-center gap-2'>
               <Button type='submit' disabled={submitting}>

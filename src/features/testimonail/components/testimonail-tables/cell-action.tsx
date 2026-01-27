@@ -8,19 +8,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
+import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { PostRow } from './columns';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
+import type { TestimonialRow } from './culumns';
+import { deleteTestimonial } from '@/server/action/testimonail/testimonail';
 
 interface CellActionProps {
-  data: PostRow;
+  data: TestimonialRow;
 }
 
-export const CellAction: React.FC<CellActionProps> = ({ data }) => {
+export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -29,11 +29,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const onConfirm = async () => {
     try {
       setLoading(true);
-      // Optimistically remove from cache for instant UI feedback
-      qc.setQueryData(['posts'], (prev: any) => {
+      qc.setQueryData(['testimonials'], (prev: any) => {
         if (!prev) return prev;
         const remove = (arr: any[]) =>
-          arr.filter((p) => String(p?.id) !== String(data.id));
+          arr.filter((item) => String(item?.id) !== String(data.id));
         if (Array.isArray(prev)) return remove(prev);
         if (Array.isArray(prev?.data))
           return { ...prev, data: remove(prev.data) };
@@ -42,19 +41,18 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         return prev;
       });
 
-      await api.delete(`/posts/${encodeURIComponent(String(data.id))}`);
-      toast.success('Post deleted successfully');
+      await deleteTestimonial(data.id);
+      toast.success('Testimonial deleted successfully');
       setOpen(false);
-      // Keep data fresh in background
-      qc.invalidateQueries({ queryKey: ['posts'], exact: false });
+      qc.invalidateQueries({ queryKey: ['testimonials'], exact: false });
+      router.refresh();
     } catch (e: any) {
-      const msg =
+      const message =
         e?.response?.data?.message ||
         e?.message ||
         'Delete failed please try again';
-      toast.error(msg);
-      // Refetch to rollback if needed
-      qc.invalidateQueries({ queryKey: ['posts'], exact: false });
+      toast.error(message);
+      qc.invalidateQueries({ queryKey: ['testimonials'], exact: false });
     } finally {
       setLoading(false);
     }
@@ -73,6 +71,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <Button
             variant='ghost'
             className='h-8 w-8 p-0'
+            data-row-action
             onClick={(event) => event.stopPropagation()}
           >
             <span className='sr-only'>Open menu</span>
@@ -84,7 +83,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <DropdownMenuItem
             onClick={(event) => {
               event.stopPropagation();
-              router.push(`/admin/post/${data.id}`);
+              router.push(`/admin/testimonial/${data.id}`);
             }}
           >
             <IconEdit className='mr-2 h-4 w-4' /> Edit

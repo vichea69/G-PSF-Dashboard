@@ -71,146 +71,79 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
   const userLabel = translateLabel('Administration', language);
   const systemLabel = translateLabel('System Log', language);
 
+  const renderMenuItem = (item: NavItem) => {
+    const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
+    const itemLabel = translateLabel(item.title, language);
+    const isItemActive =
+      pathname === item.url ||
+      Boolean(item.items?.some((subItem) => pathname === subItem.url));
+
+    if (item.items && item.items.length > 0) {
+      return (
+        <Collapsible
+          key={item.title}
+          asChild
+          defaultOpen={Boolean(item.isActive) || isItemActive}
+          className='group/collapsible'
+        >
+          <SidebarMenuItem>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton tooltip={itemLabel} isActive={isItemActive}>
+                {item.icon && <IconComp />}
+                <span>{itemLabel}</span>
+                <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {item.items.map((subItem) => {
+                  const subLabel = translateLabel(subItem.title, language);
+                  return (
+                    <SidebarMenuSubItem key={subItem.title}>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname === subItem.url}
+                      >
+                        <Link href={subItem.url}>
+                          <span>{subLabel}</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  );
+                })}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </SidebarMenuItem>
+        </Collapsible>
+      );
+    }
+
+    return (
+      <SidebarMenuItem key={item.title}>
+        <SidebarMenuButton asChild tooltip={itemLabel} isActive={isItemActive}>
+          <Link href={item.url}>
+            <IconComp />
+            <span>{itemLabel}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{overviewLabel}</SidebarGroupLabel>
-      <SidebarMenu>
-        {items.map((item) => {
-          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
-          const itemLabel = translateLabel(item.title, language);
-          return item?.items && item?.items?.length > 0 ? (
-            <Collapsible
-              key={item.title}
-              asChild
-              defaultOpen={item.isActive}
-              className='group/collapsible'
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton
-                    tooltip={itemLabel}
-                    isActive={pathname === item.url}
-                  >
-                    {item.icon && <IconComp />}
-                    <span>{itemLabel}</span>
-                    <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarMenuSub>
-                    {item.items?.map((subItem: NavItem) => {
-                      const subLabel = translateLabel(subItem.title, language);
-                      return (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton
-                            asChild
-                            isActive={pathname === subItem.url}
-                          >
-                            <Link href={subItem.url}>
-                              <span>{subLabel}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      );
-                    })}
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
-          ) : (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                tooltip={itemLabel}
-                isActive={pathname === item.url}
-              >
-                <Link href={item.url}>
-                  <IconComp />
-                  <span>{itemLabel}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
+      <SidebarMenu>{items.map(renderMenuItem)}</SidebarMenu>
       {/* content management */}
       <SidebarGroupLabel>{contentLabel}</SidebarGroupLabel>
       <SidebarMenu>
-        {contentItems.map((item) => {
-          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
-          const itemLabel = translateLabel(item.title, language);
-          return (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                tooltip={itemLabel}
-                isActive={pathname === item.url}
-              >
-                <Link href={item.url}>
-                  <IconComp />
-                  <span>{itemLabel}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+        {contentItems.map(renderMenuItem)}
         <SidebarGroupLabel>{siteLabel}</SidebarGroupLabel>
-        {siteItems.map((item) => {
-          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
-          const itemLabel = translateLabel(item.title, language);
-          return (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                tooltip={itemLabel}
-                isActive={pathname === item.url}
-              >
-                <Link href={item.url}>
-                  <IconComp />
-                  <span>{itemLabel}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+        {siteItems.map(renderMenuItem)}
         <SidebarGroupLabel>{userLabel}</SidebarGroupLabel>
-        {userItems.map((item) => {
-          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
-          const itemLabel = translateLabel(item.title, language);
-          return (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                tooltip={itemLabel}
-                isActive={pathname === item.url}
-              >
-                <Link href={item.url}>
-                  <IconComp />
-                  <span>{itemLabel}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+        {userItems.map(renderMenuItem)}
         <SidebarGroupLabel>{systemLabel}</SidebarGroupLabel>
-        {systemItem.map((item) => {
-          const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
-          const itemLabel = translateLabel(item.title, language);
-          return (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                tooltip={itemLabel}
-                isActive={pathname === item.url}
-              >
-                <Link href={item.url}>
-                  <IconComp />
-                  <span>{itemLabel}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          );
-        })}
+        {systemItem.map(renderMenuItem)}
       </SidebarMenu>
     </SidebarGroup>
   );

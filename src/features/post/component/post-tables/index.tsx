@@ -1,5 +1,6 @@
 'use client';
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,10 +10,13 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { postColumns, type PostRow } from './columns';
+import { useLanguage } from '@/context/language-context';
+import { getPostColumns, type PostRow } from './columns';
 
 export function PostTableList({ data }: { data: PostRow[] }) {
-  const columns = useMemo(() => postColumns, []);
+  const router = useRouter();
+  const { language } = useLanguage();
+  const columns = useMemo(() => getPostColumns(language), [language]);
   const table = useReactTable({
     data,
     columns,
@@ -23,7 +27,15 @@ export function PostTableList({ data }: { data: PostRow[] }) {
   });
 
   return (
-    <DataTable table={table}>
+    <DataTable
+      table={table}
+      onRowClick={(row) => {
+        const id = row.original?.id;
+        if (id !== undefined && id !== null) {
+          router.push(`/admin/post/${id}`);
+        }
+      }}
+    >
       <div className='flex items-center justify-between'>
         <DataTableToolbar table={table} />
       </div>

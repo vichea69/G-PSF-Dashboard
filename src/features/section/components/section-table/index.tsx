@@ -9,12 +9,15 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { sectionColumns, type SectionRow } from './culumns';
+import { useLanguage } from '@/context/language-context';
+import { getSectionColumns, type SectionRow } from './culumns';
 
 export function SectionTableList({ data }: { data: SectionRow[] }) {
-  const columns = useMemo(() => sectionColumns, []);
+  const { language } = useLanguage();
+  const tableData = useMemo(() => data.slice(), [data, language]);
+  const columns = useMemo(() => getSectionColumns(language), [language]);
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

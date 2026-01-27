@@ -84,6 +84,28 @@ export const getInitials = (
     : initials.join('');
 };
 
+export type LocalizedText =
+  | {
+      en?: string;
+      km?: string;
+    }
+  | string
+  | null
+  | undefined;
+
+export function getLocalizedText(
+  value: LocalizedText,
+  language: 'en' | 'kh' = 'en'
+): string {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return '';
+  const preferredKey = language === 'kh' ? 'km' : 'en';
+  const preferred = value[preferredKey];
+  if (typeof preferred === 'string' && preferred) return preferred;
+  const fallback = value.en ?? value.km;
+  return typeof fallback === 'string' ? fallback : '';
+}
+
 /**
  * Formats a date as a readable string in "Month Day, Year" format.
  *

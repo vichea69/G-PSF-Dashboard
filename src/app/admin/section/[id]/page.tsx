@@ -1,26 +1,27 @@
 import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
-import CategoryForm from '@/features/categories/components/category-form';
-import { getCategoryById } from '@/server/action/category/category';
+import SectionForm from '@/features/section/components/section-form';
+import { getSectionById } from '@/server/action/section/section';
 
-export const metadata = { title: 'Dashboard: Edit Category' };
+export const metadata = { title: 'Dashboard: Edit Section' };
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
-  const payload = await getCategoryById(params.id);
-  const category = (payload as any)?.data ?? payload;
+  const payload = await getSectionById(params.id);
+  const section = (payload as any)?.data ?? payload;
+
   return (
     <PageContainer scrollable>
       <div className='flex-1 space-y-4'>
         <Heading
-          title='Edit Category'
-          description='Update the category names and descriptions.'
+          title='Edit Section'
+          description='Update the section details.'
         />
         <Separator />
-        <CategoryForm initialData={category} />
+        <SectionForm initialData={section} />
       </div>
     </PageContainer>
   );

@@ -5,20 +5,45 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Badge } from '@/components/ui/badge';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 import { CellAction } from './cell-action';
+import { getLocalizedText } from '@/lib/helpers';
+import { type LocalizedText } from '@/lib/helpers';
+import { type Language } from '@/context/language-context';
 
 export type PostRow = {
   id: number;
-  title: string;
+  title: string | LocalizedText;
   slug: string;
   content?: string;
   status: 'published' | 'draft' | string;
   images?: { id: number; url: string; sortOrder?: number | null }[];
   updatedAt: string;
-  category?: { id: number; name: string } | undefined;
-  page?: { id: number; title: string; slug: string } | undefined;
+  category?: { id: number; name: LocalizedText } | undefined;
+  page?: { id: number; title?: LocalizedText; slug?: string } | undefined;
 };
 
-export const postColumns: ColumnDef<PostRow>[] = [
+const postStatusBadge = (status: string) => {
+  const normalized = status?.toLowerCase?.() ?? '';
+  const isPublished = normalized === 'published';
+  return (
+    <Badge
+      variant='outline'
+      className={
+        isPublished
+          ? 'gap-1 border-emerald-200 bg-emerald-100 text-emerald-700'
+          : 'gap-1 border-amber-200 bg-amber-100 text-amber-700'
+      }
+    >
+      {isPublished ? (
+        <IconCircleCheck className='h-3 w-3' />
+      ) : (
+        <IconCircleX className='h-3 w-3' />
+      )}{' '}
+      {isPublished ? 'Published' : 'Draft'}
+    </Badge>
+  );
+};
+
+export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
   {
     id: 'image',
     accessorFn: (row) => row.images?.[0]?.url ?? '',
@@ -54,55 +79,28 @@ export const postColumns: ColumnDef<PostRow>[] = [
   },
   {
     id: 'title',
-    accessorKey: 'title',
+    accessorFn: (row) => getLocalizedText(row.title ?? '', language) ?? '',
     header: ({ column }: { column: Column<PostRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Title' />
     ),
     enableColumnFilter: true,
     meta: { label: 'Title', placeholder: 'Search title...', variant: 'text' }
   },
-  // {
-  //   accessorKey: 'slug',
-  //   header: 'URL',
-  //   cell: ({ cell }) => (
-  //     <code className='bg-muted rounded px-2 py-0.5 font-mono text-xs'>
-  //       /{cell.getValue<string>()}
-  //     </code>
-  //   )
-  // },
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ cell }) => {
-      const status = (cell.getValue<string>() || '').toLowerCase();
-      const isPublished = status === 'published';
-      return (
-        <Badge
-          variant='outline'
-          className={
-            isPublished
-              ? 'gap-1 border-emerald-200 bg-emerald-100 text-emerald-700'
-              : 'gap-1 border-amber-200 bg-amber-100 text-amber-700'
-          }
-        >
-          {isPublished ? (
-            <IconCircleCheck className='h-3 w-3' />
-          ) : (
-            <IconCircleX className='h-3 w-3' />
-          )}{' '}
-          {isPublished ? 'Published' : 'Draft'}
-        </Badge>
-      );
-    }
+    cell: ({ cell }) => postStatusBadge(cell.getValue<string>())
   },
   {
     id: 'category',
-    accessorFn: (row) => row.category?.name ?? '',
+    accessorFn: (row) =>
+      getLocalizedText(row.category?.name ?? '', language) ?? '',
     header: 'Category'
   },
   {
     id: 'page',
-    accessorFn: (row) => row.page?.title ?? '',
+    accessorFn: (row) =>
+      getLocalizedText(row.page?.title ?? '', language) ?? row.page?.slug ?? '',
     header: 'Page'
   },
   {

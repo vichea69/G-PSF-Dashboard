@@ -1,13 +1,15 @@
 // Types for Pages CRUD
 
+import type { LocalizedText } from '@/lib/helpers';
+
 export type PageSeo = {
-  metaTitle?: string;
-  metaDescription?: string;
+  metaTitle?: LocalizedText;
+  metaDescription?: LocalizedText;
 };
 
 export type Page = {
   id: number | string;
-  title: string;
+  title: LocalizedText;
   slug: string;
   status: 'published' | 'draft' | string;
   content?: string;
@@ -22,12 +24,12 @@ export type Page = {
 };
 
 export type PageUpsert = {
-  title: string;
+  title: LocalizedText;
   slug?: string;
   content?: string;
   status: 'published' | 'draft';
   // Accept either flat meta* fields or nested seo to be flexible
-  metaTitle?: string;
-  metaDescription?: string;
+  metaTitle?: LocalizedText;
+  metaDescription?: LocalizedText;
   seo?: PageSeo;
 };

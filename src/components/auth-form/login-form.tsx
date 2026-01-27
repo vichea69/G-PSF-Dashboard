@@ -24,6 +24,7 @@ import {
   FormMessage,
   FormField
 } from '@/components/ui/form';
+import { Spinner } from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
 import { loginAction } from '@/server/action/userAuth/user';
 import { toast } from 'sonner';
@@ -199,7 +200,7 @@ export default function AdminLogin() {
               >
                 {loading ? (
                   <div className='flex items-center space-x-2'>
-                    <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent'></div>
+                    <Spinner className='text-white' />
                     <span>Signing in...</span>
                   </div>
                 ) : (

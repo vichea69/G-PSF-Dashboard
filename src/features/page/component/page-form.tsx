@@ -1,13 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,81 +13,116 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { type LocalizedText } from '@/lib/helpers';
 import { ArrowLeft, Save, Eye, HelpCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+
+type Locale = 'en' | 'km';
+type LocalizedFormField = Record<Locale, string>;
+type SeoField = 'metaTitle' | 'metaDescription';
 
 export type PageFormData = {
-  title: string;
+  title: LocalizedFormField;
   slug: string;
   status: 'published' | 'draft';
-  content: string;
-  seo: {
-    metaTitle: string;
-    metaDescription: string;
-  };
+  metaTitle: LocalizedFormField;
+  metaDescription: LocalizedFormField;
+};
+
+export type PageFormEditingData = {
+  id?: string;
+  title?: LocalizedText;
+  slug?: string;
+  status?: 'published' | 'draft';
+  metaTitle?: LocalizedText;
+  metaDescription?: LocalizedText;
 };
 
 interface PageFormProps {
-  editingPage?: any;
+  editingPage?: PageFormEditingData | null;
   onSave: (pageData: PageFormData) => void;
   onCancel: () => void;
 }
 
+const createEmptyLocalizedField = (): LocalizedFormField => ({
+  en: '',
+  km: ''
+});
+
+const normalizeLocalizedText = (value?: LocalizedText): LocalizedFormField => {
+  if (typeof value === 'string') {
+    return { en: value, km: '' };
+  }
+
+  if (!value || typeof value !== 'object') {
+    return createEmptyLocalizedField();
+  }
+
+  return {
+    en: value.en ?? '',
+    km: value.km ?? ''
+  };
+};
+
+const createInitialFormData = (
+  page?: PageFormEditingData | null
+): PageFormData => ({
+  title: normalizeLocalizedText(page?.title),
+  slug: typeof page?.slug === 'string' ? page.slug : '',
+  status:
+    page?.status === 'published' || page?.status === 'draft'
+      ? page.status
+      : 'draft',
+  metaTitle: normalizeLocalizedText(page?.metaTitle),
+  metaDescription: normalizeLocalizedText(page?.metaDescription)
+});
+
+const generateSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
 export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
-  const [formData, setFormData] = useState<PageFormData>({
-    title: editingPage?.title || '',
-    slug: editingPage?.slug || '',
-    status:
-      editingPage?.status === 'published' || editingPage?.status === 'draft'
-        ? editingPage.status
-        : 'draft',
-    content: editingPage?.content || '',
-    seo: {
-      metaTitle: editingPage?.metaTitle || editingPage?.seo?.metaTitle || '',
-      metaDescription:
-        editingPage?.metaDescription || editingPage?.seo?.metaDescription || ''
-    }
-  });
+  const [formData, setFormData] = useState<PageFormData>(() =>
+    createInitialFormData(editingPage)
+  );
+  const [activeLocale, setActiveLocale] = useState<Locale>('en');
 
   useEffect(() => {
-    if (!editingPage) return;
-    setFormData((prev) => ({
-      ...prev,
-      title:
-        typeof editingPage?.title === 'string' ? editingPage.title : prev.title,
-      slug:
-        typeof editingPage?.slug === 'string' ? editingPage.slug : prev.slug,
-      status:
-        editingPage?.status === 'published' || editingPage?.status === 'draft'
-          ? editingPage.status
-          : prev.status,
-      content: editingPage?.content ?? prev.content,
-      seo: {
-        metaTitle:
-          editingPage?.metaTitle ||
-          editingPage?.seo?.metaTitle ||
-          prev.seo.metaTitle,
-        metaDescription:
-          editingPage?.metaDescription ||
-          editingPage?.seo?.metaDescription ||
-          prev.seo.metaDescription
-      }
-    }));
+    setFormData(createInitialFormData(editingPage));
   }, [editingPage]);
 
-  const handleTitleChange = (title: string) => {
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+  const handleTitleChange = (locale: Locale, value: string) => {
+    setFormData((prev) => {
+      const nextTitle = { ...prev.title, [locale]: value };
+      const shouldUpdateSlug = locale === 'en';
+      const nextSlug = shouldUpdateSlug ? generateSlug(value) : prev.slug;
 
+      const nextMetaTitle: LocalizedFormField = {
+        ...prev.metaTitle,
+        en:
+          locale === 'en' &&
+          (!prev.metaTitle.en || prev.metaTitle.en === prev.title.en)
+            ? value
+            : prev.metaTitle.en
+      };
+
+      return {
+        ...prev,
+        title: nextTitle,
+        slug: shouldUpdateSlug ? nextSlug : prev.slug,
+        metaTitle: nextMetaTitle
+      };
+    });
+  };
+
+  const handleSeoChange = (field: SeoField, locale: Locale, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      title,
-      slug,
-      seo: {
-        ...prev.seo,
-        metaTitle: prev.seo.metaTitle || title
+      [field]: {
+        ...prev[field],
+        [locale]: value
       }
     }));
   };
@@ -104,30 +133,139 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
 
   return (
     <div className='space-y-6'>
-      {/* Form Content */}
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        {/* Main Content */}
         <div className='space-y-6 lg:col-span-2'>
           <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                Page Content
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              <div>
-                <Label htmlFor='title' className='flex items-center gap-2'>
-                  Page Title
-                  <HelpCircle className='text-muted-foreground h-3 w-3' />
-                </Label>
-                <Input
-                  id='title'
-                  value={formData.title}
-                  onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder='Enter a clear, descriptive title'
-                  className='mt-1'
-                />
-              </div>
+            <CardContent className='space-y-6'>
+              <Tabs
+                value={activeLocale}
+                onValueChange={(value) => setActiveLocale(value as Locale)}
+              >
+                <TabsList>
+                  <TabsTrigger value='en'>English</TabsTrigger>
+                  <TabsTrigger value='km'>Khmer</TabsTrigger>
+                </TabsList>
+                <TabsContent value='en'>
+                  <div>
+                    <Label
+                      htmlFor='title-en'
+                      className='flex items-center gap-2'
+                    >
+                      Page Title
+                      <HelpCircle className='text-muted-foreground h-3 w-3' />
+                    </Label>
+                    <Input
+                      id='title-en'
+                      value={formData.title.en}
+                      onChange={(e) => handleTitleChange('en', e.target.value)}
+                      placeholder='Enter a clear, descriptive title'
+                      className='mt-1'
+                    />
+                  </div>
+                  <div className='border-border space-y-4 border-t pt-4'>
+                    <div>
+                      <p className='text-sm font-semibold'>SEO Settings</p>
+                      <p className='text-muted-foreground text-xs'>
+                        Help search engines understand your page
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor='metaTitle-en'>Meta Title</Label>
+                      <Input
+                        id='metaTitle-en'
+                        value={formData.metaTitle.en}
+                        onChange={(e) =>
+                          handleSeoChange('metaTitle', 'en', e.target.value)
+                        }
+                        placeholder='Enter meta title'
+                        className='mt-1'
+                      />
+                      <p className='text-muted-foreground mt-1 text-xs'>
+                        {formData.metaTitle.en.length}/60 characters
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor='metaDescription-en'>
+                        Meta Description
+                      </Label>
+                      <Textarea
+                        id='metaDescription-en'
+                        value={formData.metaDescription.en}
+                        onChange={(e) =>
+                          handleSeoChange(
+                            'metaDescription',
+                            'en',
+                            e.target.value
+                          )
+                        }
+                        placeholder='Enter meta description'
+                        rows={3}
+                        className='mt-1'
+                      />
+                      <p className='text-muted-foreground mt-1 text-xs'>
+                        {formData.metaDescription.en.length}/160 characters
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value='km'>
+                  <div>
+                    <Label htmlFor='title-km'>Khmer Title</Label>
+                    <Input
+                      id='title-km'
+                      value={formData.title.km}
+                      onChange={(e) => handleTitleChange('km', e.target.value)}
+                      placeholder='ឈ្មោះទំព័រ'
+                      className='mt-1'
+                    />
+                  </div>
+                  <div className='border-border space-y-4 border-t pt-4'>
+                    <div>
+                      <p className='text-sm font-semibold'>SEO Settings</p>
+                      <p className='text-muted-foreground text-xs'>
+                        Help search engines understand your page
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor='metaTitle-km'>Meta Title</Label>
+                      <Input
+                        id='metaTitle-km'
+                        value={formData.metaTitle.km}
+                        onChange={(e) =>
+                          handleSeoChange('metaTitle', 'km', e.target.value)
+                        }
+                        placeholder='បញ្ចូលចំណងជើង'
+                        className='mt-1'
+                      />
+                      <p className='text-muted-foreground mt-1 text-xs'>
+                        {formData.metaTitle.km.length}/60 characters
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor='metaDescription-km'>
+                        Meta Description
+                      </Label>
+                      <Textarea
+                        id='metaDescription-km'
+                        value={formData.metaDescription.km}
+                        onChange={(e) =>
+                          handleSeoChange(
+                            'metaDescription',
+                            'km',
+                            e.target.value
+                          )
+                        }
+                        placeholder='បញ្ចូលពិពណ៌នា'
+                        rows={3}
+                        className='mt-1'
+                      />
+                      <p className='text-muted-foreground mt-1 text-xs'>
+                        {formData.metaDescription.km.length}/160 characters
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
 
               <div>
                 <Label htmlFor='slug' className='flex items-center gap-2'>
@@ -147,30 +285,11 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                   />
                 </div>
               </div>
-
-              <div>
-                <Label htmlFor='content'>Page Content</Label>
-                <Textarea
-                  id='content'
-                  value={formData.content}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      content: e.target.value
-                    }))
-                  }
-                  rows={12}
-                  className='mt-1 font-mono text-sm'
-                />
-                {/* Content formatting note removed */}
-              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar Settings */}
         <div className='space-y-6'>
-          {/* Publish Settings */}
           <Card>
             <CardHeader>
               <CardTitle className='text-sm'>Publish Settings</CardTitle>
@@ -203,68 +322,12 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                         Published
                       </div>
                     </SelectItem>
-                    {/* Archived option removed to match API */}
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Removed contentType - not required by API */}
             </CardContent>
           </Card>
 
-          {/* SEO Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='text-sm'>SEO Settings</CardTitle>
-              <CardDescription className='text-xs'>
-                Help search engines understand your page
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              <div>
-                <Label htmlFor='metaTitle'>Meta Title</Label>
-                <Input
-                  id='metaTitle'
-                  value={formData.seo.metaTitle}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      seo: { ...prev.seo, metaTitle: e.target.value }
-                    }))
-                  }
-                  placeholder='SEO title for search engines'
-                  className='mt-1'
-                />
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  {formData.seo.metaTitle.length}/60 characters
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor='metaDescription'>Meta Description</Label>
-                <Textarea
-                  id='metaDescription'
-                  value={formData.seo.metaDescription}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      seo: { ...prev.seo, metaDescription: e.target.value }
-                    }))
-                  }
-                  placeholder='Brief description for search results...'
-                  rows={3}
-                  className='mt-1'
-                />
-                <p className='text-muted-foreground mt-1 text-xs'>
-                  {formData.seo.metaDescription.length}/160 characters
-                </p>
-              </div>
-
-              {/* Removed canonicalUrl/ogImageUrl - not required by API */}
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
           <Card>
             <CardContent className='pt-6'>
               <div className='space-y-3'>

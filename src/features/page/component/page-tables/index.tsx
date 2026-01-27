@@ -9,10 +9,12 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { pageColumns, type PageRow } from './culumns';
+import { useLanguage } from '@/context/language-context';
+import { getPageColumns, type PageRow } from './culumns';
 
 export function PageTableList({ data }: { data: PageRow[] }) {
-  const columns = useMemo(() => pageColumns, []);
+  const { language } = useLanguage();
+  const columns = useMemo(() => getPageColumns(language), [language]);
   const table = useReactTable({
     data,
     columns,
