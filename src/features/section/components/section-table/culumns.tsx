@@ -3,7 +3,11 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
 import { CellAction } from './cell-action';
-import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
+import {
+  getLocalizedText,
+  limitWords,
+  type LocalizedText
+} from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 
 export type SectionRow = {
@@ -71,7 +75,8 @@ export const getSectionColumns = (
     cell: ({ cell }) => {
       const value = (cell.getValue<string>() ?? '').toString();
       const raw = cell.column.getFilterValue() as string | undefined;
-      return <div>{highlightMatch(value || 'Untitled', raw)}</div>;
+      const display = limitWords(value || 'Untitled', 8);
+      return <div>{highlightMatch(display, raw)}</div>;
     },
     meta: {
       label: 'Title',

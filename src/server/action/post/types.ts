@@ -1,6 +1,6 @@
 export type Post = {
   id: number | string;
-  title: string;
+  title: { en: string; km?: string } | string;
   slug: string;
   content: PostContent | string;
   status: 'published' | 'draft' | string;
@@ -13,12 +13,14 @@ export type Post = {
 };
 
 export type PostInput = {
-  title: string;
+  title: { en: string; km?: string } | string;
   slug?: string;
+  description?: { en?: string; km?: string } | string;
   content?: PostContent | string;
   status: 'published' | 'draft';
   categoryId?: number | string;
   pageId?: number | string;
+  sectionId?: number | string;
   existingImageIds?: number[];
   removedImageIds?: number[];
 };

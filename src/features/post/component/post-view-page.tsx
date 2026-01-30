@@ -59,36 +59,104 @@ export default function PostViewPage({
         // eslint-disable-next-line no-console
         console.log('[PostView] FORM DATA', formData);
 
-        const fd = new FormData();
-        const trimmedTitle = formData.title.trim();
-        fd.append('title', trimmedTitle);
-        const contentField =
+        // title (jsonb) — backend requires at least en; fall back to km
+        const titleEn = (formData.titleEn || '').trim();
+        const titleKm = (formData.titleKm || '').trim();
+        const titleJson = {
+          en: titleEn || titleKm,
+          km: titleKm || undefined
+        };
+        if (!titleJson.en) {
+          toast.error('Title is required');
+          return;
+        }
+
+        // description (jsonb, optional)
+        const hasDescription =
+          (formData.descriptionEn?.trim() ?? '') ||
+          (formData.descriptionKm?.trim() ?? '');
+        const descriptionJson = hasDescription
+          ? {
+              en: formData.descriptionEn?.trim() || undefined,
+              km: formData.descriptionKm?.trim() || undefined
+            }
+          : undefined;
+        const rawContent =
           typeof formData.content === 'string'
             ? formData.content.trim()
-            : formData.content
-              ? JSON.stringify(formData.content)
-              : '';
-        if (contentField) fd.append('content', contentField);
-        fd.append('status', formData.status);
-        if (formData.categoryId !== undefined && formData.categoryId !== null) {
-          const categoryId = String(formData.categoryId).trim();
-          if (categoryId) fd.append('categoryId', categoryId);
+            : formData.content;
+        const contentValue =
+          rawContent &&
+          (typeof rawContent !== 'string' || rawContent.length > 0)
+            ? rawContent
+            : { type: 'doc', content: [] };
+        const numOrNull = (val: unknown) => {
+          if (val === null || val === undefined) return null;
+          if (typeof val === 'string' && val.trim() === '') return null;
+          const n = Number(val);
+          return Number.isFinite(n) ? n : null;
+        };
+        const categoryId = numOrNull(formData.categoryId);
+        const sectionId = numOrNull(formData.sectionId);
+        const pageId = numOrNull(formData.pageId);
+        const payload = {
+          title: titleJson,
+          description: descriptionJson,
+          content: contentValue,
+          // slug intentionally omitted; backend derives it if needed
+          status: formData.status,
+          categoryId: categoryId ?? undefined,
+          sectionId: sectionId ?? undefined,
+          pageId: pageId ?? undefined,
+          existingImageIds: formData.existingImageIds?.length
+            ? formData.existingImageIds
+            : undefined,
+          removedImageIds: formData.removedImageIds?.length
+            ? formData.removedImageIds
+            : undefined
+        };
+        const fd = new FormData();
+        fd.append('title', JSON.stringify(payload.title));
+        if (payload.description) {
+          fd.append('description', JSON.stringify(payload.description));
         }
-        if (formData.pageId !== undefined && formData.pageId !== null) {
-          const pageId = String(formData.pageId).trim();
-          if (pageId) fd.append('pageId', pageId);
+        fd.append(
+          'content',
+          typeof payload.content === 'string'
+            ? payload.content
+            : JSON.stringify(payload.content)
+        );
+        fd.append('status', payload.status);
+        if (payload.categoryId !== undefined) {
+          fd.append('categoryId', String(payload.categoryId));
+        }
+        if (payload.sectionId !== undefined) {
+          fd.append('sectionId', String(payload.sectionId));
+        }
+        if (payload.pageId !== undefined) {
+          fd.append('pageId', String(payload.pageId));
+        }
+        if (!isEditing && payload.existingImageIds) {
+          fd.append(
+            'existingImageIds',
+            JSON.stringify(payload.existingImageIds)
+          );
+        }
+        if (!isEditing && payload.removedImageIds) {
+          fd.append('removedImageIds', JSON.stringify(payload.removedImageIds));
         }
         if (formData.newImages?.length) {
           formData.newImages.forEach((file) => {
             fd.append('images', file);
           });
         }
+        const body = fd;
         // eslint-disable-next-line no-console
         console.log('[PostView] CREATE', 'server action');
         if (isEditing) {
-          await updatePost(_postId, fd);
+          await updatePost(_postId, body);
         } else {
-          await createPost(fd);
+          await createPost(body);
         }
         toast.success(isEditing ? 'Post updated' : 'Post created');
         qc.invalidateQueries({ queryKey: ['posts'] });
@@ -96,13 +164,20 @@ export default function PostViewPage({
       } catch (e: any) {
         const resp = e?.response?.data;
         const message =
-          resp?.message || resp?.error || e?.message || 'Save failed';
+          resp?.message ||
+          resp?.error ||
+          (typeof resp === 'string' ? resp : null) ||
+          e?.message ||
+          'Save failed';
         // eslint-disable-next-line no-console
         console.error('[PostView] SAVE error', {
           status: e?.response?.status,
           data: resp,
           message
         });
+        // extra debug for backend response structure
+        // eslint-disable-next-line no-console
+        console.error('[PostView] SAVE error raw', e);
         toast.error(message);
       }
     },

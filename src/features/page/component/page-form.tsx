@@ -147,13 +147,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                 </TabsList>
                 <TabsContent value='en'>
                   <div>
-                    <Label
-                      htmlFor='title-en'
-                      className='flex items-center gap-2'
-                    >
-                      Page Title
-                      <HelpCircle className='text-muted-foreground h-3 w-3' />
-                    </Label>
+                    <Label htmlFor='title-en'>Page Title</Label>
                     <Input
                       id='title-en'
                       value={formData.title.en}
@@ -162,13 +156,13 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                       className='mt-1'
                     />
                   </div>
-                  <div className='border-border space-y-4 border-t pt-4'>
-                    <div>
+                  <div className='border-border space-y-4 pt-4'>
+                    {/* <div>
                       <p className='text-sm font-semibold'>SEO Settings</p>
                       <p className='text-muted-foreground text-xs'>
                         Help search engines understand your page
                       </p>
-                    </div>
+                    </div> */}
                     <div>
                       <Label htmlFor='metaTitle-en'>Meta Title</Label>
                       <Input
@@ -219,13 +213,13 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                       className='mt-1'
                     />
                   </div>
-                  <div className='border-border space-y-4 border-t pt-4'>
-                    <div>
+                  <div className='border-border space-y-4 pt-4'>
+                    {/* <div>
                       <p className='text-sm font-semibold'>SEO Settings</p>
                       <p className='text-muted-foreground text-xs'>
                         Help search engines understand your page
                       </p>
-                    </div>
+                    </div> */}
                     <div>
                       <Label htmlFor='metaTitle-km'>Meta Title</Label>
                       <Input

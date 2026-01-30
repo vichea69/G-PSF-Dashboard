@@ -10,6 +10,7 @@ export type SectionPayload = {
   pageId: number;
   blockType: string;
   title?: LocalizedText;
+  description?: LocalizedText;
   settings?: SectionSettings;
   enabled?: boolean;
   orderIndex?: number;

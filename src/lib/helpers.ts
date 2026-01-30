@@ -232,3 +232,41 @@ export function getSlug(title: string): string {
     .replace(/-+/g, '-') // Collapse multiple hyphens
     .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 }
+export const limitWords = (text: string, maxWords = 5) => {
+  const trimmed = text.trim();
+  if (!trimmed) return text;
+
+  const hasKhmer = /[\u1780-\u17FF\u19E0-\u19FF]/.test(trimmed);
+  const hasWhitespace = /\s/.test(trimmed);
+  const hasSegmenter = typeof Intl !== 'undefined' && 'Segmenter' in Intl;
+  const limit = hasKhmer ? 15 : maxWords;
+
+  // Khmer (and other space-less scripts) should be limited by grapheme length.
+  if ((hasKhmer || !hasWhitespace) && hasSegmenter) {
+    const graphemeSegmenter = new Intl.Segmenter('km', {
+      granularity: 'grapheme'
+    });
+    const graphemes = Array.from(
+      graphemeSegmenter.segment(trimmed),
+      (seg) => seg.segment
+    );
+    if (graphemes.length <= limit) return text;
+    return graphemes.slice(0, limit).join('') + '…';
+  }
+
+  if (hasSegmenter) {
+    const wordSegmenter = new Intl.Segmenter('km', { granularity: 'word' });
+    const segments = Array.from(wordSegmenter.segment(trimmed));
+    const words = segments
+      .filter((seg) => seg.isWordLike)
+      .map((seg) => seg.segment);
+    if (words.length > 0) {
+      if (words.length <= limit) return text;
+      return words.slice(0, limit).join(' ') + '…';
+    }
+  }
+
+  const words = trimmed.split(/\s+/);
+  if (words.length <= limit) return text;
+  return words.slice(0, limit).join(' ') + '…';
+};

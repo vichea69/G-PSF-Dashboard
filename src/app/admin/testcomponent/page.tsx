@@ -1,9 +1,10 @@
-import ImageUpload from '@/components/file-upload/image-upload';
+import PageContainer from '@/components/layout/page-container';
+import { BannerForm } from '@/features/post/component/block/hero-banner/hero-banner-form';
 
 export default function page() {
   return (
-    <div className='flex h-full items-center justify-center'>
-      <ImageUpload />
-    </div>
+    <PageContainer scrollable={true}>
+      <div className='flex flex-1 flex-col space-y-4'></div>
+    </PageContainer>
   );
 }

@@ -8,6 +8,7 @@ import { RelativeTime } from '@/components/ui/relative-time';
 import {
   getInitials,
   getLocalizedText,
+  limitWords,
   type LocalizedText
 } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
@@ -123,7 +124,7 @@ export const getTestimonialColumns = (
           </div>
           {quote ? (
             <div className='text-muted-foreground line-clamp-2 max-w-[360px] text-xs'>
-              “{quote}”
+              “{limitWords(quote)}”
             </div>
           ) : null}
         </div>
@@ -154,7 +155,9 @@ export const getTestimonialColumns = (
             {highlightMatch(name || 'Unknown', raw)}
           </div>
           {subtitle ? (
-            <div className='text-muted-foreground text-xs'>{subtitle}</div>
+            <div className='text-muted-foreground text-xs'>
+              {limitWords(subtitle)}
+            </div>
           ) : null}
         </div>
       );
