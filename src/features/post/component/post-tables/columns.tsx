@@ -18,6 +18,15 @@ export type PostRow = {
   images?: { id: number; url: string; sortOrder?: number | null }[];
   updatedAt: string;
   category?: { id: number; name: LocalizedText } | undefined;
+  section?:
+    | {
+        id: number | string;
+        title?: LocalizedText;
+        name?: LocalizedText;
+        slug?: string;
+      }
+    | undefined;
+  sectionId?: number | string;
   page?: { id: number; title?: LocalizedText; slug?: string } | undefined;
 };
 
@@ -96,6 +105,37 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     accessorFn: (row) =>
       getLocalizedText(row.category?.name ?? '', language) ?? '',
     header: 'Category'
+  },
+  {
+    id: 'section',
+    accessorFn: (row) => {
+      const raw = row.section as
+        | {
+            id?: number | string;
+            title?: LocalizedText;
+            name?: LocalizedText;
+            slug?: string;
+          }
+        | undefined;
+      const localized = getLocalizedText(
+        (raw?.title ?? raw?.name) as LocalizedText,
+        language
+      );
+      if (localized) return localized;
+      if (raw?.slug) return raw.slug;
+      if (raw?.id !== undefined && raw?.id !== null) return String(raw.id);
+      if (row.sectionId !== undefined && row.sectionId !== null) {
+        return String(row.sectionId);
+      }
+      return '';
+    },
+    header: 'Section',
+    enableColumnFilter: true,
+    meta: {
+      label: 'Section',
+      placeholder: 'Search section...',
+      variant: 'text'
+    }
   },
   {
     id: 'page',

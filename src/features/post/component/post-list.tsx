@@ -10,6 +10,6 @@ export default function PostsListPage() {
     const raw = (data?.data ?? data) as any;
     return Array.isArray(raw) ? raw : raw ? [raw] : [];
   }, [data]);
-  if (isLoading) return <DataTableSkeleton columnCount={6} rowCount={8} />;
+  if (isLoading) return <DataTableSkeleton columnCount={8} rowCount={8} />;
   return <PostTableList data={list} />;
 }

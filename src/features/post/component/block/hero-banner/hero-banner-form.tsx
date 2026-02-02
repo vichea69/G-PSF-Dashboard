@@ -213,7 +213,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
         <CardContent className='space-y-4'>
           <div className='grid gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='title'>Title</Label>
+              <Label htmlFor='title'>Head line</Label>
               <Input
                 id='title'
                 value={isKhmer ? formData.title.km : formData.title.en}
@@ -226,7 +226,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
               />
             </div>
             <div className='space-y-2'>
-              <Label htmlFor='subtitle'>Subtitle</Label>
+              <Label htmlFor='subtitle'>Sub head line</Label>
               <Input
                 id='subtitle'
                 value={isKhmer ? formData.subtitle.km : formData.subtitle.en}
