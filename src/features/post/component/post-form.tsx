@@ -35,6 +35,7 @@ import {
   createEmptyBannerData,
   type HeroBannerData
 } from '@/features/post/component/block/hero-banner/hero-banner-form';
+import { Textarea } from '@/components/ui/textarea';
 
 export type PostFormData = {
   title: string;
@@ -406,7 +407,7 @@ export default function PostForm({
                   <Label className='mt-3 block' htmlFor='description-en'>
                     Description
                   </Label>
-                  <Input
+                  <Textarea
                     id='description-en'
                     value={formData.descriptionEn ?? ''}
                     onChange={(e) =>
@@ -436,7 +437,7 @@ export default function PostForm({
                   <Label className='mt-3 block' htmlFor='description-km'>
                     Description
                   </Label>
-                  <Input
+                  <Textarea
                     id='description-km'
                     value={formData.descriptionKm ?? ''}
                     onChange={(e) =>

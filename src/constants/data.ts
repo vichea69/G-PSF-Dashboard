@@ -13,7 +13,7 @@ export const navItems: NavItem[] = [
 ];
 export const contentItems: NavItem[] = [
   {
-    title: 'Partnership',
+    title: 'Partner',
     url: '/admin/logo',
     icon: 'logo',
     shortcut: ['l', 'l'],

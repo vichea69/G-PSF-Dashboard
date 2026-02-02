@@ -1,6 +1,7 @@
 import type { Node as TiptapNode } from '@tiptap/pm/model';
 import { NodeSelection, Selection, TextSelection } from '@tiptap/pm/state';
 import type { Editor } from '@tiptap/react';
+import { api } from '@/lib/api';
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -302,18 +303,121 @@ export const handleImageUpload = async (
     );
   }
 
-  // For demo/testing: Simulate upload progress. In production, replace the following code
-  // with your own upload implementation.
-  for (let progress = 0; progress <= 100; progress += 10) {
-    if (abortSignal?.aborted) {
-      throw new Error('Upload cancelled');
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    onProgress?.({ progress });
+  if (abortSignal?.aborted) {
+    throw new Error('Upload cancelled');
   }
 
-  return '/images/tiptap-ui-placeholder-image.jpg';
+  const formData = new FormData();
+  formData.append('files', file);
+
+  const response = await api.post('/media/upload', formData, {
+    withCredentials: true,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    signal: abortSignal,
+    onUploadProgress: (event) => {
+      const total = event.total ?? file.size ?? 0;
+      const progress = total > 0 ? Math.round((event.loaded * 100) / total) : 0;
+      onProgress?.({ progress: Math.min(100, Math.max(0, progress)) });
+    }
+  });
+
+  let payload: any = response?.data as any;
+  if (typeof payload === 'string') {
+    try {
+      payload = JSON.parse(payload);
+    } catch {
+      // keep as string for extractor fallback
+    }
+  } else if (typeof payload?.data === 'string') {
+    try {
+      payload = { ...payload, data: JSON.parse(payload.data) };
+    } catch {
+      // ignore parse failure
+    }
+  }
+
+  const rawUrl = extractUploadUrl(payload);
+
+  if (!rawUrl) {
+    throw new Error('Upload succeeded but no image URL was returned');
+  }
+
+  return buildAbsoluteMediaUrl(rawUrl);
 };
+
+function extractUploadUrl(payload: unknown): string | null {
+  const visited = new WeakSet<object>();
+  const priorityKeys = [
+    'url',
+    'secure_url',
+    'location',
+    'path',
+    'filePath',
+    'file_url',
+    'fileUrl'
+  ];
+
+  const looksLikeUrl = (value: string) =>
+    value.startsWith('http://') ||
+    value.startsWith('https://') ||
+    value.startsWith('/') ||
+    value.startsWith('uploads/');
+
+  const walk = (value: unknown): string | null => {
+    if (!value) return null;
+    if (typeof value === 'string') {
+      return looksLikeUrl(value) ? value : null;
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        const found = walk(entry);
+        if (found) return found;
+      }
+      return null;
+    }
+    if (typeof value === 'object') {
+      if (visited.has(value)) return null;
+      visited.add(value);
+
+      const record = value as Record<string, unknown>;
+      for (const key of priorityKeys) {
+        const found = walk(record[key]);
+        if (found) return found;
+      }
+      for (const entry of Object.values(record)) {
+        const found = walk(entry);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  return walk(payload);
+}
+
+function buildAbsoluteMediaUrl(url: string): string {
+  if (!url) return '';
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('data:')
+  ) {
+    return url;
+  }
+
+  const base = process.env.NEXT_PUBLIC_API_URL ?? '';
+  try {
+    const origin = new URL(base).origin;
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    return origin ? `${origin}${normalized}` : normalized;
+  } catch {
+    const trimmed = base.replace(/\/$/, '');
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    return trimmed ? `${trimmed}${normalized}` : normalized;
+  }
+}
 
 type ProtocolOptions = {
   /**
