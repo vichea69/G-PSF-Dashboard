@@ -57,3 +57,31 @@ export async function getPost(postId: number | string) {
     return { success: false, error: message ?? 'Failed to fetch post' };
   }
 }
+
+export async function deletePost(postId: number | string) {
+  const trimmedId = String(postId ?? '').trim();
+  if (!trimmedId) {
+    return { success: false, error: 'Post id is required' };
+  }
+
+  const headers = await getAuthHeaders();
+  const url = `/posts/${encodeURIComponent(trimmedId)}`;
+
+  try {
+    const res = await api.delete(url, {
+      headers,
+      withCredentials: true
+    });
+    return { success: true, data: res.data };
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
+
+    return { success: false, error: message ?? 'Failed to delete post' };
+  }
+}

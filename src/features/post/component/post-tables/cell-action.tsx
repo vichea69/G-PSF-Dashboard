@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { PostRow } from './columns';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
+import { deletePost } from '@/server/action/post/post';
 
 interface CellActionProps {
   data: PostRow;
@@ -42,9 +42,13 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         return prev;
       });
 
-      await api.delete(`/posts/${encodeURIComponent(String(data.id))}`);
+      const result = await deletePost(data.id);
+      if (!result.success) {
+        throw new Error(result.error || 'Delete failed please try again');
+      }
       toast.success('Post deleted successfully');
       setOpen(false);
+      router.replace('/admin/post');
       // Keep data fresh in background
       qc.invalidateQueries({ queryKey: ['posts'], exact: false });
     } catch (e: any) {
