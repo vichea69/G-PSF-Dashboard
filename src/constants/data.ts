@@ -63,6 +63,24 @@ export const contentItems: NavItem[] = [
         isActive: true,
         items: []
       }
+      // {
+      //   title: 'Working-Group',
+      //   url: '/admin/testimonial',
+      //   isActive: true,
+      //   items: []
+      // },
+      // {
+      //   title: 'Job',
+      //   url: '/admin/testimonial',
+      //   isActive: true,
+      //   items: []
+      // },
+      // {
+      //   title: 'Announcement',
+      //   url: '/admin/testimonial',
+      //   isActive: true,
+      //   items: []
+      // }
     ]
   }
 ];

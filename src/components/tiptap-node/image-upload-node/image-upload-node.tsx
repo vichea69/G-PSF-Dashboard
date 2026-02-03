@@ -7,6 +7,7 @@ import { Button } from '@/components/tiptap-ui-primitive/button';
 import { CloseIcon } from '@/components/tiptap-icons/close-icon';
 import '@/components/tiptap-node/image-upload-node/image-upload-node.scss';
 import { focusNextNode, isValidPosition } from '@/lib/tiptap-utils';
+import type { ImageUploadResult } from '@/lib/tiptap-utils';
 
 export interface FileItem {
   /**
@@ -58,13 +59,14 @@ export interface UploadOptions {
    * @param {File} file - The file to be uploaded
    * @param {Function} onProgress - Callback function to report upload progress
    * @param {AbortSignal} signal - Signal that can be used to abort the upload
-   * @returns {Promise<string>} Promise resolving to the URL of the uploaded file
+   * @returns {Promise<ImageUploadResult | string>} Promise resolving to the
+   * uploaded URL or an object that includes metadata.
    */
   upload: (
     file: File,
     onProgress: (event: { progress: number }) => void,
     signal: AbortSignal
-  ) => Promise<string>;
+  ) => Promise<ImageUploadResult | string>;
   /**
    * Callback triggered when a file is uploaded successfully
    * @param {string} url - URL of the successfully uploaded file
@@ -85,7 +87,22 @@ export interface UploadOptions {
 function useFileUpload(options: UploadOptions) {
   const [fileItems, setFileItems] = React.useState<FileItem[]>([]);
 
-  const uploadFile = async (file: File): Promise<string | null> => {
+  const normalizeUploadResult = (
+    result: ImageUploadResult | string | null | undefined
+  ): ImageUploadResult | null => {
+    if (!result) return null;
+    if (typeof result === 'string') {
+      const trimmed = result.trim();
+      return trimmed ? { url: trimmed } : null;
+    }
+    if (typeof result === 'object' && typeof result.url === 'string') {
+      const trimmed = result.url.trim();
+      return trimmed ? { ...result, url: trimmed } : null;
+    }
+    return null;
+  };
+
+  const uploadFile = async (file: File): Promise<ImageUploadResult | null> => {
     if (file.size > options.maxSize) {
       const error = new Error(
         `File size exceeds maximum allowed (${options.maxSize / 1024 / 1024}MB)`
@@ -112,7 +129,7 @@ function useFileUpload(options: UploadOptions) {
         throw new Error('Upload function is not defined');
       }
 
-      const url = await options.upload(
+      const result = await options.upload(
         file,
         (event: { progress: number }) => {
           setFileItems((prev) =>
@@ -124,18 +141,24 @@ function useFileUpload(options: UploadOptions) {
         abortController.signal
       );
 
-      if (!url) throw new Error('Upload failed: No URL returned');
+      const normalized = normalizeUploadResult(result);
+      if (!normalized?.url) throw new Error('Upload failed: No URL returned');
 
       if (!abortController.signal.aborted) {
         setFileItems((prev) =>
           prev.map((item) =>
             item.id === fileId
-              ? { ...item, status: 'success', url, progress: 100 }
+              ? {
+                  ...item,
+                  status: 'success',
+                  url: normalized.url,
+                  progress: 100
+                }
               : item
           )
         );
-        options.onSuccess?.(url);
-        return url;
+        options.onSuccess?.(normalized.url);
+        return normalized;
       }
 
       return null;
@@ -156,7 +179,9 @@ function useFileUpload(options: UploadOptions) {
     }
   };
 
-  const uploadFiles = async (files: File[]): Promise<string[]> => {
+  const uploadFiles = async (
+    files: File[]
+  ): Promise<Array<{ file: File; result: ImageUploadResult }>> => {
     if (!files || files.length === 0) {
       options.onError?.(new Error('No files to upload'));
       return [];
@@ -175,8 +200,12 @@ function useFileUpload(options: UploadOptions) {
     const uploadPromises = files.map((file) => uploadFile(file));
     const results = await Promise.all(uploadPromises);
 
-    // Filter out null results (failed uploads)
-    return results.filter((url): url is string => url !== null);
+    return results
+      .map((result, index) => (result ? { file: files[index], result } : null))
+      .filter(
+        (item): item is { file: File; result: ImageUploadResult } =>
+          item !== null
+      );
   };
 
   const removeFileItem = (fileId: string) => {
@@ -433,6 +462,36 @@ const DropZoneContent: React.FC<{ maxSize: number; limit: number }> = ({
   </>
 );
 
+const buildUploadMetadata = (
+  file: File | undefined,
+  result: ImageUploadResult
+) => {
+  const base: Record<string, unknown> = {};
+
+  if (file) {
+    base.name = file.name;
+    base.size = file.size;
+    base.type = file.type;
+  }
+
+  if (result.url) {
+    base.url = result.url;
+  }
+
+  const merged = {
+    ...base,
+    ...(result.metadata ?? {})
+  };
+
+  if (Object.keys(merged).length === 0) return undefined;
+
+  if (!('source' in merged)) {
+    merged.source = 'upload';
+  }
+
+  return merged;
+};
+
 export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { accept, limit, maxSize } = props.node.attrs;
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -451,22 +510,23 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     useFileUpload(uploadOptions);
 
   const handleUpload = async (files: File[]) => {
-    const urls = await uploadFiles(files);
+    const outcomes = await uploadFiles(files);
 
-    if (urls.length > 0) {
+    if (outcomes.length > 0) {
       const pos = props.getPos();
 
       if (isValidPosition(pos)) {
-        const imageNodes = urls.map((url, index) => {
-          const filename =
-            files[index]?.name.replace(/\.[^/.]+$/, '') || 'unknown';
+        const imageNodes = outcomes.map(({ file, result }) => {
+          const filename = file?.name.replace(/\.[^/.]+$/, '') || 'unknown';
+          const metadata = buildUploadMetadata(file, result);
           return {
             type: extension.options.type,
             attrs: {
               ...extension.options,
-              src: url,
+              src: result.url,
               alt: filename,
-              title: filename
+              title: filename,
+              media: metadata
             }
           };
         });

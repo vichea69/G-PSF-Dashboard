@@ -2,7 +2,7 @@ export type Post = {
   id: number | string;
   title: { en: string; km?: string } | string;
   slug: string;
-  content: PostContent | string;
+  content: LocalizedContent<PostContentValue> | PostContentValue;
   status: 'published' | 'draft' | string;
   images?: PostImage[];
   createdAt: string;
@@ -16,13 +16,20 @@ export type PostInput = {
   title: { en: string; km?: string } | string;
   slug?: string;
   description?: { en?: string; km?: string } | string;
-  content?: PostContent | string;
+  content?: LocalizedContent<PostContentValue> | PostContentValue;
   status: 'published' | 'draft';
   categoryId?: number | string;
   pageId?: number | string;
   sectionId?: number | string;
   existingImageIds?: number[];
   removedImageIds?: number[];
+};
+
+export type PostContentValue = PostContent | string | Record<string, unknown>;
+
+export type LocalizedContent<T = Record<string, unknown>> = {
+  en: T;
+  km?: T;
 };
 
 export type PostContent = {

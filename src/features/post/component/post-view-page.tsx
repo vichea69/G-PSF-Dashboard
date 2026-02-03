@@ -81,15 +81,19 @@ export default function PostViewPage({
               km: formData.descriptionKm?.trim() || undefined
             }
           : undefined;
-        const rawContent =
-          typeof formData.content === 'string'
-            ? formData.content.trim()
-            : formData.content;
-        const contentValue =
-          rawContent &&
-          (typeof rawContent !== 'string' || rawContent.length > 0)
-            ? rawContent
-            : { type: 'doc', content: [] };
+        const normalizeContentEntry = (value: unknown) => {
+          if (!value) return { type: 'doc', content: [] };
+          if (typeof value === 'string') {
+            const trimmed = value.trim();
+            return trimmed ? value : { type: 'doc', content: [] };
+          }
+          return value;
+        };
+        const rawContent = formData.content ?? { en: '' };
+        const contentValue = {
+          en: normalizeContentEntry(rawContent.en ?? rawContent.km),
+          km: rawContent.km ? normalizeContentEntry(rawContent.km) : undefined
+        };
         const numOrNull = (val: unknown) => {
           if (val === null || val === undefined) return null;
           if (typeof val === 'string' && val.trim() === '') return null;
@@ -120,12 +124,7 @@ export default function PostViewPage({
         if (payload.description) {
           fd.append('description', JSON.stringify(payload.description));
         }
-        fd.append(
-          'content',
-          typeof payload.content === 'string'
-            ? payload.content
-            : JSON.stringify(payload.content)
-        );
+        fd.append('content', JSON.stringify(payload.content));
         fd.append('status', payload.status);
         if (payload.categoryId !== undefined) {
           fd.append('categoryId', String(payload.categoryId));

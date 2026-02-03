@@ -5,6 +5,22 @@ import { api } from '@/lib/api';
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+export type ImageUploadMetadata = {
+  id?: string;
+  name?: string;
+  type?: string;
+  size?: number;
+  url?: string;
+  thumbnail?: string;
+  uploadedAt?: string;
+  source?: 'upload' | 'media';
+};
+
+export type ImageUploadResult = {
+  url: string;
+  metadata?: ImageUploadMetadata;
+};
+
 export const MAC_SYMBOLS: Record<string, string> = {
   mod: '⌘',
   command: '⌘',
@@ -285,13 +301,13 @@ export function isNodeTypeSelected(
  * @param file The file to upload
  * @param onProgress Optional callback for tracking upload progress
  * @param abortSignal Optional AbortSignal for cancelling the upload
- * @returns Promise resolving to the URL of the uploaded image
+ * @returns Promise resolving to the URL and metadata of the uploaded image
  */
 export const handleImageUpload = async (
   file: File,
   onProgress?: (event: { progress: number }) => void,
   abortSignal?: AbortSignal
-): Promise<string> => {
+): Promise<ImageUploadResult> => {
   // Validate file
   if (!file) {
     throw new Error('No file provided');
@@ -344,8 +360,148 @@ export const handleImageUpload = async (
     throw new Error('Upload succeeded but no image URL was returned');
   }
 
-  return buildAbsoluteMediaUrl(rawUrl);
+  const url = buildAbsoluteMediaUrl(rawUrl);
+  const metadata = extractUploadMetadata(payload, file, url);
+
+  return { url, metadata };
 };
+
+function normalizeString(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : undefined;
+  }
+  if (typeof value === 'number') return String(value);
+  return undefined;
+}
+
+function normalizeNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function normalizeDateString(value: unknown): string | undefined {
+  if (!value) return undefined;
+  const date = new Date(value as string | number);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+function extractUploadRecord(payload: unknown): Record<string, unknown> | null {
+  if (!payload) return null;
+
+  const visited = new WeakSet<object>();
+  const queue: unknown[] = [payload];
+  const keys = [
+    'id',
+    '_id',
+    'mediaId',
+    'fileId',
+    'filename',
+    'fileName',
+    'originalName',
+    'name',
+    'mimeType',
+    'mediaType',
+    'type',
+    'size',
+    'url',
+    'secure_url',
+    'location',
+    'path',
+    'filePath',
+    'file_url',
+    'fileUrl',
+    'thumbnail',
+    'thumb',
+    'preview',
+    'previewUrl',
+    'createdAt',
+    'uploadedAt'
+  ];
+
+  while (queue.length > 0) {
+    const value = queue.shift();
+    if (!value) continue;
+
+    if (Array.isArray(value)) {
+      queue.push(...value);
+      continue;
+    }
+
+    if (typeof value === 'object') {
+      if (visited.has(value)) continue;
+      visited.add(value);
+
+      const record = value as Record<string, unknown>;
+      if (keys.some((key) => key in record)) {
+        return record;
+      }
+
+      queue.push(...Object.values(record));
+    }
+  }
+
+  return null;
+}
+
+function extractUploadMetadata(
+  payload: unknown,
+  file: File,
+  url: string
+): ImageUploadMetadata | undefined {
+  const record = extractUploadRecord(payload);
+
+  const id = normalizeString(
+    record?.id ?? record?._id ?? record?.mediaId ?? record?.fileId
+  );
+  const name =
+    normalizeString(record?.originalName) ??
+    normalizeString(record?.filename) ??
+    normalizeString(record?.name) ??
+    normalizeString(file?.name);
+  const type =
+    normalizeString(record?.mimeType) ??
+    normalizeString(record?.mediaType) ??
+    normalizeString(record?.type) ??
+    normalizeString(file?.type);
+  const size = normalizeNumber(record?.size) ?? normalizeNumber(file?.size);
+
+  const recordUrl =
+    normalizeString(record?.url) ??
+    normalizeString(record?.secure_url) ??
+    normalizeString(record?.fileUrl) ??
+    normalizeString(record?.file_url) ??
+    normalizeString(record?.location) ??
+    normalizeString(record?.path) ??
+    normalizeString(record?.filePath);
+
+  const thumbnailRaw =
+    normalizeString(record?.thumbnail) ??
+    normalizeString(record?.thumb) ??
+    normalizeString(record?.previewUrl) ??
+    normalizeString(record?.preview);
+
+  const metadata: ImageUploadMetadata = {
+    id,
+    name,
+    type,
+    size,
+    url: recordUrl ? buildAbsoluteMediaUrl(recordUrl) : url,
+    thumbnail: thumbnailRaw ? buildAbsoluteMediaUrl(thumbnailRaw) : undefined,
+    uploadedAt: normalizeDateString(record?.createdAt ?? record?.uploadedAt),
+    source: 'upload'
+  };
+
+  const hasMetadata = Object.values(metadata).some(
+    (value) => value !== undefined && value !== null && value !== ''
+  );
+
+  return hasMetadata ? metadata : undefined;
+}
 
 function extractUploadUrl(payload: unknown): string | null {
   const visited = new WeakSet<object>();

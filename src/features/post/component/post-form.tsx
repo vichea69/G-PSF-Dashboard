@@ -44,7 +44,7 @@ export type PostFormData = {
   descriptionEn?: string;
   descriptionKm?: string;
   status: 'published' | 'draft';
-  content?: PostContent | HeroBannerData | string;
+  content?: LocalizedPostContent;
   categoryId?: number | string;
   sectionId?: number | string;
   pageId?: number | string;
@@ -114,6 +114,58 @@ const parseContentValue = (
   return value as PostContent;
 };
 
+type LocalizedPostContent = {
+  en: PostContent | HeroBannerData | string;
+  km?: PostContent | HeroBannerData | string;
+};
+
+const isLocalizedContent = (
+  value: unknown
+): value is { en?: unknown; km?: unknown } => {
+  if (!value || typeof value !== 'object') return false;
+  return 'en' in value || 'km' in value;
+};
+
+const normalizeLocalizedContent = (value: unknown): LocalizedPostContent => {
+  if (!value) return { en: '' };
+
+  let parsedValue: unknown = value;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return { en: '' };
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        parsedValue = JSON.parse(trimmed);
+      } catch {
+        return { en: value };
+      }
+    } else {
+      return { en: value };
+    }
+  }
+
+  if (isLocalizedContent(parsedValue)) {
+    const record = parsedValue as Record<string, unknown>;
+    const enValue = parseContentValue(record.en);
+    const kmValue = record.km !== undefined ? parseContentValue(record.km) : '';
+    return {
+      en: enValue ?? '',
+      ...(kmValue ? { km: kmValue } : {})
+    };
+  }
+
+  return { en: parseContentValue(parsedValue) };
+};
+
+const getLocalizedContent = (
+  content: LocalizedPostContent | undefined,
+  language: 'en' | 'km'
+): PostContent | string => {
+  if (!content) return '';
+  const value = language === 'km' ? (content.km ?? '') : (content.en ?? '');
+  return isHeroBannerContent(value) ? '' : (value as PostContent | string);
+};
+
 const isHeroBannerContent = (value: unknown): value is HeroBannerData => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as HeroBannerData;
@@ -138,7 +190,7 @@ const derivePostFields = (post: any) => {
     readString(post?.description);
   const descriptionKm =
     typeof descriptionObj?.km === 'string' ? descriptionObj.km : '';
-  const content = parseContentValue(post?.content);
+  const content = normalizeLocalizedContent(post?.content);
   const title = titleEn || titleKm || readString(post?.title);
   return {
     title,
@@ -341,12 +393,34 @@ export default function PostForm({
     const descriptionEn = formData.descriptionEn?.trim() || '';
     const descriptionKm = formData.descriptionKm?.trim() || '';
     const title = titleEn || titleKm || formData.title?.trim() || '';
+    const normalizeContentEntry = (
+      value: PostContent | HeroBannerData | string | undefined
+    ) => {
+      if (!value) return { type: 'doc', content: [] } as PostContent;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed ? value : ({ type: 'doc', content: [] } as PostContent);
+      }
+      return value;
+    };
     const content =
       selectedSection?.blockType === 'hero_banner'
-        ? isHeroBannerContent(formData.content)
-          ? formData.content
-          : createEmptyBannerData()
-        : formData.content;
+        ? (() => {
+            const current = formData.content?.en;
+            const heroValue = isHeroBannerContent(current)
+              ? current
+              : createEmptyBannerData();
+            return {
+              en: heroValue,
+              km: heroValue
+            } as LocalizedPostContent;
+          })()
+        : {
+            en: normalizeContentEntry(formData.content?.en),
+            km: formData.content?.km
+              ? normalizeContentEntry(formData.content?.km)
+              : undefined
+          };
     onSave({
       ...formData,
       title,
@@ -460,12 +534,19 @@ export default function PostForm({
                   <BannerForm
                     language={activeLanguage}
                     value={
-                      isHeroBannerContent(formData.content)
-                        ? formData.content
+                      isHeroBannerContent(formData.content?.en)
+                        ? (formData.content?.en as HeroBannerData)
                         : createEmptyBannerData()
                     }
                     onChange={(value) =>
-                      setFormData((prev) => ({ ...prev, content: value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        content: {
+                          ...(prev.content ?? { en: value }),
+                          en: value,
+                          km: value
+                        }
+                      }))
                     }
                   />
                 </div>
@@ -476,12 +557,21 @@ export default function PostForm({
                     <PostContentEditor
                       id='post-content-editor'
                       value={
-                        isHeroBannerContent(formData.content)
+                        isHeroBannerContent(formData.content?.en)
                           ? ''
-                          : formData.content
+                          : getLocalizedContent(
+                              formData.content,
+                              activeLanguage
+                            )
                       }
                       onChange={(value) =>
-                        setFormData((prev) => ({ ...prev, content: value }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          content: {
+                            ...(prev.content ?? { en: value }),
+                            [activeLanguage]: value
+                          }
+                        }))
                       }
                       placeholder='Write the post content...'
                     />

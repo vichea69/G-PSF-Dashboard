@@ -5,6 +5,7 @@ import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Image } from '@tiptap/extension-image';
 import { mergeAttributes } from '@tiptap/core';
+import type { JSONContent } from '@tiptap/core';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { Typography } from '@tiptap/extension-typography';
@@ -12,16 +13,7 @@ import { Highlight } from '@tiptap/extension-highlight';
 import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Selection } from '@tiptap/extensions';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button as UIButton } from '@/components/ui/button';
+import { FileModal } from '@/components/modal/file-modal';
 
 import {
   Toolbar,
@@ -55,7 +47,6 @@ import {
 } from '@/lib/tiptap-utils';
 import { cn } from '@/lib/utils';
 import type { PostContent } from '@/server/action/post/types';
-import { useMedia } from '@/features/media/hook/use-media';
 import type { MediaFile } from '@/features/media/types/media-type';
 
 type EditorContentValue = PostContent | string;
@@ -86,6 +77,16 @@ const isSameContent = (
   return JSON.stringify(next) === JSON.stringify(current);
 };
 
+const serializeMediaAttribute = (media: unknown): string | undefined => {
+  if (!media) return undefined;
+  if (typeof media === 'string') return media;
+  try {
+    return JSON.stringify(media);
+  } catch {
+    return undefined;
+  }
+};
+
 type PostContentEditorProps = {
   id?: string;
   value?: EditorContentValue;
@@ -107,11 +108,23 @@ const ResizableImage = Image.extend({
         default: null,
         parseHTML: (element) =>
           element.getAttribute('data-width') ?? element.style?.width ?? null
+      },
+      media: {
+        default: null,
+        parseHTML: (element) => {
+          const raw = element.getAttribute('data-media');
+          if (!raw) return null;
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return raw;
+          }
+        }
       }
     };
   },
   renderHTML({ HTMLAttributes }) {
-    const { align, width, style, ...rest } = HTMLAttributes as Record<
+    const { align, width, style, media, ...rest } = HTMLAttributes as Record<
       string,
       unknown
     >;
@@ -132,13 +145,16 @@ const ResizableImage = Image.extend({
       }
     }
 
+    const serializedMedia = serializeMediaAttribute(media);
+
     return [
       'img',
       mergeAttributes(this.options.HTMLAttributes, {
         ...rest,
         style: styles.join(' '),
         'data-align': typeof align === 'string' ? align : undefined,
-        'data-width': typeof width === 'string' ? width : undefined
+        'data-width': typeof width === 'string' ? width : undefined,
+        'data-media': serializedMedia
       })
     ];
   }
@@ -157,11 +173,6 @@ export function PostContentEditor({
 
   const [isImageSelected, setIsImageSelected] = React.useState(false);
   const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
-  const [mediaSearch, setMediaSearch] = React.useState('');
-  const [selectedMediaId, setSelectedMediaId] = React.useState<string | null>(
-    null
-  );
-  const { data: mediaFiles = [], isLoading: mediaLoading } = useMedia();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -253,49 +264,130 @@ export function PostContentEditor({
     [editor]
   );
 
-  const handleImageInserted = React.useCallback(() => {
-    if (!editor) return;
-    requestAnimationFrame(() => {
-      const root = editor.view?.dom;
-      if (!root) return;
-      const nodes = root.querySelectorAll('.tiptap-image-upload');
-      const target = nodes[nodes.length - 1] as HTMLElement | undefined;
-      target?.click();
-    });
-  }, [editor]);
+  const handleUploadFromDevice = React.useCallback(
+    async (files: File[]) => {
+      if (!editor || files.length === 0) return;
+      setImageDialogOpen(false);
 
-  const handleUploadFromDevice = React.useCallback(() => {
-    if (!editor) return;
-    setImageDialogOpen(false);
-    setTimeout(() => {
-      const inserted = editor
-        .chain()
-        .focus()
-        .insertContent({ type: 'imageUpload' })
-        .run();
-      if (inserted) {
-        handleImageInserted();
+      const uploads: Array<{
+        file: File;
+        url: string;
+        metadata?: unknown;
+      }> = [];
+      for (const file of files) {
+        try {
+          const result = await handleImageUpload(file);
+          uploads.push({ file, url: result.url, metadata: result.metadata });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Upload failed:', error);
+        }
       }
-    }, 0);
-  }, [editor, handleImageInserted]);
 
-  const imageMedia = React.useMemo(() => {
-    const term = mediaSearch.trim().toLowerCase();
-    return mediaFiles
-      .filter((file) => file.type === 'image')
-      .filter((file) => (term ? file.name.toLowerCase().includes(term) : true));
-  }, [mediaFiles, mediaSearch]);
+      if (uploads.length === 0) return;
 
-  const selectedMedia = React.useMemo(() => {
-    if (!selectedMediaId) return null;
-    return imageMedia.find((file) => file.id === selectedMediaId) ?? null;
-  }, [imageMedia, selectedMediaId]);
+      const contentNodes = uploads.flatMap<JSONContent>(
+        ({ file, url, metadata }) => {
+          const filename = file?.name || 'file';
+          const isImage = Boolean(file?.type?.startsWith('image/'));
+
+          if (!isImage) {
+            return [
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: filename,
+                    marks: [
+                      {
+                        type: 'link',
+                        attrs: {
+                          href: url
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ];
+          }
+
+          const media = {
+            name: file?.name,
+            size: file?.size,
+            type: file?.type,
+            url,
+            ...(metadata && typeof metadata === 'object' ? metadata : {}),
+            source:
+              metadata && typeof metadata === 'object' && 'source' in metadata
+                ? (metadata as { source?: string }).source
+                : 'upload'
+          };
+
+          const imageTitle = file?.name.replace(/\.[^/.]+$/, '') || 'image';
+
+          return [
+            {
+              type: 'image',
+              attrs: {
+                src: url,
+                alt: imageTitle,
+                title: imageTitle,
+                media
+              }
+            }
+          ];
+        }
+      );
+
+      editor.chain().focus().insertContent(contentNodes).run();
+    },
+    [editor]
+  );
 
   const handleInsertFromMedia = React.useCallback(
     (file: MediaFile | null) => {
       if (!editor || !file) return;
       setImageDialogOpen(false);
-      setSelectedMediaId(null);
+      const uploadedAt = file.uploadedAt
+        ? file.uploadedAt.toISOString()
+        : undefined;
+      const metadata = {
+        id: file.id,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url,
+        thumbnail: file.thumbnail,
+        uploadedAt,
+        source: 'media'
+      };
+      if (file.type !== 'image') {
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: file.name,
+                marks: [
+                  {
+                    type: 'link',
+                    attrs: {
+                      href: file.url
+                    }
+                  }
+                ]
+              }
+            ]
+          })
+          .run();
+        return;
+      }
+
       editor
         .chain()
         .focus()
@@ -304,7 +396,8 @@ export function PostContentEditor({
           attrs: {
             src: file.url,
             alt: file.name,
-            title: file.name
+            title: file.name,
+            media: metadata
           }
         })
         .run();
@@ -455,82 +548,16 @@ export function PostContentEditor({
         </div>
       </EditorContext.Provider>
 
-      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-        <DialogContent className='max-w-4xl'>
-          <DialogHeader>
-            <DialogTitle>Insert image</DialogTitle>
-            <DialogDescription>
-              Upload a new image or pick from Media Manager.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className='space-y-4'>
-            <div className='flex flex-wrap items-center gap-2'>
-              <UIButton onClick={handleUploadFromDevice}>
-                Upload from device
-              </UIButton>
-            </div>
-
-            <div className='space-y-2'>
-              <Input
-                placeholder='Search media...'
-                value={mediaSearch}
-                onChange={(event) => setMediaSearch(event.target.value)}
-              />
-              <div className='border-muted max-h-[360px] overflow-auto rounded-md border p-3'>
-                {mediaLoading ? (
-                  <p className='text-muted-foreground text-sm'>
-                    Loading media...
-                  </p>
-                ) : imageMedia.length === 0 ? (
-                  <p className='text-muted-foreground text-sm'>
-                    No images found.
-                  </p>
-                ) : (
-                  <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4'>
-                    {imageMedia.map((file) => (
-                      <button
-                        key={file.id}
-                        type='button'
-                        className={cn(
-                          'border-muted hover:border-primary relative overflow-hidden rounded-md border text-left transition',
-                          selectedMediaId === file.id &&
-                            'border-primary ring-primary/30 ring-2'
-                        )}
-                        onClick={() => setSelectedMediaId(file.id)}
-                      >
-                        <img
-                          src={file.thumbnail ?? file.url}
-                          alt={file.name}
-                          className='h-32 w-full object-cover'
-                        />
-                        <div className='bg-background/80 text-foreground absolute inset-x-0 bottom-0 truncate px-2 py-1 text-xs'>
-                          {file.name}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <UIButton
-              variant='outline'
-              onClick={() => setImageDialogOpen(false)}
-            >
-              Cancel
-            </UIButton>
-            <UIButton
-              onClick={() => handleInsertFromMedia(selectedMedia)}
-              disabled={!selectedMedia}
-            >
-              Insert selected
-            </UIButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FileModal
+        isOpen={imageDialogOpen}
+        onClose={() => setImageDialogOpen(false)}
+        onSelect={handleInsertFromMedia}
+        onUploadFromDevice={handleUploadFromDevice}
+        title='Insert media'
+        description='Upload a new file or pick from Media Manager.'
+        types={['image', 'video', 'pdf', 'document']}
+        accept='*/*'
+      />
     </div>
   );
 }
