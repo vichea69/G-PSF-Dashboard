@@ -3,6 +3,8 @@ import PageContainer from '@/components/layout/page-container';
 import { Suspense } from 'react';
 import PostViewPage from '@/features/post/component/post-view-page';
 import { getPost } from '@/server/action/post/post';
+import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
 
 export const metadata = {
   title: 'Dashboard: Post View'
@@ -17,6 +19,8 @@ export default async function PostPage(props: PageProps) {
   return (
     <PageContainer scrollable>
       <div className='flex-1 space-y-4'>
+        <Heading title='Edit Post' description='Update the post details.' />
+        <Separator />
         <Suspense fallback={<FormCardSkeleton />}>
           <PostViewPage postId={params.id} initialPost={initialPost} />
         </Suspense>

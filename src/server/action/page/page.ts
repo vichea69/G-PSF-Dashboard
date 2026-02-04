@@ -30,8 +30,13 @@ export async function updatePage(id: string | number, input: PageInput) {
 }
 
 export async function deletePage(id: string | number) {
+  const pageId = String(id ?? '').trim();
+  if (!pageId) {
+    throw new Error('Page id is required');
+  }
+
   const headers = await getAuthHeaders();
-  const res = await api.delete(`/pages/${id}`, {
+  const res = await api.delete(`/pages/${encodeURIComponent(pageId)}`, {
     headers,
     withCredentials: true
   });

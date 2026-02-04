@@ -12,8 +12,8 @@ import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deletePage } from '@/server/action/page/page';
 
 interface CellActionProps {
   data: { id: string | number } & Record<string, any>;
@@ -27,11 +27,8 @@ export function CellAction({ data }: CellActionProps) {
 
   const deleteMutation = useMutation({
     mutationFn: () => {
-      const slugOrId = String((data as any).slug ?? data.id);
-      const url = `/pages/${encodeURIComponent(slugOrId)}`;
-      // eslint-disable-next-line no-console
-      console.log('[PageTable] DELETE', `${api.defaults.baseURL ?? ''}${url}`);
-      return api.delete(url);
+      const slugOrId = String((data as any).slug ?? data.id ?? '').trim();
+      return deletePage(slugOrId);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pages'] });
@@ -46,7 +43,12 @@ export function CellAction({ data }: CellActionProps) {
       await deleteMutation.mutateAsync();
       setOpen(false);
     } catch (e: any) {
-      toast.error(e?.message || 'Delete failed');
+      const message =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        'Delete failed';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
