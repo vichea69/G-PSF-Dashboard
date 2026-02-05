@@ -37,13 +37,13 @@ const getStatusBadge = (status?: string) => {
 export const getWorkingGroupColumns = (
   language: Language
 ): ColumnDef<WorkingGroupRow>[] => [
-  {
-    id: 'id',
-    accessorKey: 'id',
-    header: ({ column }: { column: Column<WorkingGroupRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='ID' />
-    )
-  },
+  // {
+  //   id: 'id',
+  //   accessorKey: 'id',
+  //   header: ({ column }: { column: Column<WorkingGroupRow, unknown> }) => (
+  //     <DataTableColumnHeader column={column} title='ID' />
+  //   )
+  // },
   {
     id: 'iconUrl',
     accessorKey: 'iconUrl',
@@ -68,8 +68,7 @@ export const getWorkingGroupColumns = (
   },
   {
     id: 'title',
-    accessorFn: (row) =>
-      getLocalizedText(row.title ?? row.name ?? '', language) ?? '',
+    accessorFn: (row) => getLocalizedText(row.title ?? '', language) ?? '',
     header: ({ column }: { column: Column<WorkingGroupRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Title' />
     ),
