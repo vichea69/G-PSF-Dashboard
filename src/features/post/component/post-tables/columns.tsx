@@ -5,8 +5,11 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Badge } from '@/components/ui/badge';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 import { CellAction } from './cell-action';
-import { getLocalizedText } from '@/lib/helpers';
-import { type LocalizedText } from '@/lib/helpers';
+import {
+  getLocalizedText,
+  limitWords,
+  type LocalizedText
+} from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 
 export type PostRow = {
@@ -92,6 +95,7 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     header: ({ column }: { column: Column<PostRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Title' />
     ),
+    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 6),
     enableColumnFilter: true,
     meta: { label: 'Title', placeholder: 'Search title...', variant: 'text' }
   },
@@ -104,7 +108,8 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     id: 'category',
     accessorFn: (row) =>
       getLocalizedText(row.category?.name ?? '', language) ?? '',
-    header: 'Category'
+    header: 'Category',
+    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5)
   },
   {
     id: 'section',
@@ -130,6 +135,7 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
       return '';
     },
     header: 'Section',
+    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5),
     enableColumnFilter: true,
     meta: {
       label: 'Section',
@@ -141,7 +147,8 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     id: 'page',
     accessorFn: (row) =>
       getLocalizedText(row.page?.title ?? '', language) ?? row.page?.slug ?? '',
-    header: 'Page'
+    header: 'Page',
+    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5)
   },
   {
     accessorKey: 'updatedAt',

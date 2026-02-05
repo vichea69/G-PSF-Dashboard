@@ -232,7 +232,7 @@ export function getSlug(title: string): string {
     .replace(/-+/g, '-') // Collapse multiple hyphens
     .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 }
-export const limitWords = (text: string, maxWords = 5) => {
+export const limitWords = (text: string, maxWords = 7) => {
   const trimmed = text.trim();
   if (!trimmed) return text;
 
