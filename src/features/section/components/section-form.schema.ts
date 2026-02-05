@@ -7,15 +7,15 @@ export const blockTypes = [
   'hero_banner',
   'stats',
   'benefits',
-  'post_list',
-  'work_groups'
+  'post_list'
+  // 'work_groups'
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
   stats: 'Stats',
   benefits: 'Benefits',
-  post_list: 'Post List',
-  work_groups: 'Work Groups'
+  post_list: 'Post List'
+  // work_groups: 'Work Groups'
 };
 
 const localizedRequired = z.string().trim().min(1, {

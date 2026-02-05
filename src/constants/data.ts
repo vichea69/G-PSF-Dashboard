@@ -62,15 +62,15 @@ export const contentItems: NavItem[] = [
         url: '/admin/testimonial',
         isActive: true,
         items: []
+      },
+      {
+        title: 'Working-Group',
+        url: '/admin/working-group',
+        isActive: true,
+        items: []
       }
       // {
-      //   title: 'Working-Group',
-      //   url: '/admin/testimonial',
-      //   isActive: true,
-      //   items: []
-      // },
-      // {
-      //   title: 'Job',
+      //   title: 'New Job',
       //   url: '/admin/testimonial',
       //   isActive: true,
       //   items: []
