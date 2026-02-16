@@ -103,6 +103,9 @@ export default function PostViewPage({
         const categoryId = numOrNull(formData.categoryId);
         const sectionId = numOrNull(formData.sectionId);
         const pageId = numOrNull(formData.pageId);
+        const coverImage = formData.coverImage?.trim() || '';
+        const document = formData.document?.trim() || '';
+        const link = formData.link?.trim() || '';
         const payload = {
           title: titleJson,
           description: descriptionJson,
@@ -112,6 +115,9 @@ export default function PostViewPage({
           categoryId: categoryId ?? undefined,
           sectionId: sectionId ?? undefined,
           pageId: pageId ?? undefined,
+          coverImage: coverImage || undefined,
+          document: document || undefined,
+          link: link || undefined,
           existingImageIds: formData.existingImageIds?.length
             ? formData.existingImageIds
             : undefined,
@@ -119,6 +125,7 @@ export default function PostViewPage({
             ? formData.removedImageIds
             : undefined
         };
+
         const fd = new FormData();
         fd.append('title', JSON.stringify(payload.title));
         if (payload.description) {
@@ -135,13 +142,22 @@ export default function PostViewPage({
         if (payload.pageId !== undefined) {
           fd.append('pageId', String(payload.pageId));
         }
-        if (!isEditing && payload.existingImageIds) {
+        if (payload.coverImage) {
+          fd.append('coverImage', payload.coverImage);
+        }
+        if (payload.document) {
+          fd.append('document', payload.document);
+        }
+        if (payload.link) {
+          fd.append('link', payload.link);
+        }
+        if (payload.existingImageIds) {
           fd.append(
             'existingImageIds',
             JSON.stringify(payload.existingImageIds)
           );
         }
-        if (!isEditing && payload.removedImageIds) {
+        if (payload.removedImageIds) {
           fd.append('removedImageIds', JSON.stringify(payload.removedImageIds));
         }
         if (formData.newImages?.length) {

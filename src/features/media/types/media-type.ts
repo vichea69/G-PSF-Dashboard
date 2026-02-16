@@ -15,15 +15,26 @@ export type MediaApiItem = {
   mimeType: string;
   size: string | number;
   url: string;
+  thumbnailUrl?: string;
   mediaType: string;
   storageDriver: string;
   createdAt: string;
 };
 
 export type MediaApiResponse = {
-  data?: {
-    items?: MediaApiItem[];
-  };
+  success?: boolean;
+  message?: string;
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  data?: MediaApiItem[] | { items?: MediaApiItem[] };
+};
+
+export type MediaListResult = {
+  items: MediaFile[];
+  page: number;
+  pageSize: number;
+  total: number;
 };
 
 export function formatFileSize(bytes: number): string {
@@ -48,6 +59,34 @@ export function formatDate(date: Date): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 30) return `${diffDays}d ago`;
   return date.toLocaleDateString();
+}
+
+// Show full datetime in Phnom Penh timezone: YYYY-MM-DDTHH:mm:ss+07:00
+export function formatDateTimePhnomPenh(date: Date): string {
+  if (Number.isNaN(date.getTime())) return '-';
+
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Phnom_Penh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? '';
+
+  const year = getPart('year');
+  const month = getPart('month');
+  const day = getPart('day');
+  const hour = getPart('hour');
+  const minute = getPart('minute');
+  const second = getPart('second');
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}+07:00`;
 }
 
 const apiBaseUrlRaw = process.env.NEXT_PUBLIC_API_URL || '';
@@ -90,14 +129,21 @@ export function mapMediaItem(item: MediaApiItem): MediaFile {
   const size =
     typeof item.size === 'string' ? Number.parseInt(item.size, 10) : item.size;
   const type = resolveFileType(item);
+  const url = buildAbsoluteUrl(item.url);
+  // Use backend thumbnail when available (useful for PDF previews).
+  const thumbnail = item.thumbnailUrl
+    ? buildAbsoluteUrl(item.thumbnailUrl)
+    : type === 'image'
+      ? url
+      : undefined;
 
   return {
     id: String(item.id),
     name: item.originalName || item.filename,
     type,
     size: Number.isNaN(size) ? 0 : size,
-    url: buildAbsoluteUrl(item.url),
-    thumbnail: type === 'image' ? buildAbsoluteUrl(item.url) : undefined,
+    url,
+    thumbnail,
     uploadedAt: Number.isNaN(uploadedAt.getTime()) ? new Date() : uploadedAt
   };
 }

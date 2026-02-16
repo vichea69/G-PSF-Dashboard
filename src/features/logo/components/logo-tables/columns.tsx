@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import { LogoType } from '@/features/logo/type/logo-type';
 import * as React from 'react';
+import { resolveApiAssetUrl } from '@/lib/asset-url';
 
 export const logoColumns: ColumnDef<LogoType>[] = [
   {
@@ -17,13 +18,21 @@ export const logoColumns: ColumnDef<LogoType>[] = [
     header: 'Logo',
     accessorKey: 'url',
     cell: ({ row }) => {
-      const { url: src, title = 'logo' } = row.original;
+      const src = resolveApiAssetUrl(row.original?.url);
+      const title = row.original?.title || 'logo';
+
+      if (!src) {
+        return <div className='relative h-16 w-16' />;
+      }
+
       return (
         <div className='relative h-16 w-16'>
           <Image
             src={src}
             alt={title}
             fill
+            sizes='64px'
+            unoptimized
             className='rounded-md object-contain'
           />
         </div>

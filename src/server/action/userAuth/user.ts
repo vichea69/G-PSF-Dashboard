@@ -8,6 +8,30 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { LoginInput, LoginResult, ResetPassword } from './types';
 
+const DEFAULT_ACCESS_TOKEN_MAX_AGE = 60 * 15; // 15 minutes
+const DEFAULT_REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const isProduction = process.env.NODE_ENV === 'production';
+
+function pickString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed.length > 0) return trimmed;
+    }
+  }
+  return undefined;
+}
+
+function toCookieMaxAge(value: unknown, fallback: number) {
+  const parsed = typeof value === 'string' ? Number(value) : value;
+  if (typeof parsed !== 'number' || !Number.isFinite(parsed)) return fallback;
+  if (parsed <= 0) return fallback;
+
+  // Some APIs return milliseconds while cookies expect seconds.
+  const secondsLikeValue = parsed > 31_536_000 ? parsed / 1000 : parsed;
+  return Math.floor(secondsLikeValue);
+}
+
 // Exported helper to forward auth in server actions
 export async function getAuthHeaders() {
   const c = await cookies();
@@ -19,17 +43,26 @@ export async function getAuthHeaders() {
 async function setCookie(
   name: string,
   value: string,
-  options?: { maxAge?: number }
+  options?: { maxAge?: number; session?: boolean }
 ) {
   const c = await cookies();
-  const maxAge = options?.maxAge ?? 60 * 60 * 24 * 7; // default 7d
-  c.set({
+  const cookie = {
     name,
     value,
     httpOnly: false,
     path: '/',
     sameSite: 'lax',
-    maxAge
+    secure: isProduction
+  } as const;
+
+  if (options?.session) {
+    c.set(cookie);
+    return;
+  }
+
+  c.set({
+    ...cookie,
+    maxAge: options?.maxAge ?? 60 * 60 * 24 * 7 // default 7d
   });
 }
 
@@ -54,6 +87,43 @@ export async function loginAction(input: LoginInput) {
   const user = payload?.user ?? payload?.data?.user;
   const tokens = payload?.tokens ?? payload?.data?.tokens;
   const meta = payload?.meta ?? payload?.data?.meta;
+  const accessToken = pickString(
+    user?.token,
+    user?.accessToken,
+    user?.access_token,
+    tokens?.accessToken,
+    tokens?.access_token,
+    payload?.accessToken,
+    payload?.access_token,
+    payload?.data?.accessToken,
+    payload?.data?.access_token
+  );
+  const refreshToken = pickString(
+    tokens?.refreshToken,
+    tokens?.refresh_token,
+    payload?.refreshToken,
+    payload?.refresh_token,
+    payload?.data?.refreshToken,
+    payload?.data?.refresh_token
+  );
+  const accessTokenMaxAge = toCookieMaxAge(
+    meta?.accessTokenExpiresIn ??
+      meta?.access_token_expires_in ??
+      tokens?.accessTokenExpiresIn ??
+      tokens?.access_token_expires_in ??
+      payload?.accessTokenExpiresIn ??
+      payload?.access_token_expires_in,
+    DEFAULT_ACCESS_TOKEN_MAX_AGE
+  );
+  const refreshTokenMaxAge = toCookieMaxAge(
+    meta?.refreshTokenExpiresIn ??
+      meta?.refresh_token_expires_in ??
+      tokens?.refreshTokenExpiresIn ??
+      tokens?.refresh_token_expires_in ??
+      payload?.refreshTokenExpiresIn ??
+      payload?.refresh_token_expires_in,
+    DEFAULT_REFRESH_TOKEN_MAX_AGE
+  );
 
   if (!user) {
     throw new Error(
@@ -62,30 +132,24 @@ export async function loginAction(input: LoginInput) {
   }
 
   // Prefer backend-set cookies (httpOnly). If tokens returned, set a readable cookie for middleware.
-  const accessToken: string | undefined = user?.token || tokens?.accessToken;
   if (accessToken) {
     if (rememberMe) {
-      const maxAge =
-        meta?.refreshTokenExpiresIn ??
-        meta?.accessTokenExpiresIn ??
-        60 * 60 * 24 * 7; // default 7 days
-      await setCookie('access_token', accessToken, { maxAge });
+      await setCookie('access_token', accessToken, {
+        maxAge: accessTokenMaxAge
+      });
     } else {
       // Session cookie: expires when browser closes
-      await setCookie('access_token', accessToken, {
-        maxAge: undefined as any
-      });
+      await setCookie('access_token', accessToken, { session: true });
     }
   }
 
-  if (tokens?.refreshToken && meta?.refreshTokenExpiresIn) {
-    if (rememberMe) {
-      await setCookie('refresh_token', tokens.refreshToken, {
-        maxAge: meta.refreshTokenExpiresIn
-      });
-    } else {
-      // Do not persist refresh token for session-only
-    }
+  if (rememberMe && refreshToken) {
+    await setCookie('refresh_token', refreshToken, {
+      maxAge: refreshTokenMaxAge
+    });
+  } else {
+    // Prevent stale refresh token from previous remember-me login
+    await deleteCookie('refresh_token');
   }
 
   // Revalidate key pages where auth state matters

@@ -7,30 +7,43 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Copy, Trash2, RefreshCw, Download } from 'lucide-react';
+import { Copy, Trash2 } from 'lucide-react';
 import {
   formatFileSize,
   formatDate,
   type MediaFile
 } from '@/features/media/types/media-type';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 interface PreviewModalProps {
   file: MediaFile | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDelete?: (file: MediaFile) => void;
 }
 
-export function PreviewModal({ file, open, onOpenChange }: PreviewModalProps) {
+export function PreviewModal({
+  file,
+  open,
+  onOpenChange,
+  onDelete
+}: PreviewModalProps) {
   if (!file) return null;
 
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(file.url);
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(file.url);
+      toast.success('URL copied');
+    } catch {
+      toast.error('Failed to copy URL');
+    }
   };
 
   const handleDelete = () => {
-    console.log('Delete file:', file.id);
-
+    if (onDelete) {
+      onDelete(file);
+    }
     onOpenChange(false);
   };
 
@@ -53,6 +66,25 @@ export function PreviewModal({ file, open, onOpenChange }: PreviewModalProps) {
                   className='object-contain'
                   unoptimized
                 />
+              </div>
+            ) : file.type === 'pdf' && file.url ? (
+              <div className='flex h-full w-full items-center justify-center p-3'>
+                {/* Show only backend PDF thumbnail preview. */}
+                {file.thumbnail ? (
+                  <div className='bg-background relative h-full w-full overflow-hidden rounded-md border'>
+                    <Image
+                      src={file.thumbnail}
+                      alt={`${file.name} thumbnail`}
+                      fill
+                      className='object-contain'
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <p className='text-muted-foreground text-sm'>
+                    PDF thumbnail not available
+                  </p>
+                )}
               </div>
             ) : file.type === 'video' ? (
               <div className='flex h-full items-center justify-center'>
@@ -88,10 +120,10 @@ export function PreviewModal({ file, open, onOpenChange }: PreviewModalProps) {
                   <dt className='text-muted-foreground'>Size</dt>
                   <dd>{formatFileSize(file.size)}</dd>
                 </div>
-                <div>
+                {/* <div>
                   <dt className='text-muted-foreground'>Uploaded</dt>
                   <dd>{formatDate(file.uploadedAt)}</dd>
-                </div>
+                </div> */}
               </dl>
             </div>
 
@@ -104,22 +136,22 @@ export function PreviewModal({ file, open, onOpenChange }: PreviewModalProps) {
                 <Copy className='mr-2 h-4 w-4' />
                 Copy URL
               </Button>
-              <Button
+              {/* <Button
                 className='w-full justify-start bg-transparent'
                 variant='outline'
-                onClick={() => console.log('Download:', file.id)}
+                onClick={() => window.open(file.url, '_blank', 'noopener,noreferrer')}
               >
                 <Download className='mr-2 h-4 w-4' />
                 Download
-              </Button>
-              <Button
+              </Button> */}
+              {/* <Button
                 className='w-full justify-start bg-transparent'
                 variant='outline'
-                onClick={() => console.log('Replace:', file.id)}
+                disabled
               >
                 <RefreshCw className='mr-2 h-4 w-4' />
-                Replace
-              </Button>
+                Replace (coming soon)
+              </Button> */}
               <Button
                 className='w-full justify-start'
                 variant='destructive'

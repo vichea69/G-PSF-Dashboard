@@ -3,13 +3,42 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   mapMediaItem,
   type MediaApiResponse,
-  type MediaFile
+  type MediaListResult
 } from '@/features/media/types/media-type';
 
-async function fetchMedia(): Promise<MediaFile[]> {
-  const response = await api.get<MediaApiResponse>('/media');
-  const items = response.data?.data?.items ?? [];
-  return items.map(mapMediaItem);
+type MediaQueryParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+async function fetchMedia(
+  params: MediaQueryParams = {}
+): Promise<MediaListResult> {
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? 24;
+  const response = await api.get<MediaApiResponse>('/media', {
+    params: { page, pageSize }
+  });
+  const raw = response.data?.data;
+  const items = Array.isArray(raw) ? raw : (raw?.items ?? []);
+  const mapped = items.map(mapMediaItem);
+  const total =
+    typeof response.data?.total === 'number'
+      ? response.data.total
+      : mapped.length;
+  const normalizedPage =
+    typeof response.data?.page === 'number' ? response.data.page : page;
+  const normalizedPageSize =
+    typeof response.data?.pageSize === 'number'
+      ? response.data.pageSize
+      : pageSize;
+
+  return {
+    items: mapped,
+    page: normalizedPage,
+    pageSize: normalizedPageSize,
+    total
+  };
 }
 
 async function deleteMediaItem(id: string | number) {
@@ -40,10 +69,12 @@ async function replaceMediaItem({ id, formData }: ReplaceMediaInput) {
   return true;
 }
 
-export function useMedia() {
-  return useQuery<MediaFile[]>({
-    queryKey: ['media'],
-    queryFn: fetchMedia
+export function useMedia(params: MediaQueryParams = {}) {
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? 24;
+  return useQuery<MediaListResult>({
+    queryKey: ['media', page, pageSize],
+    queryFn: () => fetchMedia({ page, pageSize })
   });
 }
 

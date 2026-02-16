@@ -1,51 +1,56 @@
 'use server';
+
 import { isAxiosError } from 'axios';
 import { api } from '@/lib/api';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
+import type { LogoActionResult, LogoItem, LogoPayload } from './logo-type';
 
-type LogoActionResult<T = unknown> = {
-  success: boolean;
-  data?: T;
-  error?: string;
-};
-
+export type { LogoPayload };
 export type CreateLogoResult = LogoActionResult;
 
 export async function createLogo(
-  formData: FormData
+  payload: LogoPayload
 ): Promise<CreateLogoResult> {
   const headers = await getAuthHeaders();
 
   try {
-    const res = await api.post('/logo', formData, {
+    const res = await api.post('/logo', payload, {
       headers,
       withCredentials: true
     });
+
     return {
       success: true,
       data: res.data
     };
   } catch (error: unknown) {
-    const message = isAxiosError(error)
-      ? ((error.response?.data as any)?.message ??
+    let message = 'Failed to create logo';
+
+    if (isAxiosError(error)) {
+      const apiMessage =
+        (error.response?.data as any)?.message ??
         (error.response?.data as any)?.error ??
-        error.message)
-      : error instanceof Error
-        ? error.message
-        : null;
+        error.message;
+      message = Array.isArray(apiMessage)
+        ? apiMessage.join(', ')
+        : typeof apiMessage === 'string'
+          ? apiMessage
+          : message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
 
     return {
       success: false,
-      error: message ?? 'Failed to create logo'
+      error: message
     };
   }
 }
 
-export async function getLogo<T = unknown>(
+export async function getLogo(
   id: string | number
-): Promise<LogoActionResult<T>> {
+): Promise<LogoActionResult<LogoItem>> {
   const trimmedId = String(id ?? '').trim();
-
   if (!trimmedId) {
     return {
       success: false,
@@ -53,43 +58,74 @@ export async function getLogo<T = unknown>(
     };
   }
 
-  const headers = await getAuthHeaders();
   const url = `/logo/${encodeURIComponent(trimmedId)}`;
+  const headers = await getAuthHeaders();
 
   try {
     const res = await api.get(url, {
       headers,
       withCredentials: true
     });
-    const raw = res.data;
-    const data = raw?.data?.logo ?? raw?.data ?? raw?.logo ?? raw ?? undefined;
+
+    // Backend may return different shapes. Try common paths.
+    const raw = res.data as any;
+    if (raw?.success === false) {
+      const message = raw?.message ?? raw?.error;
+      return {
+        success: false,
+        error: typeof message === 'string' ? message : 'Failed to fetch logo'
+      };
+    }
+
+    const logo = raw?.data?.logo ?? raw?.data ?? raw?.logo ?? raw ?? null;
+    const isValidLogo =
+      Boolean(logo) &&
+      typeof logo === 'object' &&
+      (typeof (logo as any).id === 'number' ||
+        typeof (logo as any).id === 'string') &&
+      typeof (logo as any).title === 'string' &&
+      typeof (logo as any).url === 'string';
+
+    if (!isValidLogo) {
+      return {
+        success: false,
+        error: 'Logo not found'
+      };
+    }
 
     return {
       success: true,
-      data: data as T
+      data: logo
     };
   } catch (error: unknown) {
-    const message = isAxiosError(error)
-      ? ((error.response?.data as any)?.message ??
+    let message = 'Failed to fetch logo';
+
+    if (isAxiosError(error)) {
+      const apiMessage =
+        (error.response?.data as any)?.message ??
         (error.response?.data as any)?.error ??
-        error.message)
-      : error instanceof Error
-        ? error.message
-        : null;
+        error.message;
+      message = Array.isArray(apiMessage)
+        ? apiMessage.join(', ')
+        : typeof apiMessage === 'string'
+          ? apiMessage
+          : message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
 
     return {
       success: false,
-      error: message ?? 'Failed to fetch logo'
+      error: message
     };
   }
 }
 
 export async function updateLogo(
   id: string | number,
-  payload: FormData | Record<string, unknown>
+  payload: Partial<LogoPayload>
 ): Promise<LogoActionResult> {
   const trimmedId = String(id ?? '').trim();
-
   if (!trimmedId) {
     return {
       success: false,
@@ -97,36 +133,39 @@ export async function updateLogo(
     };
   }
 
-  const headers = await getAuthHeaders();
   const url = `/logo/${encodeURIComponent(trimmedId)}`;
+  const headers = await getAuthHeaders();
 
   try {
-    const config = {
+    const res = await api.put(url, payload, {
       headers,
       withCredentials: true
-    } as const;
-
-    const res =
-      payload instanceof FormData
-        ? await api.put(url, payload, config)
-        : await api.put(url, payload, config);
+    });
 
     return {
       success: true,
       data: res.data
     };
   } catch (error: unknown) {
-    const message = isAxiosError(error)
-      ? ((error.response?.data as any)?.message ??
+    let message = 'Failed to update logo';
+
+    if (isAxiosError(error)) {
+      const apiMessage =
+        (error.response?.data as any)?.message ??
         (error.response?.data as any)?.error ??
-        error.message)
-      : error instanceof Error
-        ? error.message
-        : null;
+        error.message;
+      message = Array.isArray(apiMessage)
+        ? apiMessage.join(', ')
+        : typeof apiMessage === 'string'
+          ? apiMessage
+          : message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
 
     return {
       success: false,
-      error: message ?? 'Failed to update logo'
+      error: message
     };
   }
 }
@@ -135,7 +174,6 @@ export async function deleteLogo(
   id: string | number
 ): Promise<LogoActionResult> {
   const trimmedId = String(id ?? '').trim();
-
   if (!trimmedId) {
     return {
       success: false,
@@ -143,8 +181,8 @@ export async function deleteLogo(
     };
   }
 
-  const headers = await getAuthHeaders();
   const url = `/logo/${encodeURIComponent(trimmedId)}`;
+  const headers = await getAuthHeaders();
 
   try {
     const res = await api.delete(url, {
@@ -157,17 +195,25 @@ export async function deleteLogo(
       data: res.data
     };
   } catch (error: unknown) {
-    const message = isAxiosError(error)
-      ? ((error.response?.data as any)?.message ??
+    let message = 'Failed to delete logo';
+
+    if (isAxiosError(error)) {
+      const apiMessage =
+        (error.response?.data as any)?.message ??
         (error.response?.data as any)?.error ??
-        error.message)
-      : error instanceof Error
-        ? error.message
-        : null;
+        error.message;
+      message = Array.isArray(apiMessage)
+        ? apiMessage.join(', ')
+        : typeof apiMessage === 'string'
+          ? apiMessage
+          : message;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
 
     return {
       success: false,
-      error: message ?? 'Failed to delete logo'
+      error: message
     };
   }
 }

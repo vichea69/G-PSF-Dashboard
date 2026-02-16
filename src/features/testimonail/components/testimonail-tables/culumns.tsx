@@ -124,7 +124,7 @@ export const getTestimonialColumns = (
           </div>
           {quote ? (
             <div className='text-muted-foreground line-clamp-2 max-w-[360px] text-xs'>
-              “{limitWords(quote)}”
+              “{limitWords(quote, 6)}”
             </div>
           ) : null}
         </div>

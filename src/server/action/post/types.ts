@@ -2,9 +2,12 @@ export type Post = {
   id: number | string;
   title: { en: string; km?: string } | string;
   slug: string;
+  coverImage?: string;
+  document?: string;
+  link?: string;
   content: LocalizedContent<PostContentValue> | PostContentValue;
   status: 'published' | 'draft' | string;
-  images?: PostImage[];
+  // images?: PostImage[];
   createdAt: string;
   updatedAt: string;
   author?: PostAuthor;
@@ -21,8 +24,11 @@ export type PostInput = {
   categoryId?: number | string;
   pageId?: number | string;
   sectionId?: number | string;
-  existingImageIds?: number[];
-  removedImageIds?: number[];
+  coverImage?: string;
+  document?: string;
+  link?: string;
+  // existingImageIds?: number[];
+  // removedImageIds?: number[];
 };
 
 export type PostContentValue = PostContent | string | Record<string, unknown>;
@@ -45,11 +51,11 @@ export type PostContentNode = {
   marks?: { type: string; attrs?: Record<string, unknown> }[];
 };
 
-export type PostImage = {
-  id: number;
-  url: string;
-  sortOrder?: number | null;
-};
+// export type PostImage = {
+//   id: number;
+//   url: string;
+//   sortOrder?: number | null;
+// };
 
 export type PostAuthor = {
   id: number;

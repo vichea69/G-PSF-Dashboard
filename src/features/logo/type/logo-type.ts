@@ -2,8 +2,9 @@ export type LogoType = {
   id: number;
   url: string;
   title: string;
-  description: string;
-  link: string;
+  // Optional fields from backend response.
+  description?: string | null;
+  link?: string | null;
   createdAt: string;
   updatedAt: string;
 };

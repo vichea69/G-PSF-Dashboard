@@ -7,14 +7,16 @@ export const blockTypes = [
   'hero_banner',
   'stats',
   'benefits',
-  'post_list'
+  'post_list',
+  'address'
   // 'work_groups'
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
   stats: 'Stats',
   benefits: 'Benefits',
-  post_list: 'Post List'
+  post_list: 'Post List',
+  address: 'Address'
   // work_groups: 'Work Groups'
 };
 

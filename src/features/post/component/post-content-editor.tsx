@@ -87,6 +87,18 @@ const serializeMediaAttribute = (media: unknown): string | undefined => {
   }
 };
 
+function readThumbnailFromMetadata(metadata: unknown): string | undefined {
+  if (!metadata || typeof metadata !== 'object') return undefined;
+
+  const record = metadata as Record<string, unknown>;
+  const candidate =
+    record.thumbnail ?? record.thumb ?? record.previewUrl ?? record.preview;
+
+  return typeof candidate === 'string' && candidate.trim().length > 0
+    ? candidate
+    : undefined;
+}
+
 type PostContentEditorProps = {
   id?: string;
   value?: EditorContentValue;
@@ -290,9 +302,64 @@ export function PostContentEditor({
         ({ file, url, metadata }) => {
           const filename = file?.name || 'file';
           const isImage = Boolean(file?.type?.startsWith('image/'));
+          const isPdf = file?.type === 'application/pdf';
+          const pdfThumbnail = isPdf
+            ? readThumbnailFromMetadata(metadata)
+            : undefined;
 
-          if (!isImage) {
+          if (isImage) {
+            const media = {
+              name: file?.name,
+              size: file?.size,
+              type: file?.type,
+              url,
+              ...(metadata && typeof metadata === 'object' ? metadata : {}),
+              source:
+                metadata && typeof metadata === 'object' && 'source' in metadata
+                  ? (metadata as { source?: string }).source
+                  : 'upload'
+            };
+
+            const imageTitle = file?.name.replace(/\.[^/.]+$/, '') || 'image';
+
             return [
+              {
+                type: 'image',
+                attrs: {
+                  src: url,
+                  alt: imageTitle,
+                  title: imageTitle,
+                  media
+                }
+              }
+            ];
+          }
+
+          // For PDF, show thumbnail preview (if backend returns one), then keep a link.
+          if (isPdf && pdfThumbnail) {
+            const media = {
+              name: file?.name,
+              size: file?.size,
+              type: file?.type,
+              url,
+              thumbnail: pdfThumbnail,
+              ...(metadata && typeof metadata === 'object' ? metadata : {}),
+              source:
+                metadata && typeof metadata === 'object' && 'source' in metadata
+                  ? (metadata as { source?: string }).source
+                  : 'upload'
+            };
+
+            return [
+              {
+                type: 'image',
+                attrs: {
+                  src: pdfThumbnail,
+                  alt: filename,
+                  title: filename,
+                  media
+                }
+              },
               {
                 type: 'paragraph',
                 content: [
@@ -313,29 +380,24 @@ export function PostContentEditor({
             ];
           }
 
-          const media = {
-            name: file?.name,
-            size: file?.size,
-            type: file?.type,
-            url,
-            ...(metadata && typeof metadata === 'object' ? metadata : {}),
-            source:
-              metadata && typeof metadata === 'object' && 'source' in metadata
-                ? (metadata as { source?: string }).source
-                : 'upload'
-          };
-
-          const imageTitle = file?.name.replace(/\.[^/.]+$/, '') || 'image';
-
+          // Fallback for video/document without thumbnail: insert as link.
           return [
             {
-              type: 'image',
-              attrs: {
-                src: url,
-                alt: imageTitle,
-                title: imageTitle,
-                media
-              }
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: filename,
+                  marks: [
+                    {
+                      type: 'link',
+                      attrs: {
+                        href: url
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ];
         }
@@ -363,44 +425,85 @@ export function PostContentEditor({
         uploadedAt,
         source: 'media'
       };
-      if (file.type !== 'image') {
+
+      if (file.type === 'image') {
         editor
           .chain()
           .focus()
           .insertContent({
-            type: 'paragraph',
-            content: [
-              {
-                type: 'text',
-                text: file.name,
-                marks: [
-                  {
-                    type: 'link',
-                    attrs: {
-                      href: file.url
-                    }
-                  }
-                ]
-              }
-            ]
+            type: 'image',
+            attrs: {
+              src: file.url,
+              alt: file.name,
+              title: file.name,
+              media: metadata
+            }
           })
           .run();
         return;
       }
 
-      editor
-        .chain()
-        .focus()
-        .insertContent({
-          type: 'image',
-          attrs: {
-            src: file.url,
-            alt: file.name,
-            title: file.name,
-            media: metadata
-          }
-        })
-        .run();
+      if (file.type === 'pdf' && file.thumbnail) {
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            {
+              type: 'image',
+              attrs: {
+                src: file.thumbnail,
+                alt: file.name,
+                title: file.name,
+                media: metadata
+              }
+            },
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: file.name,
+                  marks: [
+                    {
+                      type: 'link',
+                      attrs: {
+                        href: file.url
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ])
+          .run();
+        return;
+      }
+
+      // // Fallback for non-image files without thumbnail.
+      // if (file.type !== 'image') {
+      //   editor
+      //     .chain()
+      //     .focus()
+      //     .insertContent({
+      //       type: 'paragraph',
+      //       content: [
+      //         {
+      //           type: 'text',
+      //           text: file.name,
+      //           marks: [
+      //             {
+      //               type: 'link',
+      //               attrs: {
+      //                 href: file.url
+      //               }
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     })
+      //     .run();
+      //   return;
+      // }
     },
     [editor]
   );

@@ -1,15 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
-import { Upload, X } from 'lucide-react';
+import { ImageIcon, X } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
+import { FileModal } from '@/components/modal/file-modal';
 import {
   Card,
   CardContent,
@@ -27,24 +27,25 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { api } from '@/lib/api';
-import { updateLogo } from '@/server/action/logo/logo';
+import type { MediaFile } from '@/features/media/types/media-type';
+import { resolveApiAssetUrl } from '@/lib/asset-url';
+import {
+  getLogo,
+  updateLogo,
+  type LogoPayload
+} from '@/server/action/logo/logo';
 
 type LogoFormValues = {
   title: string;
   description: string;
   link: string;
-  logo: File | null;
 };
 
 const defaultValues: LogoFormValues = {
   title: '',
   description: '',
-  link: '',
-  logo: null
+  link: ''
 };
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const isValidHttpUrl = (value: string) => {
   if (!value) return true;
@@ -73,10 +74,6 @@ const extractLogoImageUrl = (logo: any): string | null => {
   return null;
 };
 
-type FetchLogoResult =
-  | { success: true; data: any }
-  | { success: false; error: string };
-
 export default function EditLogo({ logoId }: { logoId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -84,91 +81,33 @@ export default function EditLogo({ logoId }: { logoId: string }) {
     defaultValues
   });
 
+  const [selectedLogoUrl, setSelectedLogoUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [hasPersistedImage, setHasPersistedImage] = useState(false);
+  const [logoPickerOpen, setLogoPickerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const previewUrlRef = useRef<string | null>(null);
-
-  const revokePreview = useCallback(() => {
-    if (previewUrlRef.current && previewUrlRef.current.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrlRef.current);
-    }
-    previewUrlRef.current = null;
-  }, []);
-
-  const updatePreview = useCallback(
-    (file: File | null) => {
-      revokePreview();
-      if (file) {
-        const nextUrl = URL.createObjectURL(file);
-        previewUrlRef.current = nextUrl;
-        setImagePreview(nextUrl);
-      } else {
-        setImagePreview(null);
-      }
-    },
-    [revokePreview]
-  );
-
-  const clearFileInput = useCallback(() => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, []);
 
   const applyLogoData = useCallback(
     (logoData: any) => {
       const values: LogoFormValues = {
         title: toTrimmedString(logoData?.title),
         description: toTrimmedString(logoData?.description),
-        link: toTrimmedString(logoData?.link),
-        logo: null
+        link: toTrimmedString(logoData?.link)
       };
 
       form.reset(values);
       form.clearErrors();
 
-      const remoteUrl = extractLogoImageUrl(logoData);
-      setHasPersistedImage(Boolean(remoteUrl));
-
-      revokePreview();
-      setImagePreview(remoteUrl);
-      clearFileInput();
+      const logoUrl = (extractLogoImageUrl(logoData) ?? '').trim();
+      setSelectedLogoUrl(logoUrl);
+      setImagePreview(resolveApiAssetUrl(logoUrl));
     },
-    [clearFileInput, form, revokePreview]
+    [form]
   );
 
-  const fetchLogoData = useCallback(async (): Promise<FetchLogoResult> => {
-    const trimmedId = String(logoId ?? '').trim();
-    if (!trimmedId) {
-      return { success: false, error: 'Logo id is required' };
-    }
-
-    const url = `/logo/${encodeURIComponent(trimmedId)}`;
-
-    try {
-      const res = await api.get(url);
-      const raw = res.data;
-      const data = raw?.data?.logo ?? raw?.data ?? raw?.logo ?? raw ?? null;
-
-      if (!data) {
-        return { success: false, error: 'Logo not found' };
-      }
-
-      return { success: true, data };
-    } catch (error: unknown) {
-      const message = isAxiosError(error)
-        ? ((error.response?.data as any)?.message ??
-          (error.response?.data as any)?.error ??
-          error.message)
-        : error instanceof Error
-          ? error.message
-          : 'Failed to load logo';
-      return { success: false, error: message };
-    }
+  const fetchLogoData = useCallback(async () => {
+    // Use server action so response parsing stays in one place.
+    return getLogo(logoId);
   }, [logoId]);
 
   useEffect(() => {
@@ -198,18 +137,21 @@ export default function EditLogo({ logoId }: { logoId: string }) {
     };
   }, [applyLogoData, fetchLogoData, router]);
 
-  useEffect(() => {
-    return () => {
-      revokePreview();
-    };
-  }, [revokePreview]);
+  const handleSelectLogoFromMedia = (file: MediaFile) => {
+    // Media Manager returns absolute URL. Keep it in state and preview it.
+    const nextUrl = (file.url ?? file.thumbnail ?? '').trim();
+    if (!nextUrl) {
+      toast.error('Selected media does not have a valid URL');
+      return;
+    }
 
-  const handleRemoveImage = () => {
-    form.setValue('logo', null, { shouldDirty: true });
-    updatePreview(null);
-    clearFileInput();
-    setHasPersistedImage(false);
-    void form.trigger('logo');
+    setSelectedLogoUrl(nextUrl);
+    setImagePreview(resolveApiAssetUrl(nextUrl));
+  };
+
+  const handleRemoveLogo = () => {
+    setSelectedLogoUrl('');
+    setImagePreview(null);
   };
 
   const handleCancel = useCallback(() => {
@@ -218,15 +160,24 @@ export default function EditLogo({ logoId }: { logoId: string }) {
 
   const submitLogo = async (values: LogoFormValues) => {
     try {
-      const payload = new FormData();
       const title = values.title.trim();
       const description = values.description.trim();
       const link = values.link.trim();
+      const logoUrl = selectedLogoUrl.trim();
 
-      payload.append('title', title);
-      payload.append('description', description);
-      payload.append('link', link);
-      if (values.logo) payload.append('logo', values.logo);
+      if (!logoUrl) {
+        toast.error('Logo image is required');
+        return;
+      }
+
+      // Build payload to match backend format:
+      // { title, description, url, link }
+      const payload: Partial<LogoPayload> = {
+        title,
+        url: logoUrl,
+        ...(description ? { description } : {}),
+        ...(link ? { link } : {})
+      };
 
       const result = await updateLogo(logoId, payload);
 
@@ -247,6 +198,7 @@ export default function EditLogo({ logoId }: { logoId: string }) {
 
   const onSubmit = form.handleSubmit((values) => {
     if (isLoading) return;
+
     startTransition(() => {
       void submitLogo(values);
     });
@@ -348,111 +300,61 @@ export default function EditLogo({ logoId }: { logoId: string }) {
                 </CardContent>
               </Card>
 
-              <FormField
-                control={form.control}
-                name='logo'
-                rules={{
-                  validate: (file) => {
-                    if (!file && !hasPersistedImage) {
-                      return 'Logo image is required';
-                    }
-                    if (file && file.size > MAX_FILE_SIZE) {
-                      return 'Logo must be 5MB or less';
-                    }
-                    return true;
-                  }
-                }}
-                render={({ field }) => (
-                  <FormItem className='space-y-2'>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <Upload className='h-5 w-5' />
-                          Logo Upload
-                        </CardTitle>
-                        <CardDescription>
-                          Upload your company logo image (PNG, JPG, SVG)
-                        </CardDescription>
-                      </CardHeader>
+              <Card>
+                <CardHeader>
+                  <div className='flex items-center justify-between gap-2'>
+                    <CardTitle className='flex items-center gap-2'>
+                      <ImageIcon className='h-5 w-5' />
+                      Logo Image
+                    </CardTitle>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setLogoPickerOpen(true)}
+                      disabled={isBusy}
+                    >
+                      Select from Media
+                    </Button>
+                  </div>
+                  <CardDescription>
+                    Select an image from Media Manager.
+                  </CardDescription>
+                </CardHeader>
 
-                      <CardContent>
-                        <div className='space-y-4'>
-                          {!imagePreview ? (
-                            <label
-                              htmlFor='logo-upload'
-                              className='group border-muted-foreground/25 hover:border-muted-foreground/50 hover:bg-accent/50 relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors'
-                            >
-                              <div className='flex flex-col items-center gap-2 text-center'>
-                                <div className='bg-primary/10 group-hover:bg-primary/20 rounded-full p-4'>
-                                  <Upload className='text-muted-foreground h-8 w-8' />
-                                </div>
-                                <div className='space-y-1'>
-                                  <p className='text-sm font-medium'>
-                                    Click to upload or drag and drop
-                                  </p>
-                                  <p className='text-muted-foreground text-xs'>
-                                    SVG, PNG, JPG or GIF (max. 5MB)
-                                  </p>
-                                </div>
-                              </div>
-                              <input
-                                ref={(element) => {
-                                  fileInputRef.current = element;
-                                  field.ref(element);
-                                }}
-                                id='logo-upload'
-                                type='file'
-                                className='hidden'
-                                accept='image/*'
-                                disabled={isBusy}
-                                onChange={(event) => {
-                                  const file = event.target.files?.[0] ?? null;
-                                  field.onChange(file);
-                                  updatePreview(file);
-                                  if (file) {
-                                    setHasPersistedImage(false);
-                                    form.clearErrors('logo');
-                                  } else if (!hasPersistedImage) {
-                                    void form.trigger('logo');
-                                  }
-                                }}
-                              />
-                            </label>
-                          ) : (
-                            <div className='space-y-4'>
-                              <div className='bg-muted/30 relative overflow-hidden rounded-lg border p-8'>
-                                <Button
-                                  type='button'
-                                  variant='destructive'
-                                  size='icon'
-                                  className='absolute top-4 right-4 h-8 w-8 rounded-full'
-                                  onClick={handleRemoveImage}
-                                  aria-label='Remove uploaded logo'
-                                  disabled={isBusy}
-                                >
-                                  <X className='h-4 w-4' />
-                                </Button>
-                                <div className='flex items-center justify-center'>
-                                  <Image
-                                    src={imagePreview}
-                                    alt='Logo preview'
-                                    width={256}
-                                    height={256}
-                                    sizes='256px'
-                                    unoptimized
-                                    className='max-h-64 rounded-md object-contain'
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <CardContent>
+                  {imagePreview ? (
+                    <div className='bg-muted/30 relative overflow-hidden rounded-lg border p-8'>
+                      <Button
+                        type='button'
+                        variant='destructive'
+                        size='icon'
+                        className='absolute top-4 right-4 h-8 w-8 rounded-full'
+                        onClick={handleRemoveLogo}
+                        aria-label='Remove selected logo'
+                        disabled={isBusy}
+                      >
+                        <X className='h-4 w-4' />
+                      </Button>
+                      <div className='flex items-center justify-center'>
+                        <Image
+                          src={imagePreview}
+                          alt='Logo preview'
+                          width={256}
+                          height={256}
+                          sizes='256px'
+                          unoptimized
+                          className='max-h-64 rounded-md object-contain'
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className='text-muted-foreground rounded-md border border-dashed p-8 text-sm'>
+                      No logo selected.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             <div className='space-y-6'>
@@ -485,6 +387,17 @@ export default function EditLogo({ logoId }: { logoId: string }) {
           </div>
         </div>
       </form>
+
+      <FileModal
+        isOpen={logoPickerOpen}
+        onClose={() => setLogoPickerOpen(false)}
+        onSelect={handleSelectLogoFromMedia}
+        allowUploadFromDevice={false}
+        title='Select logo image'
+        description='Select an image from Media Manager.'
+        types={['image']}
+        accept='image/*'
+      />
     </Form>
   );
 }

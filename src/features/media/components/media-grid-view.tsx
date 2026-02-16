@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import {
   formatFileSize,
-  formatDate,
   type MediaFile
 } from '@/features/media/types/media-type';
 import Image from 'next/image';
@@ -104,7 +103,7 @@ function MediaGridItem({
 
       {/* Thumbnail */}
       <div className='bg-muted relative aspect-square'>
-        {file.type === 'image' && file.thumbnail ? (
+        {(file.type === 'image' || file.type === 'pdf') && file.thumbnail ? (
           <Image
             src={file.thumbnail || '/placeholder.svg'}
             alt={file.name}
@@ -146,7 +145,7 @@ function MediaGridItem({
           {file.name}
         </p>
         <p className='text-muted-foreground mt-1 text-xs'>
-          {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
+          {formatFileSize(file.size)}
         </p>
       </div>
     </div>

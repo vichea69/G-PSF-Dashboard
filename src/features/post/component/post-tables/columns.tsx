@@ -11,11 +11,13 @@ import {
   type LocalizedText
 } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
+import { resolveApiAssetUrl } from '@/lib/asset-url';
 
 export type PostRow = {
   id: number;
   title: string | LocalizedText;
   slug: string;
+  coverImage?: string;
   content?: string;
   status: 'published' | 'draft' | string;
   images?: { id: number; url: string; sortOrder?: number | null }[];
@@ -33,17 +35,25 @@ export type PostRow = {
   page?: { id: number; title?: LocalizedText; slug?: string } | undefined;
 };
 
+function getPostImageSrc(row: PostRow): string {
+  const coverImageUrl =
+    row.coverImage ?? (row as any)?.cover_image ?? (row as any)?.cover;
+  const firstImageUrl = row.images?.[0]?.url ?? '';
+  const legacyImageUrl =
+    (row as any)?.imageUrl ?? (row as any)?.image ?? (row as any)?.thumbnail;
+  const raw = coverImageUrl || firstImageUrl || legacyImageUrl || '';
+
+  return resolveApiAssetUrl(raw);
+}
+
 const postStatusBadge = (status: string) => {
   const normalized = status?.toLowerCase?.() ?? '';
   const isPublished = normalized === 'published';
   return (
     <Badge
-      variant='outline'
-      className={
-        isPublished
-          ? 'gap-1 border-emerald-200 bg-emerald-100 text-emerald-700'
-          : 'gap-1 border-amber-200 bg-amber-100 text-amber-700'
-      }
+      variant={isPublished ? 'success' : 'warning'}
+      appearance='outline'
+      className='gap-1'
     >
       {isPublished ? (
         <IconCircleCheck className='h-3 w-3' />
@@ -58,17 +68,12 @@ const postStatusBadge = (status: string) => {
 export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
   {
     id: 'image',
-    accessorFn: (row) => row.images?.[0]?.url ?? '',
+    accessorFn: (row) => getPostImageSrc(row),
     header: 'IMAGE',
     cell: ({ row }) => {
-      const original = row.original as any;
+      const original = row.original as PostRow;
       const images = Array.isArray(original?.images) ? original.images : [];
-      const src =
-        images?.[0]?.url ||
-        (row.getValue('image') as string) ||
-        original?.imageUrl ||
-        original?.image ||
-        '';
+      const src = getPostImageSrc(original);
 
       return src ? (
         <div className='relative h-20 w-20'>
@@ -76,6 +81,7 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
             src={src}
             alt={row.getValue('title') as string}
             fill
+            unoptimized
             className='rounded-md object-cover'
           />
           {images.length > 1 ? (
@@ -150,11 +156,12 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     header: 'Page',
     cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5)
   },
+  // {
+  //   accessorKey: 'updatedAt',
+  //   header: 'Updated'
+  // },
   {
-    accessorKey: 'updatedAt',
-    header: 'Updated'
-  },
-  {
+    header: 'Actions',
     id: 'actions',
     cell: ({ row }) => <CellAction data={row.original} />
   }

@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,12 +20,14 @@ import { toast } from 'sonner';
 import { AlertModal } from '@/components/modal/alert-modal';
 
 type ViewMode = 'grid' | 'list';
-type SortOption = 'newest' | 'oldest' | 'name' | 'size';
+type SortOption = 'newest' | 'name' | 'size';
 
 export function MediaManager() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
@@ -35,16 +37,26 @@ export function MediaManager() {
     label: string;
   } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const {
-    data: mediaFiles = [],
-    isLoading,
-    error,
-    refetch,
-    isFetching
-  } = useMedia();
+  const { data, isLoading, error, refetch, isFetching } = useMedia({
+    page,
+    pageSize
+  });
+  const mediaFiles = data?.items ?? [];
+  const total = data?.total ?? mediaFiles.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const deleteMediaMutation = useDeleteMedia();
   const errorMessage =
     error instanceof Error ? error.message : 'Something went wrong';
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    setSelectedFiles(new Set());
+  }, [page, pageSize]);
 
   // Filter and sort files from API
   const filteredFiles = useMemo(
@@ -57,8 +69,6 @@ export function MediaManager() {
           switch (sortBy) {
             case 'newest':
               return b.uploadedAt.getTime() - a.uploadedAt.getTime();
-            case 'oldest':
-              return a.uploadedAt.getTime() - b.uploadedAt.getTime();
             case 'name':
               return a.name.localeCompare(b.name);
             case 'size':
@@ -70,6 +80,10 @@ export function MediaManager() {
     [mediaFiles, searchQuery, sortBy]
   );
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, sortBy]);
+
   const toggleFileSelection = (fileId: string) => {
     const newSelection = new Set(selectedFiles);
     if (newSelection.has(fileId)) {
@@ -78,6 +92,18 @@ export function MediaManager() {
       newSelection.add(fileId);
     }
     setSelectedFiles(newSelection);
+  };
+
+  const toggleAllSelection = (checked: boolean) => {
+    setSelectedFiles((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        filteredFiles.forEach((file) => next.add(file.id));
+      } else {
+        filteredFiles.forEach((file) => next.delete(file.id));
+      }
+      return next;
+    });
   };
 
   const confirmDeleteSelected = () => {
@@ -124,7 +150,7 @@ export function MediaManager() {
   };
 
   return (
-    <div className='bg-background flex h-screen flex-col'>
+    <div className='bg-background flex h-[calc(100dvh-52px)] min-h-0 flex-col'>
       {/* Top Toolbar */}
       <div className='border-border bg-card border-b px-6 py-4'>
         <div className='flex flex-wrap items-center gap-3'>
@@ -176,7 +202,6 @@ export function MediaManager() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='newest'>Newest</SelectItem>
-              <SelectItem value='oldest'>Oldest</SelectItem>
               <SelectItem value='name'>Name</SelectItem>
               <SelectItem value='size'>Size</SelectItem>
             </SelectContent>
@@ -250,12 +275,74 @@ export function MediaManager() {
             files={filteredFiles}
             selectedFiles={selectedFiles}
             onToggleSelection={toggleFileSelection}
+            onToggleAll={toggleAllSelection}
             onPreview={setPreviewFile}
             onDelete={confirmDeleteSingle}
             deletingIds={deletingIds}
+            page={page}
+            pageSize={pageSize}
+            pageCount={totalPages}
+            onPageChange={setPage}
+            onPageSizeChange={(nextSize) => {
+              setPageSize(nextSize);
+              setPage(1);
+            }}
           />
         )}
       </div>
+
+      {viewMode === 'grid' && (
+        <div className='border-border bg-card border-t px-6 py-3'>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
+            <p className='text-muted-foreground text-sm'>
+              Total {total} file{total === 1 ? '' : 's'}
+            </p>
+            <div className='flex items-center gap-2'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={page <= 1}
+              >
+                Prev
+              </Button>
+              <span className='text-sm'>
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={page >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
+            <div className='flex items-center gap-2'>
+              <span className='text-muted-foreground text-sm'>Rows</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className='w-[90px]'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='10'>10</SelectItem>
+                  <SelectItem value='20'>20</SelectItem>
+                  <SelectItem value='40'>40</SelectItem>
+                  <SelectItem value='80'>80</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
@@ -263,6 +350,7 @@ export function MediaManager() {
         file={previewFile}
         open={!!previewFile}
         onOpenChange={(open) => !open && setPreviewFile(null)}
+        onDelete={(file) => confirmDeleteSingle(file)}
       />
       <AlertModal
         isOpen={!!confirmState}
