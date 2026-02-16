@@ -9,6 +9,7 @@ import {
   type LocalizedText
 } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
+import { RelativeTime } from '@/components/ui/relative-time';
 
 export type SectionRow = {
   id: number | string;
@@ -103,10 +104,12 @@ export const getSectionColumns = (
   },
   {
     accessorKey: 'updatedAt',
-    header: 'Updated'
+    header: 'Updated',
+    cell: ({ cell }) => <RelativeTime value={cell.getValue<string>() ?? ''} />
   },
   {
     id: 'actions',
+    header: 'Actions',
     cell: ({ row }) => <CellAction data={row.original as any} />
   }
 ];

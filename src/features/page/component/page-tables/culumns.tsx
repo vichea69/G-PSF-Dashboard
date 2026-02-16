@@ -4,6 +4,7 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { CellAction } from './cell-action';
 import { type Language } from '@/context/language-context';
+import { RelativeTime } from '@/components/ui/relative-time';
 
 type LocalizedText = Record<string, string | undefined>;
 type LocalizedValue = string | LocalizedText;
@@ -171,7 +172,7 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
       accessorKey: 'publishedAt',
       header: 'Published At',
       cell: ({ cell }) => {
-        const value = (cell.getValue<string>() ?? '').toString();
+        const value = <RelativeTime value={cell.getValue<string>() ?? ''} />;
         return value ? (
           <span>{value}</span>
         ) : (
@@ -208,6 +209,7 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
     },
     {
       id: 'actions',
+      header: 'Actions',
       cell: ({ row }) => <CellAction data={row.original as any} />
     }
   ];

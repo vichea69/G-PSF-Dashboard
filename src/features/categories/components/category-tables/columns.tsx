@@ -2,6 +2,7 @@
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { CategoryCellAction } from './cell-action';
+import { RelativeTime } from '@/components/ui/relative-time';
 
 export type CategoryRow = {
   id: number;
@@ -72,16 +73,19 @@ export const categoryColumns: ColumnDef<CategoryRow>[] = [
     header: 'Created By',
     cell: ({ cell }) => <div>{cell.getValue<string>()}</div>
   },
-  {
-    accessorKey: 'createdAt',
-    header: 'Created At'
-  },
+  // {
+  //   accessorKey: 'createdAt',
+  //   header: 'Created At'
+  // },
   {
     accessorKey: 'updatedAt',
-    header: 'Updated At'
+    header: 'Updated At',
+    cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} />
   },
+
   {
     id: 'actions',
+    header: 'Actions',
     cell: ({ row }) => <CategoryCellAction data={row.original} />
   }
 ];
