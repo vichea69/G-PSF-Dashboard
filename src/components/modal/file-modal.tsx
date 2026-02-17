@@ -56,10 +56,10 @@ export const FileModal: React.FC<FileModalProps> = ({
     pageSize,
     folderId: activeFolderId
   });
-  const folders = data?.folders ?? [];
+  const folders = useMemo(() => data?.folders ?? [], [data?.folders]);
   const currentFolder = data?.currentFolder ?? null;
   const inFolderView = Boolean(activeFolderId);
-  const mediaFiles = data?.items ?? [];
+  const mediaFiles = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? mediaFiles.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 

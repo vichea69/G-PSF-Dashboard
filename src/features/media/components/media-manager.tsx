@@ -78,14 +78,20 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
     pageSize,
     folderId: activeFolderId
   });
-  const folders = data?.folders ?? [];
+  const folders = useMemo<MediaFolder[]>(
+    () => data?.folders ?? [],
+    [data?.folders]
+  );
   const currentFolder = data?.currentFolder ?? null;
   const resolvedActiveFolder =
     currentFolder ??
     folders.find((folder) => folder.id === activeFolderId) ??
     null;
   const inFolderView = Boolean(activeFolderId);
-  const mediaFiles = data?.items ?? [];
+  const mediaFiles = useMemo<MediaFile[]>(
+    () => data?.items ?? [],
+    [data?.items]
+  );
   const total = data?.total ?? mediaFiles.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const deleteMediaMutation = useDeleteMedia();

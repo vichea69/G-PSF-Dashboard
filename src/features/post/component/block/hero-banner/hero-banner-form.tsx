@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { FileModal } from '@/components/modal/file-modal';
+import type { MediaFile } from '@/features/media/types/media-type';
+import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { ImageIcon, Link2, Plus, X } from 'lucide-react';
 
 export interface HeroBannerData {
@@ -95,6 +98,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
   const [formData, setFormData] = useState<HeroBannerData>(() =>
     normalizeBannerData(value)
   );
+  const [imagePickerIndex, setImagePickerIndex] = useState<number | null>(null);
   const lastValue = useRef<string>('');
   const pendingEmit = useRef<HeroBannerData | null>(null);
 
@@ -164,6 +168,13 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
       ...prev,
       backgroundImages: prev.backgroundImages.filter((_, i) => i !== index)
     }));
+  };
+
+  const handleSelectBackgroundFromMedia = (file: MediaFile) => {
+    if (imagePickerIndex === null) return;
+    const selectedUrl = (file.url ?? '').trim();
+    if (!selectedUrl) return;
+    updateImage(imagePickerIndex, selectedUrl);
   };
 
   const addCta = () => {
@@ -280,50 +291,64 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
           </CardAction>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {formData.backgroundImages.map((image, index) => (
-            <div
-              key={index}
-              className='bg-muted/20 space-y-3 rounded-lg border p-4'
-            >
-              <div className='flex items-center justify-between gap-2'>
-                <Label
-                  htmlFor={`backgroundImage-${index}`}
-                >{`Image URL ${index + 1}`}</Label>
-                {formData.backgroundImages.length > 1 && (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    className='text-destructive hover:bg-destructive/10 hover:text-destructive h-7 w-7'
-                    onClick={() => removeImage(index)}
-                  >
-                    <X className='size-4' />
-                  </Button>
-                )}
-              </div>
-              <div className='flex flex-col gap-4 md:flex-row md:items-start'>
-                <Input
-                  id={`backgroundImage-${index}`}
-                  value={image}
-                  onChange={(e) => updateImage(index, e.target.value)}
-                  placeholder='https://example.com/image.jpg'
-                />
-                {image && (
-                  <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
-                    <img
-                      src={image || '/placeholder.svg'}
-                      alt={`Banner preview ${index + 1}`}
-                      className='size-full object-cover'
-                      onError={(e) => {
-                        e.currentTarget.src = '/placeholder.svg';
-                        e.currentTarget.alt = 'Image not found';
-                      }}
-                    />
+          {formData.backgroundImages.map((image, index) => {
+            const previewUrl = resolveApiAssetUrl(image);
+
+            return (
+              <div
+                key={index}
+                className='bg-muted/20 space-y-3 rounded-lg border p-4'
+              >
+                <div className='flex items-center justify-between gap-2'>
+                  <Label
+                    htmlFor={`backgroundImage-${index}`}
+                  >{`Image URL ${index + 1}`}</Label>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setImagePickerIndex(index)}
+                    >
+                      Choose from Media
+                    </Button>
+                    {formData.backgroundImages.length > 1 && (
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='icon'
+                        className='text-destructive hover:bg-destructive/10 hover:text-destructive h-7 w-7'
+                        onClick={() => removeImage(index)}
+                      >
+                        <X className='size-4' />
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
+                <div className='flex flex-col gap-4 md:flex-row md:items-start'>
+                  <Input
+                    id={`backgroundImage-${index}`}
+                    value={image}
+                    onChange={(e) => updateImage(index, e.target.value)}
+                    placeholder='https://example.com/image.jpg'
+                  />
+                  {image ? (
+                    <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
+                      <img
+                        src={previewUrl || '/placeholder.svg'}
+                        alt={`Banner preview ${index + 1}`}
+                        className='size-full object-cover'
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder.svg';
+                          e.currentTarget.alt = 'Image not found';
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {formData.backgroundImages.length === 0 && (
             <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
               <ImageIcon className='mb-2 size-8' />
@@ -408,6 +433,17 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
           )}
         </CardContent>
       </Card>
+
+      <FileModal
+        isOpen={imagePickerIndex !== null}
+        onClose={() => setImagePickerIndex(null)}
+        onSelect={handleSelectBackgroundFromMedia}
+        title='Select background image'
+        description='Choose an image from Media Manager.'
+        types={['image']}
+        accept='image/*'
+        allowUploadFromDevice={false}
+      />
     </div>
   );
 }
