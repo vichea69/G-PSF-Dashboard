@@ -118,3 +118,89 @@ export async function replaceMedia(
     };
   }
 }
+
+export async function createMediaFolder(
+  name: string
+): Promise<MediaActionResult> {
+  const folderName = String(name ?? '').trim();
+
+  if (!folderName) {
+    return { success: false, error: 'Folder name is required' };
+  }
+
+  const headers = await getAuthHeaders();
+
+  try {
+    const res = await api.post(
+      '/media/folders',
+      { name: folderName },
+      {
+        headers,
+        withCredentials: true
+      }
+    );
+
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
+
+    return {
+      success: false,
+      error: message ?? 'Failed to create folder'
+    };
+  }
+}
+
+type DeleteMediaFolderOptions = {
+  force?: boolean;
+};
+
+export async function deleteMediaFolder(
+  id: string | number,
+  options: DeleteMediaFolderOptions = {}
+): Promise<MediaActionResult> {
+  const folderId = String(id ?? '').trim();
+
+  if (!folderId) {
+    return { success: false, error: 'Folder id is required' };
+  }
+
+  const headers = await getAuthHeaders();
+  const force = options.force === true;
+  const url = `/media/folders/${encodeURIComponent(folderId)}`;
+
+  try {
+    const res = await api.delete(url, {
+      headers,
+      withCredentials: true,
+      params: force ? { force: true } : undefined
+    });
+
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
+
+    return {
+      success: false,
+      error: message ?? 'Failed to delete folder'
+    };
+  }
+}

@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 interface UploadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  folderId?: string | null;
 }
 
 interface UploadFile {
@@ -44,7 +45,21 @@ const createUploadId = () =>
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2);
 
-export function UploadModal({ open, onOpenChange }: UploadModalProps) {
+function normalizeFolderId(value?: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+export function UploadModal({
+  open,
+  onOpenChange,
+  folderId
+}: UploadModalProps) {
+  const targetFolderId = normalizeFolderId(folderId);
+  const uploadEndpoint = targetFolderId
+    ? `/media/upload/folders/${encodeURIComponent(targetFolderId)}`
+    : '/media/upload';
   const [uploads, setUploads] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,7 +122,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
       formData.append('files', upload.file);
 
       try {
-        await api.post('/media/upload', formData, {
+        await api.post(uploadEndpoint, formData, {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -154,7 +169,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         return false;
       }
     },
-    [queryClient, updateUploadProgress]
+    [clearProgressTimer, queryClient, updateUploadProgress, uploadEndpoint]
   );
 
   const handleFiles = useCallback((files: File[]) => {
@@ -223,7 +238,8 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
           <DialogTitle>Upload Files</DialogTitle>
           <DialogDescription>
             Drag and drop files here or click to browse. Supports images,
-            videos, PDFs, and documents.
+            videos, PDFs, and documents.{' '}
+            {targetFolderId ? 'Files will be uploaded to this folder.' : ''}
           </DialogDescription>
         </DialogHeader>
 

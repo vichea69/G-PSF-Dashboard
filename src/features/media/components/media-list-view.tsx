@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   Eye,
   Trash2,
+  Folder,
+  FolderOpen,
   FileImage,
   FileVideo,
   FileText,
@@ -21,7 +23,8 @@ import {
 import {
   formatFileSize,
   formatDate,
-  type MediaFile
+  type MediaFile,
+  type MediaFolder
 } from '@/features/media/types/media-type';
 import Image from 'next/image';
 import {
@@ -35,10 +38,14 @@ import {
 import { DataTablePagination } from '@/components/ui/table/data-table-pagination';
 
 interface MediaListViewProps {
+  folders: MediaFolder[];
   files: MediaFile[];
+  selectedFolders: Set<string>;
   selectedFiles: Set<string>;
+  onToggleFolderSelection: (folderId: string) => void;
   onToggleSelection: (fileId: string) => void;
   onToggleAll?: (checked: boolean) => void;
+  onOpenFolder?: (folder: MediaFolder) => void;
   onPreview: (file: MediaFile) => void;
   onDelete: (file: MediaFile) => void;
   deletingIds?: Set<string>;
@@ -49,11 +56,27 @@ interface MediaListViewProps {
   onPageSizeChange: (pageSize: number) => void;
 }
 
+type MediaListRow =
+  | {
+      kind: 'folder';
+      id: string;
+      folder: MediaFolder;
+    }
+  | {
+      kind: 'file';
+      id: string;
+      file: MediaFile;
+    };
+
 export function MediaListView({
+  folders,
   files,
+  selectedFolders,
   selectedFiles,
+  onToggleFolderSelection,
   onToggleSelection,
   onToggleAll,
+  onOpenFolder,
   onPreview,
   onDelete,
   deletingIds,
@@ -63,10 +86,44 @@ export function MediaListView({
   onPageChange,
   onPageSizeChange
 }: MediaListViewProps) {
+  const rows = useMemo<MediaListRow[]>(
+    () => [
+      ...folders.map((folder) => ({
+        kind: 'folder' as const,
+        id: folder.id,
+        folder
+      })),
+      ...files.map((file) => ({
+        kind: 'file' as const,
+        id: file.id,
+        file
+      }))
+    ],
+    [files, folders]
+  );
+
+  const isRowSelected = (row: MediaListRow) => {
+    if (row.kind === 'folder') return selectedFolders.has(row.folder.id);
+    return selectedFiles.has(row.file.id);
+  };
+
   const allSelected =
-    files.length > 0 && files.every((file) => selectedFiles.has(file.id));
-  const someSelected =
-    files.some((file) => selectedFiles.has(file.id)) && !allSelected;
+    rows.length > 0 && rows.every((row) => isRowSelected(row));
+  const someSelected = rows.some((row) => isRowSelected(row)) && !allSelected;
+
+  const toggleAllRows = (checked: boolean) => {
+    onToggleAll?.(checked);
+    folders.forEach((folder) => {
+      const isSelected = selectedFolders.has(folder.id);
+      if (checked && !isSelected) {
+        onToggleFolderSelection(folder.id);
+      }
+      if (!checked && isSelected) {
+        onToggleFolderSelection(folder.id);
+      }
+    });
+  };
+
   const getFileIcon = (type: MediaFile['type']) => {
     switch (type) {
       case 'image':
@@ -95,21 +152,31 @@ export function MediaListView({
     }
   };
 
-  const columns = useMemo<ColumnDef<MediaFile>[]>(
+  const columns = useMemo<ColumnDef<MediaListRow>[]>(
     () => [
       {
         id: 'select',
         header: () => (
           <Checkbox
             checked={someSelected ? 'indeterminate' : allSelected}
-            onCheckedChange={(value) =>
-              onToggleAll?.(value === true || value === 'indeterminate')
-            }
-            disabled={files.length === 0}
+            onCheckedChange={(value) => toggleAllRows(value === true)}
+            disabled={rows.length === 0}
           />
         ),
         cell: ({ row }) => {
-          const file = row.original;
+          const mediaRow = row.original;
+          if (mediaRow.kind === 'folder') {
+            return (
+              <Checkbox
+                checked={selectedFolders.has(mediaRow.folder.id)}
+                onCheckedChange={() =>
+                  onToggleFolderSelection(mediaRow.folder.id)
+                }
+              />
+            );
+          }
+
+          const file = mediaRow.file;
           return (
             <Checkbox
               checked={selectedFiles.has(file.id)}
@@ -122,12 +189,21 @@ export function MediaListView({
         id: 'preview',
         header: 'Preview',
         cell: ({ row }) => {
-          const file = row.original;
+          const mediaRow = row.original;
+          if (mediaRow.kind === 'folder') {
+            return (
+              <div className='bg-muted flex h-14 w-14 items-center justify-center overflow-hidden rounded'>
+                <Folder className='h-6 w-6 text-[#f59e0b]' />
+              </div>
+            );
+          }
+
+          const file = mediaRow.file;
           const canShowThumbnail =
             (file.type === 'image' || file.type === 'pdf') &&
             Boolean(file.thumbnail);
           return (
-            <div className='bg-muted relative h-15 w-15 overflow-hidden rounded'>
+            <div className='bg-muted relative h-14 w-14 overflow-hidden rounded'>
               {canShowThumbnail ? (
                 <Image
                   src={file.thumbnail || '/placeholder.svg'}
@@ -146,11 +222,13 @@ export function MediaListView({
         }
       },
       {
-        accessorKey: 'name',
+        id: 'name',
         header: 'Name',
         cell: ({ row }) => (
           <div className='text-foreground truncate text-sm font-medium'>
-            {row.original.name}
+            {row.original.kind === 'folder'
+              ? row.original.folder.name
+              : row.original.file.name}
           </div>
         )
       },
@@ -158,7 +236,21 @@ export function MediaListView({
         id: 'type',
         header: 'Type',
         cell: ({ row }) => {
-          const badge = getTypeBadge(row.original.type);
+          const mediaRow = row.original;
+          if (mediaRow.kind === 'folder') {
+            return (
+              <Badge
+                variant='secondary'
+                appearance='light'
+                size='sm'
+                className='font-medium'
+              >
+                Folder
+              </Badge>
+            );
+          }
+
+          const badge = getTypeBadge(mediaRow.file.type);
           return (
             <Badge
               variant={badge.variant}
@@ -176,7 +268,9 @@ export function MediaListView({
         header: 'Size',
         cell: ({ row }) => (
           <div className='text-muted-foreground text-sm'>
-            {formatFileSize(row.original.size)}
+            {row.original.kind === 'folder'
+              ? '-'
+              : formatFileSize(row.original.file.size)}
           </div>
         )
       },
@@ -185,7 +279,11 @@ export function MediaListView({
         header: 'Date',
         cell: ({ row }) => (
           <div className='text-muted-foreground text-sm'>
-            {formatDate(row.original.uploadedAt)}
+            {formatDate(
+              row.original.kind === 'folder'
+                ? row.original.folder.createdAt
+                : row.original.file.uploadedAt
+            )}
           </div>
         )
       },
@@ -193,7 +291,22 @@ export function MediaListView({
         id: 'actions',
         header: () => <div className='text-right'>Actions</div>,
         cell: ({ row }) => {
-          const file = row.original;
+          const mediaRow = row.original;
+          if (mediaRow.kind === 'folder') {
+            return (
+              <div className='flex justify-end gap-2'>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  onClick={() => onOpenFolder?.(mediaRow.folder)}
+                >
+                  <FolderOpen className='h-4 w-4' />
+                </Button>
+              </div>
+            );
+          }
+
+          const file = mediaRow.file;
           return (
             <div className='flex justify-end gap-2'>
               <Button size='sm' variant='ghost' onClick={() => onPreview(file)}>
@@ -216,17 +329,22 @@ export function MediaListView({
       allSelected,
       deletingIds,
       files.length,
+      folders,
       onDelete,
+      onOpenFolder,
       onPreview,
       onToggleAll,
+      onToggleFolderSelection,
       onToggleSelection,
+      rows.length,
       selectedFiles,
+      selectedFolders,
       someSelected
     ]
   );
 
   const table = useReactTable({
-    data: files,
+    data: rows,
     columns,
     getCoreRowModel: getCoreRowModel(),
     pageCount,

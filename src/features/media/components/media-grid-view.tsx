@@ -13,11 +13,17 @@ import {
 } from 'lucide-react';
 import {
   formatFileSize,
-  type MediaFile
+  type MediaFile,
+  type MediaFolder
 } from '@/features/media/types/media-type';
 import Image from 'next/image';
+import { MediaFolderStructure } from '@/features/media/components/media-folder-structure';
 
 interface MediaGridViewProps {
+  folders?: MediaFolder[];
+  selectedFolders: Set<string>;
+  onToggleFolderSelection: (folderId: string) => void;
+  onOpenFolder?: (folder: MediaFolder) => void;
   files: MediaFile[];
   selectedFiles: Set<string>;
   onToggleSelection: (fileId: string) => void;
@@ -27,6 +33,10 @@ interface MediaGridViewProps {
 }
 
 export function MediaGridView({
+  folders = [],
+  selectedFolders,
+  onToggleFolderSelection,
+  onOpenFolder,
   files,
   selectedFiles,
   onToggleSelection,
@@ -37,6 +47,12 @@ export function MediaGridView({
   return (
     <div className='p-6'>
       <div className='grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
+        <MediaFolderStructure
+          folders={folders}
+          selectedFolders={selectedFolders}
+          onToggleFolderSelection={onToggleFolderSelection}
+          onOpenFolder={onOpenFolder}
+        />
         {files.map((file) => (
           <MediaGridItem
             key={file.id}

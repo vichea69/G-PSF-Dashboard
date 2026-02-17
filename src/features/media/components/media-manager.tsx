@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,42 +10,87 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Search, Upload, Grid3x3, List, FileImage } from 'lucide-react';
+import {
+  ArrowLeft,
+  Search,
+  Upload,
+  Grid3x3,
+  List,
+  FileImage,
+  FolderPlus
+} from 'lucide-react';
 import { MediaGridView } from '@/features/media/components/media-grid-view';
 import { MediaListView } from '@/features/media/components/media-list-view';
 import { UploadModal } from '@/features/media/components/upload-modal';
 import { PreviewModal } from '@/features/media/components/preview-modal';
-import { useMedia, useDeleteMedia } from '@/features/media/hook/use-media';
-import { type MediaFile } from '@/features/media/types/media-type';
+import { CreateFolderModal } from '@/features/media/components/create-folder-modal';
+import {
+  useMedia,
+  useDeleteMedia,
+  useCreateMediaFolder,
+  useDeleteMediaFolder
+} from '@/features/media/hook/use-media';
+import {
+  type MediaFile,
+  type MediaFolder
+} from '@/features/media/types/media-type';
 import { toast } from 'sonner';
 import { AlertModal } from '@/components/modal/alert-modal';
 
 type ViewMode = 'grid' | 'list';
 type SortOption = 'newest' | 'name' | 'size';
 
-export function MediaManager() {
+type MediaManagerProps = {
+  folderId?: string | null;
+};
+
+function normalizeFolderId(value?: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+export function MediaManager({ folderId }: MediaManagerProps = {}) {
+  const router = useRouter();
+  const activeFolderId = normalizeFolderId(folderId);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [selectedFolders, setSelectedFolders] = useState<Set<string>>(
+    new Set()
+  );
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [confirmState, setConfirmState] = useState<{
     ids: string[];
     label: string;
   } | null>(null);
+  const [confirmDeleteFoldersOpen, setConfirmDeleteFoldersOpen] =
+    useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const { data, isLoading, error, refetch, isFetching } = useMedia({
+  const { data, isLoading, error, refetch } = useMedia({
     page,
-    pageSize
+    pageSize,
+    folderId: activeFolderId
   });
+  const folders = data?.folders ?? [];
+  const currentFolder = data?.currentFolder ?? null;
+  const resolvedActiveFolder =
+    currentFolder ??
+    folders.find((folder) => folder.id === activeFolderId) ??
+    null;
+  const inFolderView = Boolean(activeFolderId);
   const mediaFiles = data?.items ?? [];
   const total = data?.total ?? mediaFiles.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const deleteMediaMutation = useDeleteMedia();
+  const createFolderMutation = useCreateMediaFolder();
+  const deleteFolderMutation = useDeleteMediaFolder();
   const errorMessage =
     error instanceof Error ? error.message : 'Something went wrong';
 
@@ -57,6 +103,12 @@ export function MediaManager() {
   useEffect(() => {
     setSelectedFiles(new Set());
   }, [page, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+    setSelectedFiles(new Set());
+    setSelectedFolders(new Set());
+  }, [activeFolderId]);
 
   // Filter and sort files from API
   const filteredFiles = useMemo(
@@ -79,6 +131,15 @@ export function MediaManager() {
         }),
     [mediaFiles, searchQuery, sortBy]
   );
+  const filteredFolders = useMemo(
+    () =>
+      inFolderView
+        ? []
+        : folders.filter((folder: MediaFolder) =>
+            folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+          ),
+    [folders, inFolderView, searchQuery]
+  );
 
   useEffect(() => {
     setPage(1);
@@ -94,6 +155,18 @@ export function MediaManager() {
     setSelectedFiles(newSelection);
   };
 
+  const toggleFolderSelection = (folderId: string) => {
+    setSelectedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
+
   const toggleAllSelection = (checked: boolean) => {
     setSelectedFiles((prev) => {
       const next = new Set(prev);
@@ -104,6 +177,11 @@ export function MediaManager() {
       }
       return next;
     });
+  };
+
+  const confirmDeleteSelectedFolders = () => {
+    if (selectedFolders.size === 0) return;
+    setConfirmDeleteFoldersOpen(true);
   };
 
   const confirmDeleteSelected = () => {
@@ -149,11 +227,76 @@ export function MediaManager() {
     }
   };
 
+  const executeDeleteSelectedFolders = async () => {
+    const folderIds = Array.from(selectedFolders);
+    if (folderIds.length === 0) {
+      setConfirmDeleteFoldersOpen(false);
+      return;
+    }
+
+    try {
+      await Promise.all(
+        folderIds.map((id) =>
+          deleteFolderMutation.mutateAsync({
+            id,
+            force: true
+          })
+        )
+      );
+
+      toast.success(
+        `Deleted ${folderIds.length} folder${folderIds.length > 1 ? 's' : ''} and files`
+      );
+      setSelectedFolders(new Set());
+      setConfirmDeleteFoldersOpen(false);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to delete folder';
+      toast.error(message);
+    }
+  };
+
+  const handleCreateFolder = async (folderName: string) => {
+    try {
+      await createFolderMutation.mutateAsync({ name: folderName });
+      toast.success(`Folder "${folderName}" created`);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to create folder';
+      toast.error(message);
+      throw err;
+    }
+  };
+
+  const openFolder = (folder: MediaFolder) => {
+    router.push(`/admin/media/folders/${encodeURIComponent(folder.id)}`);
+  };
+
+  const backToAllMedia = () => {
+    router.push('/admin/media');
+  };
+
   return (
     <div className='bg-background flex h-[calc(100dvh-52px)] min-h-0 flex-col'>
       {/* Top Toolbar */}
       <div className='border-border bg-card border-b px-6 py-4'>
         <div className='flex flex-wrap items-center gap-3'>
+          {inFolderView ? (
+            <Button type='button' variant='outline' onClick={backToAllMedia}>
+              <ArrowLeft className='mr-2 h-4 w-4' />
+              All Media
+            </Button>
+          ) : null}
+
+          {inFolderView ? (
+            <div className='text-muted-foreground text-sm'>
+              Folder:{' '}
+              <span className='text-foreground font-medium'>
+                {resolvedActiveFolder?.name ?? 'Selected Folder'}
+              </span>
+            </div>
+          ) : null}
+
           {/* Search */}
           <div className='relative min-w-[240px] flex-1'>
             <Search className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2' />
@@ -171,6 +314,29 @@ export function MediaManager() {
             <Upload className='mr-2 h-4 w-4' />
             Upload
           </Button>
+
+          {!inFolderView ? (
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => setCreateFolderModalOpen(true)}
+            >
+              <FolderPlus className='mr-2 h-4 w-4' />
+              Create Folder
+            </Button>
+          ) : null}
+
+          {selectedFolders.size > 0 && !inFolderView ? (
+            <Button
+              type='button'
+              variant='destructive'
+              size='sm'
+              onClick={confirmDeleteSelectedFolders}
+              disabled={deleteFolderMutation.isPending}
+            >
+              Delete Folder ({selectedFolders.size})
+            </Button>
+          ) : null}
 
           {/* View Toggle */}
           <div className='border-border bg-background flex gap-1 rounded-lg border p-1'>
@@ -223,7 +389,7 @@ export function MediaManager() {
 
       {/* Content Area */}
       <div className='flex-1 overflow-auto'>
-        {isLoading || isFetching ? (
+        {isLoading ? (
           <div className='flex h-full items-center justify-center'>
             <p className='text-muted-foreground'>Loading media...</p>
           </div>
@@ -238,17 +404,21 @@ export function MediaManager() {
               </Button>
             </div>
           </div>
-        ) : filteredFiles.length === 0 ? (
+        ) : filteredFiles.length === 0 && filteredFolders.length === 0 ? (
           <div className='flex h-full items-center justify-center'>
             <div className='text-center'>
               <FileImage className='text-muted-foreground mx-auto h-12 w-12' />
               <h3 className='mt-4 text-lg font-semibold'>
-                No media files found
+                {inFolderView
+                  ? 'No files in this folder'
+                  : 'No media files found'}
               </h3>
               <p className='text-muted-foreground mt-2 text-sm'>
                 {searchQuery
                   ? 'Try adjusting your search'
-                  : 'Upload your first file to get started'}
+                  : inFolderView
+                    ? 'Upload files or go back to all media.'
+                    : 'Upload your first file to get started'}
               </p>
               {!searchQuery && (
                 <Button
@@ -263,6 +433,10 @@ export function MediaManager() {
           </div>
         ) : viewMode === 'grid' ? (
           <MediaGridView
+            folders={filteredFolders}
+            selectedFolders={selectedFolders}
+            onToggleFolderSelection={toggleFolderSelection}
+            onOpenFolder={openFolder}
             files={filteredFiles}
             selectedFiles={selectedFiles}
             onToggleSelection={toggleFileSelection}
@@ -272,10 +446,14 @@ export function MediaManager() {
           />
         ) : (
           <MediaListView
+            folders={filteredFolders}
             files={filteredFiles}
+            selectedFolders={selectedFolders}
             selectedFiles={selectedFiles}
+            onToggleFolderSelection={toggleFolderSelection}
             onToggleSelection={toggleFileSelection}
             onToggleAll={toggleAllSelection}
+            onOpenFolder={openFolder}
             onPreview={setPreviewFile}
             onDelete={confirmDeleteSingle}
             deletingIds={deletingIds}
@@ -345,7 +523,16 @@ export function MediaManager() {
       )}
 
       {/* Modals */}
-      <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
+      <UploadModal
+        open={uploadModalOpen}
+        onOpenChange={setUploadModalOpen}
+        folderId={activeFolderId}
+      />
+      <CreateFolderModal
+        open={createFolderModalOpen}
+        onOpenChange={setCreateFolderModalOpen}
+        onCreate={handleCreateFolder}
+      />
       <PreviewModal
         file={previewFile}
         open={!!previewFile}
@@ -357,6 +544,12 @@ export function MediaManager() {
         onClose={() => setConfirmState(null)}
         onConfirm={executeDelete}
         loading={deleteLoading}
+      />
+      <AlertModal
+        isOpen={confirmDeleteFoldersOpen}
+        onClose={() => setConfirmDeleteFoldersOpen(false)}
+        onConfirm={executeDeleteSelectedFolders}
+        loading={deleteFolderMutation.isPending}
       />
     </div>
   );

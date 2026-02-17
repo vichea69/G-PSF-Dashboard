@@ -5,7 +5,23 @@ export type MediaFile = {
   size: number;
   url: string;
   thumbnail?: string;
+  folderId?: string | null;
+  folderName?: string | null;
   uploadedAt: Date;
+};
+
+export type MediaFolder = {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type MediaApiFolder = {
+  id: number | string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type MediaApiItem = {
@@ -18,6 +34,8 @@ export type MediaApiItem = {
   thumbnailUrl?: string;
   mediaType: string;
   storageDriver: string;
+  folderId?: number | string | null;
+  folder?: MediaApiFolder | null;
   createdAt: string;
 };
 
@@ -28,10 +46,14 @@ export type MediaApiResponse = {
   pageSize?: number;
   total?: number;
   data?: MediaApiItem[] | { items?: MediaApiItem[] };
+  folder?: MediaApiFolder | null;
+  folders?: MediaApiFolder[];
 };
 
 export type MediaListResult = {
   items: MediaFile[];
+  folders: MediaFolder[];
+  currentFolder: MediaFolder | null;
   page: number;
   pageSize: number;
   total: number;
@@ -144,6 +166,23 @@ export function mapMediaItem(item: MediaApiItem): MediaFile {
     size: Number.isNaN(size) ? 0 : size,
     url,
     thumbnail,
+    folderId:
+      item.folderId === null || item.folderId === undefined
+        ? null
+        : String(item.folderId),
+    folderName: item.folder?.name ?? null,
     uploadedAt: Number.isNaN(uploadedAt.getTime()) ? new Date() : uploadedAt
+  };
+}
+
+export function mapMediaFolder(folder: MediaApiFolder): MediaFolder {
+  const createdAt = folder.createdAt ? new Date(folder.createdAt) : new Date();
+  const updatedAt = folder.updatedAt ? new Date(folder.updatedAt) : new Date();
+
+  return {
+    id: String(folder.id),
+    name: folder.name,
+    createdAt: Number.isNaN(createdAt.getTime()) ? new Date() : createdAt,
+    updatedAt: Number.isNaN(updatedAt.getTime()) ? new Date() : updatedAt
   };
 }
