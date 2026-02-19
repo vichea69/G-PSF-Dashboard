@@ -1,8 +1,16 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -10,10 +18,13 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Save } from 'lucide-react';
+import { CalendarIcon, Save } from 'lucide-react';
+import { formatDate } from '@/lib/format';
 
 type PostPublishSettingsCardProps = {
   status: 'draft' | 'published';
+  publishDate?: string;
+  isFeatured: boolean;
   categoryId?: number | string;
   sectionId?: number | string;
   pageId?: number | string;
@@ -23,6 +34,8 @@ type PostPublishSettingsCardProps = {
   selectedSection?: Record<string, unknown>;
   isEditing: boolean;
   onStatusChange: (value: 'draft' | 'published') => void;
+  onPublishDateChange: (value: string) => void;
+  onIsFeaturedChange: (value: boolean) => void;
   onCategoryChange: (value: string) => void;
   onSectionChange: (value: string) => void;
   onPageChange: (value: string) => void;
@@ -30,8 +43,17 @@ type PostPublishSettingsCardProps = {
   onSubmit: () => void;
 };
 
+const toDateOnly = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export function PostPublishSettingsCard({
   status,
+  publishDate,
+  isFeatured,
   categoryId,
   sectionId,
   pageId,
@@ -41,12 +63,23 @@ export function PostPublishSettingsCard({
   selectedSection,
   isEditing,
   onStatusChange,
+  onPublishDateChange,
+  onIsFeaturedChange,
   onCategoryChange,
   onSectionChange,
   onPageChange,
   onCancel,
   onSubmit
 }: PostPublishSettingsCardProps) {
+  const selectedPublishDate = useMemo(() => {
+    if (!publishDate) return undefined;
+    const parsed = new Date(`${publishDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return undefined;
+    return parsed;
+  }, [publishDate]);
+  const normalizedStatus =
+    status?.toLowerCase() === 'published' ? 'published' : 'draft';
+
   const selectedBlockType =
     typeof selectedSection?.blockType === 'string'
       ? selectedSection.blockType
@@ -60,7 +93,12 @@ export function PostPublishSettingsCard({
       <CardContent className='space-y-4'>
         <div>
           <Label htmlFor='status'>Status</Label>
-          <Select value={status} onValueChange={onStatusChange}>
+          <Select
+            value={normalizedStatus}
+            onValueChange={(value) =>
+              onStatusChange(value === 'published' ? 'published' : 'draft')
+            }
+          >
             <SelectTrigger className='mt-1'>
               <SelectValue />
             </SelectTrigger>
@@ -69,6 +107,59 @@ export function PostPublishSettingsCard({
               <SelectItem value='published'>Published</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        {normalizedStatus === 'published' ? (
+          <div className='space-y-2'>
+            <Label htmlFor='publish-date'>Publish Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id='publish-date'
+                  type='button'
+                  variant='outline'
+                  className='w-full justify-start text-left font-normal'
+                >
+                  <CalendarIcon className='mr-2 h-4 w-4' />
+                  {selectedPublishDate
+                    ? formatDate(selectedPublishDate)
+                    : 'Pick a publish date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-0' align='start'>
+                <Calendar
+                  mode='single'
+                  selected={selectedPublishDate}
+                  onSelect={(date) =>
+                    onPublishDateChange(date ? toDateOnly(date) : '')
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {publishDate ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='h-7 px-2 text-xs'
+                onClick={() => onPublishDateChange('')}
+              >
+                Clear date
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className='flex items-center space-x-2'>
+          <Checkbox
+            id='is-featured'
+            checked={isFeatured}
+            onCheckedChange={(checked) => onIsFeaturedChange(Boolean(checked))}
+          />
+          <Label htmlFor='is-featured' className='cursor-pointer'>
+            Featured
+          </Label>
         </div>
 
         <div>

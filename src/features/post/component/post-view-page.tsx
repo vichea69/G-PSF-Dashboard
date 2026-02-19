@@ -59,17 +59,17 @@ export default function PostViewPage({
         // eslint-disable-next-line no-console
         console.log('[PostView] FORM DATA', formData);
 
-        // title (jsonb) — backend requires at least en; fall back to km
+        // title (jsonb) — allow Khmer-only or English-only input
         const titleEn = (formData.titleEn || '').trim();
         const titleKm = (formData.titleKm || '').trim();
-        const titleJson = {
-          en: titleEn || titleKm,
-          km: titleKm || undefined
-        };
-        if (!titleJson.en) {
-          toast.error('Title is required');
+        if (!titleEn && !titleKm) {
+          toast.error('Please enter title in English or Khmer');
           return;
         }
+        const titleJson = {
+          en: titleEn,
+          km: titleKm || undefined
+        };
 
         // description (jsonb, optional)
         const hasDescription =
@@ -103,8 +103,27 @@ export default function PostViewPage({
         const categoryId = numOrNull(formData.categoryId);
         const sectionId = numOrNull(formData.sectionId);
         const pageId = numOrNull(formData.pageId);
+        const publishDate = formData.publishDate?.trim() || '';
+        const isFeatured = Boolean(formData.isFeatured);
         const coverImage = formData.coverImage?.trim() || '';
-        const document = formData.document?.trim() || '';
+        const normalizeDocumentEntry = (entry?: {
+          url?: string;
+          thumbnailUrl?: string;
+        }) => {
+          const url = entry?.url?.trim() || '';
+          const thumbnailUrl = entry?.thumbnailUrl?.trim() || '';
+          if (!url && !thumbnailUrl) return undefined;
+          return {
+            ...(url ? { url } : {}),
+            ...(thumbnailUrl ? { thumbnailUrl } : {})
+          };
+        };
+        const documents = {
+          en: normalizeDocumentEntry(formData.documents?.en),
+          km: normalizeDocumentEntry(formData.documents?.km)
+        };
+        const hasDocuments = Boolean(documents.en || documents.km);
+        const document = documents.en?.url || formData.document?.trim() || '';
         const link = formData.link?.trim() || '';
         const payload = {
           title: titleJson,
@@ -112,11 +131,22 @@ export default function PostViewPage({
           content: contentValue,
           // slug intentionally omitted; backend derives it if needed
           status: formData.status,
+          isFeatured,
+          publishedAt:
+            formData.status === 'published' && publishDate
+              ? publishDate
+              : undefined,
           categoryId: categoryId ?? undefined,
           sectionId: sectionId ?? undefined,
           pageId: pageId ?? undefined,
           coverImage: coverImage || undefined,
           document: document || undefined,
+          documents: hasDocuments
+            ? {
+                ...(documents.en ? { en: documents.en } : {}),
+                ...(documents.km ? { km: documents.km } : {})
+              }
+            : undefined,
           link: link || undefined,
           existingImageIds: formData.existingImageIds?.length
             ? formData.existingImageIds
@@ -133,6 +163,10 @@ export default function PostViewPage({
         }
         fd.append('content', JSON.stringify(payload.content));
         fd.append('status', payload.status);
+        fd.append('isFeatured', String(payload.isFeatured));
+        if (payload.publishedAt) {
+          fd.append('publishedAt', payload.publishedAt);
+        }
         if (payload.categoryId !== undefined) {
           fd.append('categoryId', String(payload.categoryId));
         }
@@ -147,6 +181,9 @@ export default function PostViewPage({
         }
         if (payload.document) {
           fd.append('document', payload.document);
+        }
+        if (payload.documents) {
+          fd.append('documents', JSON.stringify(payload.documents));
         }
         if (payload.link) {
           fd.append('link', payload.link);

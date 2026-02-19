@@ -26,6 +26,12 @@ type UsePostFormStateResult = {
   handleImagesChange: (files: FileWithPreview[]) => void;
 };
 
+const normalizePostStatus = (value: unknown): 'published' | 'draft' => {
+  const normalized =
+    typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return normalized === 'published' ? 'published' : 'draft';
+};
+
 export function usePostFormState({
   editingPost,
   initialActiveLanguage
@@ -95,14 +101,14 @@ export function usePostFormState({
     titleKm: initialFields.titleKm,
     descriptionEn: initialFields.descriptionEn,
     descriptionKm: initialFields.descriptionKm,
+    publishDate: initialFields.publishDate,
+    isFeatured: initialFields.isFeatured,
     coverImage: initialFields.coverImage,
     document: initialFields.document,
     documentThumbnail: initialFields.documentThumbnail,
+    documents: initialFields.documents,
     link: initialFields.link,
-    status:
-      editingPost?.status === 'published' || editingPost?.status === 'draft'
-        ? editingPost.status
-        : 'draft',
+    status: normalizePostStatus(editingPost?.status),
     content: initialFields.content,
     categoryId: editingPost?.category?.id ?? editingPost?.categoryId,
     sectionId: editingPost?.section?.id ?? editingPost?.sectionId,
@@ -155,14 +161,14 @@ export function usePostFormState({
       titleKm: derived.titleKm ?? prev.titleKm,
       descriptionEn: derived.descriptionEn ?? prev.descriptionEn,
       descriptionKm: derived.descriptionKm ?? prev.descriptionKm,
+      publishDate: derived.publishDate ?? prev.publishDate,
+      isFeatured: derived.isFeatured,
       coverImage: derived.coverImage ?? prev.coverImage,
       document: derived.document ?? prev.document,
       documentThumbnail: derived.documentThumbnail ?? prev.documentThumbnail,
+      documents: derived.documents ?? prev.documents,
       link: derived.link ?? prev.link,
-      status:
-        editingPost?.status === 'published' || editingPost?.status === 'draft'
-          ? editingPost.status
-          : prev.status,
+      status: normalizePostStatus(editingPost?.status),
       content: derived.content ?? prev.content,
       categoryId:
         editingPost?.category?.id ?? editingPost?.categoryId ?? prev.categoryId,

@@ -113,8 +113,29 @@ export default function PostForm({
     const titleKm = formData.titleKm?.trim() || '';
     const descriptionEn = formData.descriptionEn?.trim() || '';
     const descriptionKm = formData.descriptionKm?.trim() || '';
+    const publishDate = formData.publishDate?.trim() || '';
+    const isFeatured = Boolean(formData.isFeatured);
     const coverImage = formData.coverImage?.trim() || '';
-    const document = formData.document?.trim() || '';
+    const normalizeDocumentEntry = (entry?: {
+      url?: string;
+      thumbnailUrl?: string;
+    }) => {
+      const url = entry?.url?.trim() || '';
+      const thumbnailUrl = entry?.thumbnailUrl?.trim() || '';
+      if (!url && !thumbnailUrl) return undefined;
+      return {
+        ...(url ? { url } : {}),
+        ...(thumbnailUrl ? { thumbnailUrl } : {})
+      };
+    };
+    const documents = {
+      en: normalizeDocumentEntry(formData.documents?.en),
+      km: normalizeDocumentEntry(formData.documents?.km)
+    };
+    const hasDocuments = Boolean(documents.en || documents.km);
+    const document = documents.en?.url || formData.document?.trim() || '';
+    const documentThumbnail =
+      documents.en?.thumbnailUrl || formData.documentThumbnail?.trim() || '';
     const link = formData.link?.trim() || '';
     const title = titleEn || titleKm || formData.title?.trim() || '';
 
@@ -148,8 +169,17 @@ export default function PostForm({
       titleKm,
       descriptionEn,
       descriptionKm,
+      publishDate: publishDate || undefined,
+      isFeatured,
       coverImage: coverImage || undefined,
       document: document || undefined,
+      documentThumbnail: documentThumbnail || undefined,
+      documents: hasDocuments
+        ? {
+            ...(documents.en ? { en: documents.en } : {}),
+            ...(documents.km ? { km: documents.km } : {})
+          }
+        : undefined,
       link: link || undefined,
       content
     });
@@ -215,11 +245,16 @@ export default function PostForm({
 
               <PostResourcesCard
                 coverImage={formData.coverImage ?? ''}
+                documents={formData.documents}
                 document={formData.document ?? ''}
                 documentThumbnail={formData.documentThumbnail ?? ''}
                 link={formData.link ?? ''}
+                activeLanguage={activeLanguage}
                 onCoverImageChange={(value) =>
                   setFormData((prev) => ({ ...prev, coverImage: value }))
+                }
+                onDocumentsChange={(value) =>
+                  setFormData((prev) => ({ ...prev, documents: value }))
                 }
                 onDocumentChange={(value) =>
                   setFormData((prev) => ({ ...prev, document: value }))
@@ -241,6 +276,8 @@ export default function PostForm({
         <div className='space-y-6'>
           <PostPublishSettingsCard
             status={formData.status}
+            publishDate={formData.publishDate}
+            isFeatured={Boolean(formData.isFeatured)}
             categoryId={formData.categoryId}
             sectionId={formData.sectionId}
             pageId={formData.pageId}
@@ -251,6 +288,12 @@ export default function PostForm({
             isEditing={Boolean(editingPost)}
             onStatusChange={(value) =>
               setFormData((prev) => ({ ...prev, status: value }))
+            }
+            onPublishDateChange={(value) =>
+              setFormData((prev) => ({ ...prev, publishDate: value }))
+            }
+            onIsFeaturedChange={(value) =>
+              setFormData((prev) => ({ ...prev, isFeatured: value }))
             }
             onCategoryChange={(value) =>
               setFormData((prev) => ({ ...prev, categoryId: value }))
