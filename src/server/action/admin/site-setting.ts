@@ -3,10 +3,10 @@
 import { api } from '@/lib/api';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 
-export async function UpdateSiteSetting(id: number, payload: FormData) {
+export async function UpdateSiteSetting(payload: FormData) {
   const headers = await getAuthHeaders();
   try {
-    const res = await api.put(`/site-settings/${id}`, payload, {
+    const res = await api.put('/site-settings/current', payload, {
       headers,
       withCredentials: true
     });

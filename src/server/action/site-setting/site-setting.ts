@@ -1,32 +1,49 @@
 'use server';
-import { baseAPI } from '@/lib/api';
+import 'server-only';
+import { isAxiosError } from 'axios';
+import { api } from '@/lib/api';
+import { getAuthHeaders } from '@/server/action/userAuth/user';
 
 //Create Site Setting
 export async function CreateSiteSetting(formData: FormData) {
-  const res = await fetch(`${baseAPI}/site-settings`, {
-    method: 'POST',
-    credentials: 'include',
-    body: formData
-  });
+  const headers = await getAuthHeaders();
+  try {
+    const res = await api.post('/site-settings', formData, {
+      headers,
+      withCredentials: true
+    });
+    return res.data;
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
 
-  if (!res.ok) {
-    throw new Error('Failed to create site setting');
+    throw new Error(message ?? 'Failed to create site setting');
   }
-
-  return res.json();
 }
 
 //Update Site Setting
-export async function UpdateSiteSetting(id: number | string, data: FormData) {
-  const res = await fetch(`${baseAPI}/site-settings/${id}`, {
-    method: 'PUT',
-    credentials: 'include',
-    body: data
-  });
+export async function UpdateSiteSetting(data: FormData) {
+  const headers = await getAuthHeaders();
+  try {
+    const res = await api.put('/site-settings/current', data, {
+      headers,
+      withCredentials: true
+    });
+    return res.data;
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
 
-  if (!res.ok) {
-    throw new Error('Failed to update site setting');
+    throw new Error(message ?? 'Failed to update site setting');
   }
-
-  return res.json();
 }

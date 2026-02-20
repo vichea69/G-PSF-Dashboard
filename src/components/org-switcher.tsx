@@ -18,8 +18,10 @@ export function OrgSwitcher() {
   const [logoError, setLogoError] = useState(false);
 
   const { displayName, logoSrc, isRemoteLogo } = useMemo(() => {
-    const siteName = !isError ? siteSetting?.siteName?.trim() : undefined;
-    const siteLogo = !isError ? siteSetting?.siteLogo?.trim() : undefined;
+    const siteName = !isError
+      ? siteSetting?.title?.en?.trim() || siteSetting?.title?.km?.trim()
+      : undefined;
+    const siteLogo = !isError ? siteSetting?.logo?.trim() : undefined;
 
     const name = siteName && siteName.length > 0 ? siteName : FALLBACK_NAME;
     const logo = siteLogo && siteLogo.length > 0 ? siteLogo : FALLBACK_LOGO;
