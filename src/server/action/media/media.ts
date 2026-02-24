@@ -11,6 +11,53 @@ export type MediaActionResult<T = unknown> = {
   error?: string;
 };
 
+type GetMediaOptions = {
+  page?: number;
+  pageSize?: number;
+  folderId?: string | null;
+};
+
+export async function getMedia(
+  options: GetMediaOptions = {}
+): Promise<MediaActionResult> {
+  const headers = await getAuthHeaders();
+  const page = options.page ?? 1;
+  const pageSize = options.pageSize ?? 24;
+  const folderId =
+    typeof options.folderId === 'string' && options.folderId.trim()
+      ? options.folderId.trim()
+      : null;
+  const endpoint = folderId
+    ? `/media/folders/${encodeURIComponent(folderId)}`
+    : '/media';
+
+  try {
+    const res = await api.get(endpoint, {
+      headers,
+      withCredentials: true,
+      params: { page, pageSize }
+    });
+
+    return {
+      success: true,
+      data: res.data
+    };
+  } catch (error: unknown) {
+    const message = isAxiosError(error)
+      ? ((error.response?.data as any)?.message ??
+        (error.response?.data as any)?.error ??
+        error.message)
+      : error instanceof Error
+        ? error.message
+        : null;
+
+    return {
+      success: false,
+      error: message ?? 'Failed to load media'
+    };
+  }
+}
+
 export async function uploadMedia(
   formData: FormData
 ): Promise<MediaActionResult> {

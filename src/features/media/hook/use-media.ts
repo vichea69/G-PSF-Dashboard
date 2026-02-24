@@ -1,4 +1,3 @@
-import { api } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   mapMediaFolder,
@@ -7,6 +6,8 @@ import {
   type MediaListResult
 } from '@/features/media/types/media-type';
 import {
+  deleteMedia,
+  getMedia,
   createMediaFolder,
   deleteMediaFolder
 } from '@/server/action/media/media';
@@ -26,33 +27,28 @@ async function fetchMedia(
     typeof params.folderId === 'string' && params.folderId.trim()
       ? params.folderId.trim()
       : null;
-  const endpoint = folderId
-    ? `/media/folders/${encodeURIComponent(folderId)}`
-    : '/media';
+  const result = await getMedia({ page, pageSize, folderId });
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to load media');
+  }
 
-  const response = await api.get<MediaApiResponse>(endpoint, {
-    params: { page, pageSize }
-  });
-  const raw = response.data?.data;
+  const response = (result.data ?? {}) as MediaApiResponse;
+  const raw = response.data;
   const items = Array.isArray(raw) ? raw : (raw?.items ?? []);
   const mapped = items.map(mapMediaItem);
-  const folders = Array.isArray(response.data?.folders)
-    ? response.data.folders.map(mapMediaFolder)
+  const folders = Array.isArray(response.folders)
+    ? response.folders.map(mapMediaFolder)
     : [];
   const currentFolder =
-    response.data?.folder && typeof response.data.folder === 'object'
-      ? mapMediaFolder(response.data.folder)
+    response.folder && typeof response.folder === 'object'
+      ? mapMediaFolder(response.folder)
       : null;
   const total =
-    typeof response.data?.total === 'number'
-      ? response.data.total
-      : mapped.length;
+    typeof response.total === 'number' ? response.total : mapped.length;
   const normalizedPage =
-    typeof response.data?.page === 'number' ? response.data.page : page;
+    typeof response.page === 'number' ? response.page : page;
   const normalizedPageSize =
-    typeof response.data?.pageSize === 'number'
-      ? response.data.pageSize
-      : pageSize;
+    typeof response.pageSize === 'number' ? response.pageSize : pageSize;
 
   return {
     items: mapped,
@@ -70,25 +66,11 @@ async function deleteMediaItem(id: string | number) {
     throw new Error('Media id is required');
   }
 
-  await api.delete(`/media/${encodeURIComponent(trimmedId)}`);
-  return true;
-}
-
-type ReplaceMediaInput = {
-  id: string | number;
-  formData: FormData;
-};
-
-async function replaceMediaItem({ id, formData }: ReplaceMediaInput) {
-  const trimmedId = String(id ?? '').trim();
-  if (!trimmedId) {
-    throw new Error('Media id is required');
+  const result = await deleteMedia(trimmedId);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to delete media');
   }
 
-  await api.put(`/media/${encodeURIComponent(trimmedId)}/replace`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    withCredentials: true
-  });
   return true;
 }
 
@@ -140,17 +122,6 @@ export function useDeleteMedia() {
 
   return useMutation({
     mutationFn: deleteMediaItem,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['media'] });
-    }
-  });
-}
-
-export function useReplaceMedia() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: replaceMediaItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['media'] });
     }
