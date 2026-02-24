@@ -58,13 +58,25 @@ export async function getMedia(
   }
 }
 
+type UploadMediaOptions = {
+  folderId?: string | null;
+};
+
 export async function uploadMedia(
-  formData: FormData
+  formData: FormData,
+  options: UploadMediaOptions = {}
 ): Promise<MediaActionResult> {
   const headers = await getAuthHeaders();
+  const folderId =
+    typeof options.folderId === 'string' && options.folderId.trim()
+      ? options.folderId.trim()
+      : null;
+  const endpoint = folderId
+    ? `/media/upload/folders/${encodeURIComponent(folderId)}`
+    : '/media/upload';
 
   try {
-    const res = await api.post('/media/upload', formData, {
+    const res = await api.post(endpoint, formData, {
       headers,
       withCredentials: true
     });

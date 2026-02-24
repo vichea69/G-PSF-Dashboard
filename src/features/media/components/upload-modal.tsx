@@ -21,10 +21,9 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { api } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
+import { uploadMedia } from '@/server/action/media/media';
 
 interface UploadModalProps {
   open: boolean;
@@ -57,9 +56,6 @@ export function UploadModal({
   folderId
 }: UploadModalProps) {
   const targetFolderId = normalizeFolderId(folderId);
-  const uploadEndpoint = targetFolderId
-    ? `/media/upload/folders/${encodeURIComponent(targetFolderId)}`
-    : '/media/upload';
   const [uploads, setUploads] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,21 +118,15 @@ export function UploadModal({
       formData.append('files', upload.file);
 
       try {
-        await api.post(uploadEndpoint, formData, {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (event) => {
-            clearProgressTimer(upload.id);
-            const total = event.total ?? upload.file.size ?? 0;
-            const nextProgress =
-              total > 0
-                ? Math.round((event.loaded * 100) / total)
-                : Math.min(99, upload.progress + 5);
-            updateUploadProgress(upload.id, nextProgress);
-          }
+        const result = await uploadMedia(formData, {
+          folderId: targetFolderId
         });
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to upload file');
+        }
+
+        clearProgressTimer(upload.id);
+        updateUploadProgress(upload.id, 100);
 
         setUploads((prev) =>
           prev.map((u) =>
@@ -151,13 +141,8 @@ export function UploadModal({
         return true;
       } catch (error: unknown) {
         clearProgressTimer(upload.id);
-        const message = isAxiosError(error)
-          ? ((error.response?.data as any)?.message ??
-            (error.response?.data as any)?.error ??
-            error.message)
-          : error instanceof Error
-            ? error.message
-            : 'Failed to upload file';
+        const message =
+          error instanceof Error ? error.message : 'Failed to upload file';
 
         setUploads((prev) =>
           prev.map((u) =>
@@ -169,7 +154,7 @@ export function UploadModal({
         return false;
       }
     },
-    [clearProgressTimer, queryClient, updateUploadProgress, uploadEndpoint]
+    [clearProgressTimer, queryClient, targetFolderId, updateUploadProgress]
   );
 
   const handleFiles = useCallback((files: File[]) => {
