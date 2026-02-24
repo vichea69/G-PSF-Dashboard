@@ -144,7 +144,7 @@ export default function PostForm({
     const title = titleEn || titleKm || formData.title?.trim() || '';
 
     const normalizeContentEntry = (
-      value: PostContent | HeroBannerData | string | undefined
+      value: PostContent | HeroBannerData | StatsBlockData | string | undefined
     ) => {
       if (!value) return { type: 'doc', content: [] } as PostContent;
       if (typeof value === 'string') {
