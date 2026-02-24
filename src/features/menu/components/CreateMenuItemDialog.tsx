@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -12,14 +13,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { MenuGroup } from '@/features/menu/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { MenuGroup, getMenuLabelText } from '@/features/menu/types';
+import { toast } from 'sonner';
 
 export interface CreateMenuItemPayload {
-  label: string;
+  label: {
+    en: string;
+    km: string;
+  };
   url: string;
-  type: 'page' | 'post' | 'category' | 'custom' | 'external';
-  parentId: string;
-  openInNewTab: boolean;
+  parentId: string | null;
 }
 
 interface CreateMenuItemDialogProps {
@@ -33,22 +43,51 @@ export function CreateMenuItemDialog({
 }: CreateMenuItemDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<CreateMenuItemPayload>({
-    label: '',
+    label: {
+      en: '',
+      km: ''
+    },
     url: '',
-    type: 'page',
-    parentId: '',
-    openInNewTab: false
+    parentId: null
   });
 
   const handleSubmit = () => {
-    if (!form.label.trim()) return;
-    onCreate(form);
+    const labelEn = form.label.en.trim();
+    const labelKm = form.label.km.trim();
+    const url = form.url.trim();
+
+    if (!labelEn && !labelKm) {
+      toast.error('Please enter at least one label (EN or KM).');
+      return;
+    }
+
+    if (!url) {
+      toast.error('URL is required.');
+      return;
+    }
+
+    const isInternalPath = url.startsWith('/');
+    const isAbsoluteUrl = /^https?:\/\//i.test(url);
+    if (!isInternalPath && !isAbsoluteUrl) {
+      toast.error('URL must start with "/" or "http(s)://".');
+      return;
+    }
+
+    onCreate({
+      ...form,
+      label: {
+        en: labelEn,
+        km: labelKm
+      },
+      url
+    });
     setForm({
-      label: '',
+      label: {
+        en: '',
+        km: ''
+      },
       url: '',
-      type: 'page',
-      parentId: '',
-      openInNewTab: false
+      parentId: null
     });
     setOpen(false);
   };
@@ -64,18 +103,48 @@ export function CreateMenuItemDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Menu Item</DialogTitle>
+          <DialogDescription>
+            Create a new item in the <strong>{selectedMenu.name}</strong> menu.
+          </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
-          <div>
-            <Label htmlFor='itemLabel'>Label</Label>
-            <Input
-              id='itemLabel'
-              value={form.label}
-              onChange={(e) => setForm({ ...form, label: e.target.value })}
-              placeholder='Menu item label'
-            />
+          <div className='grid grid-cols-2 gap-3'>
+            <div className='space-y-1.5'>
+              <Label htmlFor='itemLabelEn'>Label (EN)</Label>
+              <Input
+                id='itemLabelEn'
+                value={form.label.en}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    label: {
+                      ...form.label,
+                      en: e.target.value
+                    }
+                  })
+                }
+                placeholder='Home'
+              />
+            </div>
+            <div className='space-y-1.5'>
+              <Label htmlFor='itemLabelKm'>Label (KM)</Label>
+              <Input
+                id='itemLabelKm'
+                value={form.label.km}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    label: {
+                      ...form.label,
+                      km: e.target.value
+                    }
+                  })
+                }
+                placeholder='ទំព័រដើម'
+              />
+            </div>
           </div>
-          <div>
+          <div className='space-y-1.5'>
             <Label htmlFor='itemUrl'>URL</Label>
             <Input
               id='itemUrl'
@@ -84,55 +153,29 @@ export function CreateMenuItemDialog({
               placeholder='/page-url or https://external.com'
             />
           </div>
-          <div>
-            <Label htmlFor='itemType'>Type</Label>
-            <select
-              id='itemType'
-              value={form.type}
-              onChange={(e) =>
+          <div className='space-y-1.5'>
+            <Label>Parent Item</Label>
+            <Select
+              value={form.parentId ?? '__none__'}
+              onValueChange={(value) =>
                 setForm({
                   ...form,
-                  type: e.target.value as CreateMenuItemPayload['type']
+                  parentId: value === '__none__' ? null : value
                 })
               }
-              className='bg-background border-input w-full rounded-md border p-2'
             >
-              <option value='page'>Page</option>
-              <option value='post'>Post</option>
-              <option value='category'>Category</option>
-              <option value='custom'>Custom</option>
-              <option value='external'>External</option>
-            </select>
-          </div>
-          <div>
-            <Label htmlFor='parentItem'>Parent Item</Label>
-            <select
-              id='parentItem'
-              value={form.parentId}
-              onChange={(e) => setForm({ ...form, parentId: e.target.value })}
-              className='bg-background border-input w-full rounded-md border p-2'
-            >
-              <option value=''>No parent (top level)</option>
-              {selectedMenu.items
-                .filter((item) => !item.parentId)
-                .map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
+              <SelectTrigger>
+                <SelectValue placeholder='No parent (top level)' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='__none__'>No parent (top level)</SelectItem>
+                {selectedMenu.items.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {getMenuLabelText(item.label)}
+                  </SelectItem>
                 ))}
-            </select>
-          </div>
-          <div className='flex items-center gap-2'>
-            <input
-              type='checkbox'
-              id='openInNewTab'
-              checked={form.openInNewTab}
-              onChange={(e) =>
-                setForm({ ...form, openInNewTab: e.target.checked })
-              }
-              className='rounded'
-            />
-            <Label htmlFor='openInNewTab'>Open in new tab</Label>
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={handleSubmit} className='w-full'>
             Add Item

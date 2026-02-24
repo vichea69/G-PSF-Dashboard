@@ -10,7 +10,10 @@ import {
   BannerForm,
   type HeroBannerData
 } from '@/features/post/component/block/hero-banner/hero-banner-form';
-import { AddressForm } from '@/features/post/component/block/address/address-form';
+import {
+  StatsForm,
+  type StatsBlockData
+} from '@/features/post/component/block/stats/stats-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -21,15 +24,18 @@ type PostContentCardProps = {
   descriptionEn: string;
   descriptionKm: string;
   isHeroBannerSection: boolean;
+  isStatsSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
+  statsValue: StatsBlockData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
   onDescriptionKmChange: (value: string) => void;
   onEditorChange: (value: PostContent) => void;
   onBannerChange: (value: HeroBannerData) => void;
+  onStatsChange: (value: StatsBlockData) => void;
 };
 
 export function PostContentCard({
@@ -40,15 +46,18 @@ export function PostContentCard({
   descriptionEn,
   descriptionKm,
   isHeroBannerSection,
+  isStatsSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
+  statsValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
   onDescriptionKmChange,
   onEditorChange,
-  onBannerChange
+  onBannerChange,
+  onStatsChange
 }: PostContentCardProps) {
   return (
     <Card>
@@ -128,12 +137,22 @@ export function PostContentCard({
               onChange={onBannerChange}
             />
           </div>
+        ) : isStatsSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>
+              Stats Block Content
+            </CardTitle>
+            <StatsForm
+              language={activeLanguage}
+              value={statsValue}
+              onChange={onStatsChange}
+            />
+          </div>
         ) : isAddressSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
               Address Block Preview
             </CardTitle>
-            <AddressForm />
           </div>
         ) : (
           <div className='space-y-2'>

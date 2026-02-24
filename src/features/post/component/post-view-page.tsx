@@ -104,6 +104,7 @@ export default function PostViewPage({
         const sectionId = numOrNull(formData.sectionId);
         const pageId = numOrNull(formData.pageId);
         const publishDate = formData.publishDate?.trim() || '';
+        const expiredDate = formData.expiredDate?.trim() || '';
         const isFeatured = Boolean(formData.isFeatured);
         const coverImage = formData.coverImage?.trim() || '';
         const normalizeDocumentEntry = (entry?: {
@@ -136,6 +137,7 @@ export default function PostViewPage({
             formData.status === 'published' && publishDate
               ? publishDate
               : undefined,
+          expiredAt: expiredDate || undefined,
           categoryId: categoryId ?? undefined,
           sectionId: sectionId ?? undefined,
           pageId: pageId ?? undefined,
@@ -166,6 +168,9 @@ export default function PostViewPage({
         fd.append('isFeatured', String(payload.isFeatured));
         if (payload.publishedAt) {
           fd.append('publishedAt', payload.publishedAt);
+        }
+        if ((payload as any).expiredAt) {
+          fd.append('expiredAt', (payload as any).expiredAt);
         }
         if (payload.categoryId !== undefined) {
           fd.append('categoryId', String(payload.categoryId));

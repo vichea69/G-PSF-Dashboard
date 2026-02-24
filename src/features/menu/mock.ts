@@ -3,6 +3,7 @@ import { MenuGroup } from '@/features/menu/types';
 export const mockMenus: MenuGroup[] = [
   {
     id: '1',
+    slug: 'main-nav',
     name: 'Main Navigation',
     location: 'header',
     description: 'Primary navigation menu displayed in the header',
@@ -11,7 +12,7 @@ export const mockMenus: MenuGroup[] = [
     items: [
       {
         id: '1',
-        label: 'Home',
+        label: { en: 'Home', km: 'ទំព័រដើម' },
         url: '/',
         type: 'page',
         order: 1,
@@ -21,7 +22,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '2',
-        label: 'About',
+        label: { en: 'About', km: 'អំពីយើង' },
         url: '/about',
         type: 'page',
         order: 2,
@@ -30,7 +31,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '3',
-        label: 'Services',
+        label: { en: 'Services', km: 'សេវាកម្ម' },
         url: '/services',
         type: 'page',
         order: 3,
@@ -39,7 +40,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '4',
-        label: 'Web Development',
+        label: { en: 'Web Development', km: 'ការអភិវឌ្ឍន៍វេបសាយ' },
         url: '/services/web-development',
         type: 'page',
         parentId: '3',
@@ -49,7 +50,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '5',
-        label: 'Design',
+        label: { en: 'Design', km: 'រចនា' },
         url: '/services/design',
         type: 'page',
         parentId: '3',
@@ -59,7 +60,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '6',
-        label: 'Blog',
+        label: { en: 'Blog', km: 'ប្លុក' },
         url: '/blog',
         type: 'category',
         order: 4,
@@ -68,7 +69,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '7',
-        label: 'Contact',
+        label: { en: 'Contact', km: 'ទំនាក់ទំនង' },
         url: '/contact',
         type: 'page',
         order: 5,
@@ -79,6 +80,7 @@ export const mockMenus: MenuGroup[] = [
   },
   {
     id: '2',
+    slug: 'footer-links',
     name: 'Footer Links',
     location: 'footer',
     description: 'Links displayed in the website footer',
@@ -87,7 +89,7 @@ export const mockMenus: MenuGroup[] = [
     items: [
       {
         id: '8',
-        label: 'Privacy Policy',
+        label: { en: 'Privacy Policy', km: 'គោលការណ៍ឯកជនភាព' },
         url: '/privacy',
         type: 'page',
         order: 1,
@@ -96,7 +98,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '9',
-        label: 'Terms of Service',
+        label: { en: 'Terms of Service', km: 'លក្ខខណ្ឌសេវាកម្ម' },
         url: '/terms',
         type: 'page',
         order: 2,
@@ -105,7 +107,7 @@ export const mockMenus: MenuGroup[] = [
       },
       {
         id: '10',
-        label: 'Support',
+        label: { en: 'Support', km: 'គាំទ្រ' },
         url: 'https://support.example.com',
         type: 'external',
         order: 3,

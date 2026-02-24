@@ -378,7 +378,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
         <CardContent className='space-y-4'>
           {formData.ctas.map((cta, index) => (
             <div
-              key={`${cta.href}-${index}`}
+              key={index}
               className='bg-muted/20 space-y-3 rounded-lg border p-4'
             >
               <div className='flex items-center justify-between gap-2'>

@@ -1,7 +1,11 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,174 +20,227 @@ import {
   EyeOff,
   Eye,
   ExternalLink,
-  Link,
-  FileText
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
-import { MenuItem } from '@/features/menu/types';
-import { ReactNode } from 'react';
-import { Draggable, Droppable } from '@hello-pangea/dnd';
+import { MenuItem, getMenuLabelText } from '@/features/menu/types';
+import { Draggable } from '@hello-pangea/dnd';
 
-interface MenuItemRowProps {
+export interface FlatMenuItem {
   item: MenuItem;
-  items: MenuItem[];
-  index: number;
-  level?: number;
-  actions?: ReactNode;
-  onToggleVisibility: (itemId: string) => void;
-  onDelete: (itemId: string) => void;
+  level: number;
+  isLast: boolean;
+  hasChildren: boolean;
 }
 
-const getTypeIcon = (type: MenuItem['type']) => {
-  switch (type) {
-    case 'page':
-      return <FileText className='h-3 w-3' />;
-    case 'external':
-      return <ExternalLink className='h-3 w-3' />;
-    case 'category':
-      return <GripVertical className='h-3 w-3' />;
-    default:
-      return <Link className='h-3 w-3' />;
-  }
-};
+interface MenuItemRowProps {
+  flat: FlatMenuItem;
+  index: number;
+  isExpanded: boolean;
+  onToggleExpand: (itemId: string) => void;
+  onEdit?: (itemId: string) => void;
+  onToggleVisibility?: (itemId: string) => void;
+  onDelete?: (itemId: string) => void;
+}
 
-const getTypeBadge = (type: MenuItem['type']) => {
-  switch (type) {
-    case 'page':
-      return { variant: 'info' as const, appearance: 'light' as const };
-    case 'external':
-      return { variant: 'success' as const, appearance: 'light' as const };
-    case 'category':
-      return { variant: 'primary' as const, appearance: 'light' as const };
-    case 'post':
-      return { variant: 'warning' as const, appearance: 'light' as const };
-    default:
-      return { variant: 'secondary' as const, appearance: 'light' as const };
-  }
+const TYPE_DOT_COLORS: Record<MenuItem['type'], string> = {
+  page: 'bg-blue-400',
+  external: 'bg-emerald-400',
+  category: 'bg-violet-400',
+  post: 'bg-amber-400',
+  custom: 'bg-slate-400'
 };
 
 export function MenuItemRow({
-  item,
-  items,
+  flat,
   index,
-  level = 0,
+  isExpanded,
+  onToggleExpand,
+  onEdit,
   onToggleVisibility,
   onDelete
 }: MenuItemRowProps) {
-  const children = items
-    .filter((child) => child.parentId === item.id)
-    .sort((a, b) => a.order - b.order);
+  const { item, level, isLast, hasChildren } = flat;
 
   return (
     <Draggable draggableId={item.id} index={index}>
       {(provided, snapshot) => (
-        <div
-          className='space-y-2'
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-        >
+        <div ref={provided.innerRef} {...provided.draggableProps}>
+          {/* Tree connector wrapper */}
           <div
-            className='bg-card hover:bg-muted/50 flex items-center gap-3 rounded-lg border p-3 transition-all duration-200'
-            style={{
-              marginLeft: `${level * 20}px`,
-              opacity: snapshot.isDragging ? 0.6 : undefined
-            }}
+            className='relative'
+            style={{ paddingLeft: level > 0 ? `${level * 24}px` : 0 }}
           >
+            {/* Vertical line from parent */}
+            {level > 0 && (
+              <div
+                className='border-border absolute border-l'
+                style={{
+                  left: `${(level - 1) * 24 + 11}px`,
+                  top: 0,
+                  bottom: isLast ? '50%' : 0
+                }}
+              />
+            )}
+            {/* Horizontal line to item */}
+            {level > 0 && (
+              <div
+                className='border-border absolute border-t'
+                style={{
+                  left: `${(level - 1) * 24 + 11}px`,
+                  top: '50%',
+                  width: '13px'
+                }}
+              />
+            )}
+
+            {/* Row content */}
             <div
-              className='text-muted-foreground cursor-grab'
-              {...provided.dragHandleProps}
+              className={`group flex items-center gap-2 rounded-md border px-2.5 py-2 transition-all duration-150 ${
+                snapshot.isDragging
+                  ? 'bg-card ring-primary/20 scale-[1.02] shadow-md ring-2'
+                  : 'bg-card hover:bg-muted/50 hover:border-border border-transparent'
+              } ${!item.isVisible ? 'opacity-60' : ''}`}
             >
-              <GripVertical className='h-4 w-4' />
-            </div>
-            <div className='flex flex-1 items-center gap-3'>
-              <Badge
-                size='sm'
-                {...getTypeBadge(item.type)}
-                className='flex items-center gap-1'
+              {/* Drag handle */}
+              <div
+                className='text-muted-foreground/50 hover:text-muted-foreground cursor-grab transition-colors'
+                {...provided.dragHandleProps}
               >
-                {getTypeIcon(item.type)}
-                {item.type}
-              </Badge>
-              <div className='flex-1'>
-                <div className='flex items-center gap-2'>
-                  <span className='text-foreground font-medium'>
-                    {item.label}
-                  </span>
-                  {!item.isVisible && (
-                    <EyeOff className='text-muted-foreground h-4 w-4' />
-                  )}
-                  {item.openInNewTab && (
-                    <ExternalLink className='text-muted-foreground h-3 w-3' />
-                  )}
-                </div>
-                <p className='text-muted-foreground text-sm'>{item.url}</p>
+                <GripVertical className='h-3.5 w-3.5' />
               </div>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+
+              {/* Collapse toggle */}
+              {hasChildren ? (
                 <Button
                   variant='ghost'
                   size='sm'
-                  className='text-muted-foreground'
+                  className='text-muted-foreground hover:text-foreground -ml-0.5 h-5 w-5 p-0'
+                  onClick={() => onToggleExpand(item.id)}
                 >
-                  <MoreVertical className='h-4 w-4' />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <Edit className='mr-2 h-4 w-4' />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onToggleVisibility(item.id)}>
-                  {item.isVisible ? (
-                    <EyeOff className='mr-2 h-4 w-4' />
+                  {isExpanded ? (
+                    <ChevronDown className='h-3.5 w-3.5' />
                   ) : (
-                    <Eye className='mr-2 h-4 w-4' />
+                    <ChevronRight className='h-3.5 w-3.5' />
                   )}
-                  {item.isVisible ? 'Hide' : 'Show'}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDelete(item.id)}
-                  variant='destructive'
-                >
-                  <Trash2 className='mr-2 h-4 w-4' />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                </Button>
+              ) : (
+                <div className='w-5' />
+              )}
 
-          <Droppable droppableId={`parent:${item.id}`} type='ITEM'>
-            {(dropProvided, dropSnapshot) => (
-              <div
-                ref={dropProvided.innerRef}
-                {...dropProvided.droppableProps}
-                className='space-y-2'
-              >
-                {children.length === 0 ? (
+              {/* Type dot */}
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <div
-                    style={{
-                      backgroundColor: dropSnapshot.isDraggingOver
-                        ? 'hsl(var(--muted))'
-                        : 'transparent'
-                    }}
+                    className={`h-2 w-2 shrink-0 rounded-full ${TYPE_DOT_COLORS[item.type] ?? TYPE_DOT_COLORS.custom}`}
                   />
-                ) : (
-                  children.map((child, idx) => (
-                    <MenuItemRow
-                      key={child.id}
-                      item={child}
-                      items={items}
-                      index={idx}
-                      level={level + 1}
-                      onToggleVisibility={onToggleVisibility}
-                      onDelete={onDelete}
-                    />
-                  ))
+                </TooltipTrigger>
+                <TooltipContent side='top'>{item.type}</TooltipContent>
+              </Tooltip>
+
+              {/* Label & URL */}
+              <div className='flex min-w-0 flex-1 items-center gap-3'>
+                <span className='text-foreground truncate text-sm font-medium'>
+                  {getMenuLabelText(item.label)}
+                </span>
+                {!item.isVisible && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <EyeOff className='text-muted-foreground h-3 w-3 shrink-0' />
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Hidden</TooltipContent>
+                  </Tooltip>
                 )}
-                {dropProvided.placeholder}
+                {item.openInNewTab && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ExternalLink className='text-muted-foreground h-3 w-3 shrink-0' />
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Opens in new tab</TooltipContent>
+                  </Tooltip>
+                )}
+                <span className='text-muted-foreground hidden max-w-[200px] truncate font-mono text-xs sm:inline'>
+                  {item.url}
+                </span>
               </div>
-            )}
-          </Droppable>
+
+              {/* Hover-reveal inline actions (desktop) */}
+              <div className='flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100'>
+                {onEdit && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='text-muted-foreground hover:text-foreground h-7 w-7 p-0'
+                        onClick={() => onEdit(item.id)}
+                      >
+                        <Edit className='h-3.5 w-3.5' />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Edit</TooltipContent>
+                  </Tooltip>
+                )}
+                {onDelete && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='text-muted-foreground hover:text-destructive h-7 w-7 p-0'
+                        onClick={() => onDelete(item.id)}
+                      >
+                        <Trash2 className='h-3.5 w-3.5' />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side='top'>Delete</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+
+              {/* Dropdown fallback */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='text-muted-foreground h-7 w-7 p-0 opacity-0 group-hover:opacity-100'
+                  >
+                    <MoreVertical className='h-3.5 w-3.5' />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end'>
+                  {onEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(item.id)}>
+                      <Edit className='mr-2 h-4 w-4' />
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {onToggleVisibility && (
+                    <DropdownMenuItem
+                      onClick={() => onToggleVisibility(item.id)}
+                    >
+                      {item.isVisible ? (
+                        <EyeOff className='mr-2 h-4 w-4' />
+                      ) : (
+                        <Eye className='mr-2 h-4 w-4' />
+                      )}
+                      {item.isVisible ? 'Hide' : 'Show'}
+                    </DropdownMenuItem>
+                  )}
+                  {onDelete && (
+                    <DropdownMenuItem
+                      onClick={() => onDelete(item.id)}
+                      variant='destructive'
+                    >
+                      <Trash2 className='mr-2 h-4 w-4' />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
       )}
     </Draggable>

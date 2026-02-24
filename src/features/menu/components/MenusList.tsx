@@ -1,49 +1,53 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 import { MenuGroup } from '@/features/menu/types';
 
 interface MenusListProps {
   menus: MenuGroup[];
-  selectedMenuId?: string;
-  onSelect: (menu: MenuGroup) => void;
+  activeSlug?: string;
 }
 
-export function MenusList({ menus, selectedMenuId, onSelect }: MenusListProps) {
+export function MenusList({ menus, activeSlug }: MenusListProps) {
   return (
-    <div className='space-y-2'>
-      {menus.map((menu) => (
-        <Card
-          key={menu.id}
-          className={`cursor-pointer transition-all duration-200 ${
-            selectedMenuId === menu.id
-              ? 'ring-primary ring-2'
-              : 'hover:bg-muted/50'
-          }`}
-          onClick={() => onSelect(menu)}
-        >
-          <CardContent className='p-4'>
-            <div className='mb-2 flex items-center justify-between'>
-              <h3 className='text-foreground font-medium'>{menu.name}</h3>
-              <Badge
-                size='sm'
-                appearance='light'
-                variant={menu.isActive ? 'success' : 'secondary'}
-              >
-                {menu.isActive ? 'Active' : 'Inactive'}
-              </Badge>
+    <div className='space-y-0.5'>
+      {menus.map((menu) => {
+        const isActive = activeSlug === menu.slug;
+        return (
+          <Link key={menu.id} href={`/admin/menu/${menu.slug}`}>
+            <div
+              className={`flex items-center gap-3 rounded-md border-l-[3px] px-3 py-2.5 transition-all duration-150 ${
+                isActive
+                  ? 'border-l-primary bg-primary/5'
+                  : 'hover:bg-muted/50 border-l-transparent'
+              }`}
+              title={menu.description || undefined}
+            >
+              {/* Active/inactive dot */}
+              <div
+                className={`h-2 w-2 shrink-0 rounded-full ${
+                  menu.isActive ? 'bg-emerald-500' : 'bg-muted-foreground/30'
+                }`}
+              />
+              {/* Menu name + item count */}
+              <div className='flex min-w-0 flex-1 items-center justify-between gap-2'>
+                <span
+                  className={`truncate text-sm ${
+                    isActive
+                      ? 'text-foreground font-semibold'
+                      : 'text-foreground font-medium'
+                  }`}
+                >
+                  {menu.name}
+                </span>
+                <span className='text-muted-foreground shrink-0 text-xs'>
+                  {menu.items.length}
+                </span>
+              </div>
             </div>
-            <p className='text-muted-foreground mb-2 text-sm'>
-              {menu.description}
-            </p>
-            <div className='text-muted-foreground flex items-center justify-between text-xs'>
-              <span>{menu.location}</span>
-              <span>{menu.items.length} items</span>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
 }

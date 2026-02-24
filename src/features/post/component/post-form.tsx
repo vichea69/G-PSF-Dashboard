@@ -11,13 +11,17 @@ import {
   createEmptyBannerData,
   type HeroBannerData
 } from '@/features/post/component/block/hero-banner/hero-banner-form';
+import {
+  createEmptyStatsData,
+  type StatsBlockData
+} from '@/features/post/component/block/stats/stats-form';
 import { PostContentCard } from '@/features/post/component/post-form-sections/post-content-card';
-import { PostImagesCard } from '@/features/post/component/post-form-sections/post-images-card';
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
 import {
   getLocalizedContent,
-  isHeroBannerContent
+  isHeroBannerContent,
+  isStatsContent
 } from '@/features/post/component/post-form-helpers';
 import { usePostFormState } from '@/features/post/component/use-post-form-state';
 import type { PostFormData } from '@/features/post/component/post-form-types';
@@ -41,18 +45,11 @@ export default function PostForm({
     [language]
   );
 
-  const {
-    formData,
-    setFormData,
-    activeLanguage,
-    setActiveLanguage,
-    initialFileMetadata,
-    previewImages,
-    handleImagesChange
-  } = usePostFormState({
-    editingPost,
-    initialActiveLanguage: initialActiveLang
-  });
+  const { formData, setFormData, activeLanguage, setActiveLanguage } =
+    usePostFormState({
+      editingPost,
+      initialActiveLanguage: initialActiveLang
+    });
 
   const { data: categoriesData } = useCategories();
   const categories = useMemo(() => {
@@ -99,14 +96,21 @@ export default function PostForm({
 
   const isHeroBannerSection = selectedSection?.blockType === 'hero_banner';
   const isAddressSection = selectedSection?.blockType === 'address';
+  const isStatsSection = selectedSection?.blockType === 'stats';
 
   const heroBannerValue = isHeroBannerContent(formData.content?.en)
     ? (formData.content?.en as HeroBannerData)
     : createEmptyBannerData();
 
-  const editorValue = isHeroBannerContent(formData.content?.en)
-    ? ''
-    : getLocalizedContent(formData.content, activeLanguage);
+  const statsValue = isStatsContent(formData.content?.en)
+    ? (formData.content?.en as StatsBlockData)
+    : createEmptyStatsData();
+
+  const editorValue =
+    isHeroBannerContent(formData.content?.en) ||
+    isStatsContent(formData.content?.en)
+      ? ''
+      : getLocalizedContent(formData.content, activeLanguage);
 
   const handleSubmit = () => {
     const titleEn = formData.titleEn?.trim() || '';
@@ -155,12 +159,16 @@ export default function PostForm({
           en: heroBannerValue,
           km: heroBannerValue
         } as PostFormData['content'])
-      : {
-          en: normalizeContentEntry(formData.content?.en),
-          km: formData.content?.km
-            ? normalizeContentEntry(formData.content?.km)
-            : undefined
-        };
+      : isStatsSection
+        ? ({
+            en: statsValue
+          } as PostFormData['content'])
+        : {
+            en: normalizeContentEntry(formData.content?.en),
+            km: formData.content?.km
+              ? normalizeContentEntry(formData.content?.km)
+              : undefined
+          };
 
     onSave({
       ...formData,
@@ -199,9 +207,11 @@ export default function PostForm({
             descriptionEn={formData.descriptionEn ?? ''}
             descriptionKm={formData.descriptionKm ?? ''}
             isHeroBannerSection={isHeroBannerSection}
+            isStatsSection={isStatsSection}
             isAddressSection={isAddressSection}
             editorValue={editorValue}
             heroBannerValue={heroBannerValue}
+            statsValue={statsValue}
             onTitleEnChange={(value) =>
               setFormData((prev) => ({ ...prev, titleEn: value }))
             }
@@ -233,9 +243,18 @@ export default function PostForm({
                 }
               }))
             }
+            onStatsChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: {
+                  ...(prev.content ?? {}),
+                  en: value
+                }
+              }))
+            }
           />
 
-          {!isHeroBannerSection && (
+          {!isHeroBannerSection && !isStatsSection && (
             <>
               {/* <PostImagesCard
                 previewImages={previewImages}
@@ -303,6 +322,10 @@ export default function PostForm({
             }
             onPageChange={(value) =>
               setFormData((prev) => ({ ...prev, pageId: value }))
+            }
+            expiredDate={formData.expiredDate}
+            onExpiredDateChange={(value) =>
+              setFormData((prev) => ({ ...prev, expiredDate: value }))
             }
             onCancel={onCancel}
             onSubmit={handleSubmit}

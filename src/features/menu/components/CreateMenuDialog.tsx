@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -15,8 +16,6 @@ import { Plus } from 'lucide-react';
 
 export interface CreateMenuPayload {
   name: string;
-  location: string;
-  description: string;
 }
 
 interface CreateMenuDialogProps {
@@ -26,59 +25,46 @@ interface CreateMenuDialogProps {
 export function CreateMenuDialog({ onCreate }: CreateMenuDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<CreateMenuPayload>({
-    name: '',
-    location: '',
-    description: ''
+    name: ''
   });
 
   const handleSubmit = () => {
     if (!form.name.trim()) return;
-    onCreate(form);
-    setForm({ name: '', location: '', description: '' });
+    onCreate({ name: form.name.trim() });
+    setForm({ name: '' });
     setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline'>
-          <Plus className='mr-2 h-4 w-4' />
-          New Menu
+        <Button variant='primary' size='sm'>
+          <Plus className='mr-1.5 h-3.5 w-3.5' />
+          New
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Menu</DialogTitle>
+          <DialogDescription>
+            Enter a slug identifier for the new navigation menu.
+          </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
-          <div>
-            <Label htmlFor='menuName'>Menu Name</Label>
+          <div className='space-y-1.5'>
+            <Label htmlFor='menuName'>Menu Slug</Label>
             <Input
               id='menuName'
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder='Main Navigation'
+              placeholder='main-nav or footer-links'
             />
-          </div>
-          <div>
-            <Label htmlFor='location'>Location</Label>
-            <Input
-              id='location'
-              value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
-              placeholder='header, footer, sidebar'
-            />
-          </div>
-          <div>
-            <Label htmlFor='description'>Description</Label>
-            <Input
-              id='description'
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              placeholder='Menu description'
-            />
+            <p className='text-muted-foreground text-xs'>
+              Lowercase with hyphens, e.g.{' '}
+              <code className='bg-muted rounded px-1 py-0.5 text-[11px]'>
+                main-nav
+              </code>
+            </p>
           </div>
           <Button onClick={handleSubmit} className='w-full'>
             Create Menu

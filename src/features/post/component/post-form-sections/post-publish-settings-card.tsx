@@ -24,6 +24,7 @@ import { formatDate } from '@/lib/format';
 type PostPublishSettingsCardProps = {
   status: 'draft' | 'published';
   publishDate?: string;
+  expiredDate?: string;
   isFeatured: boolean;
   categoryId?: number | string;
   sectionId?: number | string;
@@ -35,6 +36,7 @@ type PostPublishSettingsCardProps = {
   isEditing: boolean;
   onStatusChange: (value: 'draft' | 'published') => void;
   onPublishDateChange: (value: string) => void;
+  onExpiredDateChange: (value: string) => void;
   onIsFeaturedChange: (value: boolean) => void;
   onCategoryChange: (value: string) => void;
   onSectionChange: (value: string) => void;
@@ -53,6 +55,7 @@ const toDateOnly = (date: Date) => {
 export function PostPublishSettingsCard({
   status,
   publishDate,
+  expiredDate,
   isFeatured,
   categoryId,
   sectionId,
@@ -64,6 +67,7 @@ export function PostPublishSettingsCard({
   isEditing,
   onStatusChange,
   onPublishDateChange,
+  onExpiredDateChange,
   onIsFeaturedChange,
   onCategoryChange,
   onSectionChange,
@@ -77,6 +81,13 @@ export function PostPublishSettingsCard({
     if (Number.isNaN(parsed.getTime())) return undefined;
     return parsed;
   }, [publishDate]);
+
+  const selectedExpiredDate = useMemo(() => {
+    if (!expiredDate) return undefined;
+    const parsed = new Date(`${expiredDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return undefined;
+    return parsed;
+  }, [expiredDate]);
   const normalizedStatus =
     status?.toLowerCase() === 'published' ? 'published' : 'draft';
 
@@ -151,6 +162,48 @@ export function PostPublishSettingsCard({
           </div>
         ) : null}
 
+        {selectedBlockType === 'announcement' && (
+          <div className='space-y-2'>
+            <Label htmlFor='expired-date'>Expired Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id='expired-date'
+                  type='button'
+                  variant='outline'
+                  className='w-full justify-start text-left font-normal'
+                >
+                  <CalendarIcon className='mr-2 h-4 w-4' />
+                  {selectedExpiredDate
+                    ? formatDate(selectedExpiredDate)
+                    : 'Pick an expiry date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-0' align='start'>
+                <Calendar
+                  mode='single'
+                  selected={selectedExpiredDate}
+                  onSelect={(date) =>
+                    onExpiredDateChange(date ? toDateOnly(date) : '')
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {expiredDate ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='h-7 px-2 text-xs'
+                onClick={() => onExpiredDateChange('')}
+              >
+                Clear date
+              </Button>
+            ) : null}
+          </div>
+        )}
+
         <div className='flex items-center space-x-2'>
           <Checkbox
             id='is-featured'
@@ -220,6 +273,13 @@ export function PostPublishSettingsCard({
                 </p>
               )}
 
+              {selectedBlockType === 'stats' && (
+                <p className='text-muted-foreground'>
+                  Stats block: add numeric highlights with localized values and
+                  labels.
+                </p>
+              )}
+
               {selectedBlockType === 'post_list' && (
                 <div className='text-muted-foreground space-y-2'>
                   <p>
@@ -233,7 +293,9 @@ export function PostPublishSettingsCard({
               )}
 
               {selectedBlockType &&
-                !['hero_banner', 'post_list'].includes(selectedBlockType) && (
+                !['hero_banner', 'post_list', 'stats'].includes(
+                  selectedBlockType
+                ) && (
                   <p className='text-muted-foreground'>
                     Custom layout: this section will render using its block
                     template.

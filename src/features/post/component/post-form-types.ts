@@ -1,9 +1,10 @@
 import type { PostContent } from '@/server/action/post/types';
 import type { HeroBannerData } from '@/features/post/component/block/hero-banner/hero-banner-form';
+import type { StatsBlockData } from '@/features/post/component/block/stats/stats-form';
 
 export type LocalizedPostContent = {
-  en: PostContent | HeroBannerData | string;
-  km?: PostContent | HeroBannerData | string;
+  en: PostContent | HeroBannerData | StatsBlockData | string;
+  km?: PostContent | HeroBannerData | StatsBlockData | string;
 };
 
 export type PostDocumentAsset = {
@@ -23,6 +24,7 @@ export type PostFormData = {
   descriptionEn?: string;
   descriptionKm?: string;
   publishDate?: string;
+  expiredDate?: string;
   isFeatured: boolean;
   coverImage?: string;
   document?: string;
@@ -64,6 +66,7 @@ export type DerivedPostFields = {
   descriptionEn: string;
   descriptionKm: string;
   publishDate: string;
+  expiredDate: string;
   isFeatured: boolean;
   coverImage: string;
   document: string;

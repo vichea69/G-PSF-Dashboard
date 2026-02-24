@@ -1,136 +1,241 @@
 'use client';
 
+import { useState, useMemo, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Menu as MenuIcon } from 'lucide-react';
-import { MenuGroup } from '@/features/menu/types';
-import { MenuItemRow } from '@/features/menu/components/MenuItemRow';
-import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { toast } from 'sonner';
-import { useMemo } from 'react';
+import type { MenuItem, MenuGroup } from '@/features/menu/types';
 import {
-  reorderAll,
-  reorderWithinSameParent
-} from '@/features/menu/utils/reorder';
+  MenuItemRow,
+  type FlatMenuItem
+} from '@/features/menu/components/MenuItemRow';
+import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
+import { setSequentialOrder } from '@/features/menu/utils/reorder';
+
+/* ------------------------------------------------------------------ */
+/*  Build a flat DFS list from the tree, skipping collapsed subtrees  */
+/* ------------------------------------------------------------------ */
+
+function buildFlatList(
+  items: MenuItem[],
+  collapsedIds: Set<string>
+): FlatMenuItem[] {
+  const result: FlatMenuItem[] = [];
+  const norm = (p?: string) => p ?? '__root__';
+
+  const childrenOf = (parentId?: string) =>
+    items
+      .filter((i) => norm(i.parentId) === norm(parentId))
+      .sort((a, b) => a.order - b.order);
+
+  const walk = (parentId: string | undefined, level: number) => {
+    const children = childrenOf(parentId);
+    children.forEach((item, idx) => {
+      const hasChildren = items.some((i) => i.parentId === item.id);
+      result.push({
+        item,
+        level,
+        isLast: idx === children.length - 1,
+        hasChildren
+      });
+      if (hasChildren && !collapsedIds.has(item.id)) {
+        walk(item.id, level + 1);
+      }
+    });
+  };
+
+  walk(undefined, 0);
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                         */
+/* ------------------------------------------------------------------ */
 
 interface MenuItemsPanelProps {
   selectedMenu: MenuGroup;
-  onToggleVisibility: (itemId: string) => void;
-  onDelete: (itemId: string) => void;
+  onEdit?: (itemId: string) => void;
+  onToggleVisibility?: (itemId: string) => void;
+  onDelete?: (itemId: string) => void;
   onReorder?: (nextItems: MenuGroup['items']) => void;
 }
 
 export function MenuItemsPanel({
   selectedMenu,
+  onEdit,
   onToggleVisibility,
   onDelete,
   onReorder
 }: MenuItemsPanelProps) {
-  const topLevelItems = useMemo(
-    () =>
-      selectedMenu.items
-        .filter((item) => !item.parentId)
-        .sort((a, b) => a.order - b.order),
-    [selectedMenu.items]
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+
+  /* ---------- flat list ------------------------------------------------ */
+
+  const flatItems = useMemo(
+    () => buildFlatList(selectedMenu.items, collapsedIds),
+    [selectedMenu.items, collapsedIds]
   );
 
-  const parentKey = (parentId?: string) =>
-    parentId ? `parent:${parentId}` : 'parent:__root__';
-  const parseParent = (droppableId: string): string | undefined => {
-    const raw = droppableId.startsWith('parent:')
-      ? droppableId.slice(7)
-      : droppableId;
-    return raw === '__root__' ? undefined : raw;
-  };
+  /* ---------- expand / collapse ---------------------------------------- */
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!onReorder) return;
-    const { destination, source, draggableId } = result;
-    if (!destination) return;
+  const toggleExpand = useCallback((id: string) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
-    const all = selectedMenu.items;
-    const active = all.find((i) => i.id === draggableId);
-    if (!active) return;
+  /* ---------- drag & drop ---------------------------------------------- */
 
-    const sourceParent = parseParent(source.droppableId);
-    const destParent = parseParent(destination.droppableId);
+  const handleDragEnd = useCallback(
+    (result: DropResult) => {
+      const { source, destination } = result;
+      if (!destination || !onReorder) return;
+      if (source.index === destination.index) return;
 
-    const sameParent =
-      (sourceParent ?? '__root__') === (destParent ?? '__root__');
-    if (sameParent && source.index === destination.index) return;
+      const draggedFlat = flatItems[source.index];
+      if (!draggedFlat) return;
+      const draggedItem = draggedFlat.item;
+      const oldParentId = draggedItem.parentId;
 
-    if (sameParent) {
-      const next = reorderWithinSameParent(
-        all,
-        sourceParent,
-        source.index,
-        destination.index
+      // Remove source from flat list to find reference neighbour
+      const withoutDragged = flatItems.filter((_, i) => i !== source.index);
+      const adjustedDest =
+        destination.index > source.index
+          ? destination.index - 1
+          : destination.index;
+
+      // Decide new parent based on the item at the destination position
+      const norm = (p?: string) => p ?? '__root__';
+      let newParentId: string | undefined;
+
+      if (withoutDragged.length === 0) {
+        newParentId = undefined;
+      } else if (adjustedDest >= withoutDragged.length) {
+        newParentId = withoutDragged[withoutDragged.length - 1].item.parentId;
+      } else {
+        newParentId = withoutDragged[adjustedDest].item.parentId;
+      }
+
+      const targetKey = norm(newParentId);
+
+      // Count same-parent siblings that appear above the drop position
+      // so we know the insertion index among siblings
+      const siblingsBeforeDest = withoutDragged
+        .slice(0, adjustedDest)
+        .filter((f) => norm(f.item.parentId) === targetKey).length;
+
+      // Clone items with updated parentId for the dragged item
+      let updatedItems = selectedMenu.items.map((item) =>
+        item.id === draggedItem.id ? { ...item, parentId: newParentId } : item
       );
-      toast.success('Menu reordered', {
-        position: 'top-center'
-      });
-      onReorder(next);
-      return;
-    }
 
-    // Move across parents
-    const next = reorderAll(
-      all,
-      sourceParent,
-      destParent,
-      source.index,
-      destination.index
-    );
-    toast('Menu reordered');
-    onReorder(next);
-  };
+      // Re-order siblings under the NEW parent
+      const newSiblings = updatedItems
+        .filter(
+          (i) => norm(i.parentId) === targetKey && i.id !== draggedItem.id
+        )
+        .sort((a, b) => a.order - b.order);
+
+      const movedItem = updatedItems.find((i) => i.id === draggedItem.id)!;
+      newSiblings.splice(siblingsBeforeDest, 0, movedItem);
+      const reorderedNew = setSequentialOrder(newSiblings);
+      const newMap = new Map(reorderedNew.map((i) => [i.id, i]));
+
+      updatedItems = updatedItems.map((i) => {
+        const u = newMap.get(i.id);
+        return u ? { ...i, parentId: u.parentId, order: u.order } : i;
+      });
+
+      // Re-order siblings under the OLD parent if it changed
+      const oldKey = norm(oldParentId);
+      if (oldKey !== targetKey) {
+        const oldSiblings = updatedItems
+          .filter((i) => norm(i.parentId) === oldKey)
+          .sort((a, b) => a.order - b.order);
+        const reorderedOld = setSequentialOrder(oldSiblings);
+        const oldMap = new Map(reorderedOld.map((i) => [i.id, i]));
+
+        updatedItems = updatedItems.map((i) => {
+          const u = oldMap.get(i.id);
+          return u ? { ...i, order: u.order } : i;
+        });
+      }
+
+      onReorder(updatedItems);
+    },
+    [flatItems, selectedMenu.items, onReorder]
+  );
+
+  /* ---------- empty state ---------------------------------------------- */
 
   if (selectedMenu.items.length === 0) {
     return (
-      <div className='py-12 text-center'>
-        <div className='bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full'>
-          <MenuIcon className='text-muted-foreground h-8 w-8' />
-        </div>
-        <h3 className='text-foreground mb-2 text-lg font-medium'>
-          No menu items
-        </h3>
-        <p className='text-muted-foreground'>
-          Add your first menu item to get started
-        </p>
-      </div>
+      <Card>
+        <CardContent className='py-12 text-center'>
+          <div className='from-muted to-muted/50 mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br'>
+            <MenuIcon className='text-muted-foreground h-9 w-9' />
+          </div>
+          <h3 className='text-foreground mb-1 text-base font-medium'>
+            No menu items yet
+          </h3>
+          <p className='text-muted-foreground mx-auto max-w-xs text-sm'>
+            Add your first menu item to start building the navigation structure
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
+  /* ---------- render --------------------------------------------------- */
+
   return (
-    <div>
-      <div className='mb-4 flex items-center justify-between'>
-        <h2 className='text-foreground text-lg font-semibold'>
-          {selectedMenu.name} Items ({selectedMenu.items.length})
-        </h2>
-        <Badge variant='outline'>{selectedMenu.location}</Badge>
-      </div>
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId={parentKey(undefined)} type='ITEM'>
-          {(provided) => (
-            <div
-              className='space-y-2'
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
-              {topLevelItems.map((item, index) => (
-                <MenuItemRow
-                  key={item.id}
-                  item={item}
-                  items={selectedMenu.items}
-                  index={index}
-                  onToggleVisibility={onToggleVisibility}
-                  onDelete={onDelete}
-                />
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-    </div>
+    <Card>
+      <CardContent className='p-4'>
+        <div className='mb-3 flex items-center justify-between'>
+          <div className='flex items-center gap-2'>
+            <h2 className='text-foreground text-sm font-semibold'>
+              {selectedMenu.name}
+            </h2>
+            <Badge variant='secondary' size='sm'>
+              {selectedMenu.items.length} items
+            </Badge>
+            <Badge variant='outline' size='sm'>
+              {selectedMenu.location}
+            </Badge>
+          </div>
+        </div>
+        <Separator className='mb-3' />
+
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId='flat-menu-items' type='ITEM'>
+            {(provided) => (
+              <div
+                className='space-y-0.5'
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {flatItems.map((flat, index) => (
+                  <MenuItemRow
+                    key={flat.item.id}
+                    flat={flat}
+                    index={index}
+                    isExpanded={!collapsedIds.has(flat.item.id)}
+                    onToggleExpand={toggleExpand}
+                    onEdit={onEdit}
+                    onToggleVisibility={onToggleVisibility}
+                    onDelete={onDelete}
+                  />
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </CardContent>
+    </Card>
   );
 }

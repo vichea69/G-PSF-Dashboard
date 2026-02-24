@@ -1,6 +1,7 @@
 import type { PostContent } from '@/server/action/post/types';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import type { HeroBannerData } from '@/features/post/component/block/hero-banner/hero-banner-form';
+import type { StatsBlockData } from '@/features/post/component/block/stats/stats-form';
 import type {
   DerivedPostFields,
   LocalizedPostDocuments,
@@ -221,13 +222,21 @@ export const isHeroBannerContent = (
   );
 };
 
+export const isStatsContent = (value: unknown): value is StatsBlockData => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as StatsBlockData;
+  return Array.isArray(candidate.items);
+};
+
 export const getLocalizedContent = (
   content: LocalizedPostContent | undefined,
   language: 'en' | 'km'
 ): PostContent | string => {
   if (!content) return '';
   const value = language === 'km' ? (content.km ?? '') : (content.en ?? '');
-  return isHeroBannerContent(value) ? '' : (value as PostContent | string);
+  if (isHeroBannerContent(value)) return '';
+  if (isStatsContent(value)) return '';
+  return value as PostContent | string;
 };
 
 export const derivePostFields = (post: any): DerivedPostFields => {
@@ -250,6 +259,12 @@ export const derivePostFields = (post: any): DerivedPostFields => {
       post?.publish_date ??
       post?.publishedAt ??
       post?.published_at
+  );
+  const expiredDate = normalizeDateInput(
+    post?.expiredDate ??
+      post?.expired_date ??
+      post?.expiredAt ??
+      post?.expired_at
   );
   const isFeatured = normalizeBoolean(post?.isFeatured ?? post?.is_featured);
   const documents = normalizeLocalizedDocuments(post?.documents);
@@ -284,6 +299,7 @@ export const derivePostFields = (post: any): DerivedPostFields => {
     descriptionEn,
     descriptionKm,
     publishDate,
+    expiredDate,
     isFeatured,
     coverImage: readString(post?.coverImage),
     document: primaryDocument,

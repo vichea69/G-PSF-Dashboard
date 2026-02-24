@@ -10,7 +10,7 @@ export function listSiblings(items: MenuItem[], parentId?: string) {
 }
 
 export function setSequentialOrder(items: MenuItem[]) {
-  return items.map((item, idx) => ({ ...item, order: idx + 1 }));
+  return items.map((item, idx) => ({ ...item, order: idx }));
 }
 
 export function reorderAll(
