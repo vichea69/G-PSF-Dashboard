@@ -18,7 +18,12 @@ export type PostRow = {
   title: string | LocalizedText;
   slug: string;
   coverImage?: string;
-  content?: string;
+  documentThumbnail?: string;
+  documents?: {
+    en?: { thumbnailUrl?: string };
+    km?: { thumbnailUrl?: string };
+  };
+  content?: unknown;
   status: 'published' | 'draft' | string;
   images?: { id: number; url: string; sortOrder?: number | null }[];
   updatedAt: string;
@@ -35,13 +40,115 @@ export type PostRow = {
   page?: { id: number; title?: LocalizedText; slug?: string } | undefined;
 };
 
+const readString = (value: unknown): string =>
+  typeof value === 'string' ? value.trim() : '';
+
+const parseMaybeJson = (value: unknown): unknown => {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return trimmed;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return trimmed;
+  }
+};
+
+const IMAGE_KEYS = [
+  'coverImage',
+  'cover_image',
+  'documentThumbnail',
+  'document_thumbnail',
+  'thumbnailUrl',
+  'thumbnail_url',
+  'imageUrl',
+  'image_url',
+  'image',
+  'bannerImage',
+  'banner_image',
+  'heroImage',
+  'hero_image',
+  'src'
+] as const;
+
+function findImageFromUnknown(value: unknown, depth = 0): string {
+  if (depth > 5 || value == null) return '';
+
+  const parsed = parseMaybeJson(value);
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      const found = findImageFromUnknown(item, depth + 1);
+      if (found) return found;
+    }
+    return '';
+  }
+
+  if (!parsed || typeof parsed !== 'object') return '';
+  const record = parsed as Record<string, unknown>;
+
+  const backgroundImages =
+    record.backgroundImages ?? record.background_images ?? [];
+  if (Array.isArray(backgroundImages)) {
+    for (const item of backgroundImages) {
+      const url = readString(item);
+      if (url) return url;
+    }
+  }
+
+  if (
+    record.type === 'image' &&
+    record.attrs &&
+    typeof record.attrs === 'object'
+  ) {
+    const src = readString((record.attrs as Record<string, unknown>).src);
+    if (src) return src;
+  }
+
+  for (const key of IMAGE_KEYS) {
+    const url = readString(record[key]);
+    if (url) return url;
+  }
+
+  for (const [key, child] of Object.entries(record)) {
+    if (key === 'href' || key === 'link' || key === 'slug') continue;
+    const found = findImageFromUnknown(child, depth + 1);
+    if (found) return found;
+  }
+
+  return '';
+}
+
 function getPostImageSrc(row: PostRow): string {
   const coverImageUrl =
-    row.coverImage ?? (row as any)?.cover_image ?? (row as any)?.cover;
+    readString(row.coverImage) ||
+    readString((row as any)?.cover_image) ||
+    readString((row as any)?.cover);
+  const documentThumbnailUrl =
+    readString(row.documentThumbnail) ||
+    readString((row as any)?.document_thumbnail) ||
+    readString(row.documents?.en?.thumbnailUrl) ||
+    readString((row as any)?.documents?.en?.thumbnail_url) ||
+    readString(row.documents?.km?.thumbnailUrl) ||
+    readString((row as any)?.documents?.km?.thumbnail_url);
+  const blockImageUrl =
+    findImageFromUnknown(row.content) ||
+    findImageFromUnknown((row as any)?.heroBanner) ||
+    findImageFromUnknown((row as any)?.hero_banner) ||
+    findImageFromUnknown((row as any)?.blocks);
   const firstImageUrl = row.images?.[0]?.url ?? '';
   const legacyImageUrl =
-    (row as any)?.imageUrl ?? (row as any)?.image ?? (row as any)?.thumbnail;
-  const raw = coverImageUrl || firstImageUrl || legacyImageUrl || '';
+    readString((row as any)?.imageUrl) ||
+    readString((row as any)?.image) ||
+    readString((row as any)?.thumbnail);
+  const raw =
+    coverImageUrl ||
+    documentThumbnailUrl ||
+    blockImageUrl ||
+    firstImageUrl ||
+    legacyImageUrl ||
+    '';
 
   return resolveApiAssetUrl(raw);
 }
