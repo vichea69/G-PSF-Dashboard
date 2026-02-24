@@ -5,10 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
-import {
-  CreateMenuDialog,
-  CreateMenuPayload
-} from '@/features/menu/components/CreateMenuDialog';
+import { CreateMenuPayload } from '@/features/menu/components/CreateMenuDialog';
 import { MenuTableList } from '@/features/menu/components/menu-table';
 import { useCreateMenu } from '@/features/menu/hook/use-menu';
 import { useMenu } from '@/hooks/use-menu';
@@ -69,7 +66,6 @@ export default function MenuListPage() {
             title='Menus'
             description='Create and manage navigation menus'
           />
-          <CreateMenuDialog onCreate={handleCreateMenu} />
         </div>
         <Separator />
 

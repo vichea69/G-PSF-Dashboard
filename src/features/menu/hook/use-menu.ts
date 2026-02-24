@@ -7,7 +7,7 @@ import {
   useQueryClient,
   type UseQueryResult
 } from '@tanstack/react-query';
-import type { MenuGroup } from '@/features/menu/types';
+import { toLocalizedLabel, type MenuGroup } from '@/features/menu/types';
 import { normalizeMenuTreeResponse } from '@/features/menu/utils/menu-normalizer';
 import {
   createMenu as createMenuAction,
@@ -279,16 +279,10 @@ export const toCreateMenuItemPayload = (
   payload: Pick<MenuItem, 'label' | 'url' | 'parentId'>,
   orderIndex: number
 ): CreateMenuItemRequest => {
-  const fallbackLabel =
-    typeof payload.label === 'string'
-      ? payload.label.trim()
-      : (payload.label.en || payload.label.km || '').trim();
-  const labelEn =
-    typeof payload.label === 'string'
-      ? payload.label.trim()
-      : payload.label.en.trim();
-  const labelKm =
-    typeof payload.label === 'string' ? '' : payload.label.km.trim();
+  const localizedLabel = toLocalizedLabel(payload.label);
+  const fallbackLabel = (localizedLabel.en || localizedLabel.km || '').trim();
+  const labelEn = localizedLabel.en.trim();
+  const labelKm = localizedLabel.km.trim();
 
   return {
     label: {

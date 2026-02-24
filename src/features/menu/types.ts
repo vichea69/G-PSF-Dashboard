@@ -31,8 +31,31 @@ export interface MenuGroup {
   createdAt: string;
 }
 
-export const toLocalizedLabel = (value: unknown): LocalizedMenuLabel => {
+const tryParseJson = (value: string): unknown => {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+export const toLocalizedLabel = (
+  value: unknown,
+  depth = 0
+): LocalizedMenuLabel => {
+  if (depth > 4) {
+    return {
+      en: '',
+      km: ''
+    };
+  }
+
   if (typeof value === 'string') {
+    const parsed = tryParseJson(value);
+    if (parsed && typeof parsed === 'object') {
+      return toLocalizedLabel(parsed, depth + 1);
+    }
+
     return {
       en: value,
       km: ''
@@ -47,9 +70,23 @@ export const toLocalizedLabel = (value: unknown): LocalizedMenuLabel => {
   }
 
   const raw = value as Record<string, unknown>;
+  const enNested =
+    typeof raw.en === 'string' && raw.en
+      ? toLocalizedLabel(raw.en, depth + 1)
+      : null;
+  const kmNested =
+    typeof raw.km === 'string' && raw.km
+      ? toLocalizedLabel(raw.km, depth + 1)
+      : null;
+
+  const enDirect =
+    typeof raw.en === 'string' && !(enNested?.en || enNested?.km) ? raw.en : '';
+  const kmDirect =
+    typeof raw.km === 'string' && !(kmNested?.en || kmNested?.km) ? raw.km : '';
+
   return {
-    en: typeof raw.en === 'string' ? raw.en : '',
-    km: typeof raw.km === 'string' ? raw.km : ''
+    en: enDirect || enNested?.en || kmNested?.en || '',
+    km: kmDirect || kmNested?.km || enNested?.km || ''
   };
 };
 
