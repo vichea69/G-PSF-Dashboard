@@ -1,3 +1,4 @@
+import { api } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   mapMediaFolder,
@@ -5,18 +6,35 @@ import {
   type MediaApiResponse,
   type MediaListResult
 } from '@/features/media/types/media-type';
-import {
-  deleteMedia,
-  getMedia,
-  createMediaFolder,
-  deleteMediaFolder
-} from '@/server/action/media/media';
 
 type MediaQueryParams = {
   page?: number;
   pageSize?: number;
   folderId?: string | null;
 };
+
+function getClientAuthHeaders(): Record<string, string> {
+  if (typeof document === 'undefined') return {};
+
+  const accessTokenCookie = document.cookie
+    .split('; ')
+    .find((cookie) => cookie.startsWith('access_token='));
+  const encodedToken = accessTokenCookie?.split('=').slice(1).join('=');
+  const token = encodedToken ? decodeURIComponent(encodedToken) : '';
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  const detail = (error as any)?.response?.data;
+  return (
+    detail?.message ||
+    detail?.error ||
+    (typeof detail === 'string' ? detail : undefined) ||
+    (error as Error)?.message ||
+    fallback
+  );
+}
 
 async function fetchMedia(
   params: MediaQueryParams = {}
@@ -27,28 +45,35 @@ async function fetchMedia(
     typeof params.folderId === 'string' && params.folderId.trim()
       ? params.folderId.trim()
       : null;
-  const result = await getMedia({ page, pageSize, folderId });
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to load media');
-  }
+  const endpoint = folderId
+    ? `/media/folders/${encodeURIComponent(folderId)}`
+    : '/media';
+  const response = await api.get<MediaApiResponse>(endpoint, {
+    params: { page, pageSize },
+    headers: getClientAuthHeaders(),
+    withCredentials: true
+  });
 
-  const response = (result.data ?? {}) as MediaApiResponse;
-  const raw = response.data;
+  const raw = response.data?.data;
   const items = Array.isArray(raw) ? raw : (raw?.items ?? []);
   const mapped = items.map(mapMediaItem);
-  const folders = Array.isArray(response.folders)
-    ? response.folders.map(mapMediaFolder)
+  const folders = Array.isArray(response.data?.folders)
+    ? response.data.folders.map(mapMediaFolder)
     : [];
   const currentFolder =
-    response.folder && typeof response.folder === 'object'
-      ? mapMediaFolder(response.folder)
+    response.data?.folder && typeof response.data.folder === 'object'
+      ? mapMediaFolder(response.data.folder)
       : null;
   const total =
-    typeof response.total === 'number' ? response.total : mapped.length;
+    typeof response.data?.total === 'number'
+      ? response.data.total
+      : mapped.length;
   const normalizedPage =
-    typeof response.page === 'number' ? response.page : page;
+    typeof response.data?.page === 'number' ? response.data.page : page;
   const normalizedPageSize =
-    typeof response.pageSize === 'number' ? response.pageSize : pageSize;
+    typeof response.data?.pageSize === 'number'
+      ? response.data.pageSize
+      : pageSize;
 
   return {
     items: mapped,
@@ -66,9 +91,13 @@ async function deleteMediaItem(id: string | number) {
     throw new Error('Media id is required');
   }
 
-  const result = await deleteMedia(trimmedId);
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to delete media');
+  try {
+    await api.delete(`/media/${encodeURIComponent(trimmedId)}`, {
+      headers: getClientAuthHeaders(),
+      withCredentials: true
+    });
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, 'Failed to delete media'));
   }
 
   return true;
@@ -79,13 +108,24 @@ type CreateFolderInput = {
 };
 
 async function createFolder({ name }: CreateFolderInput) {
-  const result = await createMediaFolder(name);
-
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to create folder');
+  const folderName = String(name ?? '').trim();
+  if (!folderName) {
+    throw new Error('Folder name is required');
   }
 
-  return result.data;
+  try {
+    const response = await api.post(
+      '/media/folders',
+      { name: folderName },
+      {
+        headers: getClientAuthHeaders(),
+        withCredentials: true
+      }
+    );
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, 'Failed to create folder'));
+  }
 }
 
 type DeleteFolderInput = {
@@ -94,13 +134,24 @@ type DeleteFolderInput = {
 };
 
 async function deleteFolder({ id, force }: DeleteFolderInput) {
-  const result = await deleteMediaFolder(id, { force });
-
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to delete folder');
+  const folderId = String(id ?? '').trim();
+  if (!folderId) {
+    throw new Error('Folder id is required');
   }
 
-  return result.data;
+  try {
+    const response = await api.delete(
+      `/media/folders/${encodeURIComponent(folderId)}`,
+      {
+        headers: getClientAuthHeaders(),
+        withCredentials: true,
+        params: force ? { force: true } : undefined
+      }
+    );
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, 'Failed to delete folder'));
+  }
 }
 
 export function useMedia(params: MediaQueryParams = {}) {

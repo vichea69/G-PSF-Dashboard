@@ -21,9 +21,10 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { api } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
-import { uploadMedia } from '@/server/action/media/media';
 
 interface UploadModalProps {
   open: boolean;
@@ -50,12 +51,27 @@ function normalizeFolderId(value?: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
+function getClientAuthHeaders(): Record<string, string> {
+  if (typeof document === 'undefined') return {};
+
+  const accessTokenCookie = document.cookie
+    .split('; ')
+    .find((cookie) => cookie.startsWith('access_token='));
+  const encodedToken = accessTokenCookie?.split('=').slice(1).join('=');
+  const token = encodedToken ? decodeURIComponent(encodedToken) : '';
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export function UploadModal({
   open,
   onOpenChange,
   folderId
 }: UploadModalProps) {
   const targetFolderId = normalizeFolderId(folderId);
+  const uploadEndpoint = targetFolderId
+    ? `/media/upload/folders/${encodeURIComponent(targetFolderId)}`
+    : '/media/upload';
   const [uploads, setUploads] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,12 +134,22 @@ export function UploadModal({
       formData.append('files', upload.file);
 
       try {
-        const result = await uploadMedia(formData, {
-          folderId: targetFolderId
+        await api.post(uploadEndpoint, formData, {
+          withCredentials: true,
+          headers: {
+            ...getClientAuthHeaders(),
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (event) => {
+            clearProgressTimer(upload.id);
+            const total = event.total ?? upload.file.size ?? 0;
+            const nextProgress =
+              total > 0
+                ? Math.round((event.loaded * 100) / total)
+                : Math.min(99, upload.progress + 5);
+            updateUploadProgress(upload.id, nextProgress);
+          }
         });
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to upload file');
-        }
 
         clearProgressTimer(upload.id);
         updateUploadProgress(upload.id, 100);
@@ -141,8 +167,13 @@ export function UploadModal({
         return true;
       } catch (error: unknown) {
         clearProgressTimer(upload.id);
-        const message =
-          error instanceof Error ? error.message : 'Failed to upload file';
+        const message = isAxiosError(error)
+          ? ((error.response?.data as any)?.message ??
+            (error.response?.data as any)?.error ??
+            error.message)
+          : error instanceof Error
+            ? error.message
+            : 'Failed to upload file';
 
         setUploads((prev) =>
           prev.map((u) =>
@@ -154,7 +185,7 @@ export function UploadModal({
         return false;
       }
     },
-    [clearProgressTimer, queryClient, targetFolderId, updateUploadProgress]
+    [clearProgressTimer, queryClient, updateUploadProgress, uploadEndpoint]
   );
 
   const handleFiles = useCallback((files: File[]) => {
