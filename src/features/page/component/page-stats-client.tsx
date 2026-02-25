@@ -1,10 +1,10 @@
 'use client';
-import { usePage } from '@/hooks/use-page';
+import { extractPageRows, usePage } from '@/hooks/use-page';
 import { PageStats } from './page-states';
 
 export default function PageStatsClient() {
   const { data, isLoading } = usePage();
   if (isLoading) return null;
-  const rows = (data?.data ?? data) as any[];
+  const rows = extractPageRows(data);
   return <PageStats pages={rows ?? []} />;
 }

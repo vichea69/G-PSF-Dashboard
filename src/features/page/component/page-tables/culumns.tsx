@@ -36,7 +36,7 @@ const listOtherLocales = (value?: LocalizedValue, primary?: string) => {
 };
 
 export type PageRow = {
-  id: number;
+  id: number | string;
   title?: LocalizedValue;
   slug: string;
   status: 'published' | 'draft' | string;

@@ -19,6 +19,12 @@ interface CellActionProps {
   data: { id: string | number } & Record<string, any>;
 }
 
+function resolvePageId(data: CellActionProps['data']) {
+  const rawId = data?.id ?? (data as any)?._id ?? (data as any)?.pageId ?? '';
+  const id = String(rawId).trim();
+  return id;
+}
+
 export function CellAction({ data }: CellActionProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -27,8 +33,8 @@ export function CellAction({ data }: CellActionProps) {
 
   const deleteMutation = useMutation({
     mutationFn: () => {
-      const slugOrId = String((data as any).slug ?? data.id ?? '').trim();
-      return deletePage(slugOrId);
+      const pageId = resolvePageId(data);
+      return deletePage(pageId);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pages'] });
@@ -72,13 +78,14 @@ export function CellAction({ data }: CellActionProps) {
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem
-            onClick={() =>
-              router.push(
-                `/admin/page/${encodeURIComponent(
-                  String((data as any).slug ?? data.id)
-                )}`
-              )
-            }
+            onClick={() => {
+              const pageId = resolvePageId(data);
+              if (!pageId) {
+                toast.error('Page id is missing');
+                return;
+              }
+              router.push(`/admin/page/${encodeURIComponent(pageId)}`);
+            }}
           >
             <IconEdit className='mr-2 h-4 w-4' /> Update
           </DropdownMenuItem>

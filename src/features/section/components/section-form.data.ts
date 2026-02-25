@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useCategory } from '@/hooks/use-category';
 import { useLanguage } from '@/context/language-context';
-import { usePage } from '@/hooks/use-page';
+import { extractPageRows, usePage } from '@/hooks/use-page';
 import { getLocalizedText } from '@/lib/helpers';
 
 export type CategoryOption = { value: number; label: string };
@@ -12,10 +12,7 @@ export function useSectionFormData() {
   const { data: categoriesData, isLoading: categoriesLoading } = useCategory();
   const { language } = useLanguage();
 
-  const pages = useMemo(
-    () => ((pagesData as any)?.data ?? pagesData ?? []) as any[],
-    [pagesData]
-  );
+  const pages = useMemo(() => extractPageRows(pagesData), [pagesData]);
 
   const categories = useMemo(
     () => ((categoriesData as any)?.data ?? categoriesData ?? []) as any[],
