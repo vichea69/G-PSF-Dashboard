@@ -16,8 +16,8 @@ import type { LocalizedText } from '@/lib/helpers';
 type PageStatus = 'draft' | 'published';
 
 type PageEntity = {
-  id?: string;
-  _id?: string;
+  id?: string | number;
+  _id?: string | number;
   pageId?: string | number;
   title?: LocalizedText;
   slug?: string;
@@ -37,7 +37,14 @@ function getErrorMessage(e: any, fallback = 'Something went wrong') {
 
   // Axios-like error
   const resp = e?.response?.data;
-  return resp?.message || resp?.error || fallback;
+  if (typeof resp?.message === 'string' && resp.message.trim()) {
+    return resp.message;
+  }
+  if (Array.isArray(resp?.message) && resp.message.length > 0) {
+    return resp.message.join(', ');
+  }
+  if (typeof resp?.error === 'string' && resp.error.trim()) return resp.error;
+  return fallback;
 }
 
 function resolveEntityId(entity?: PageEntity | null) {
@@ -125,7 +132,8 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
           title: formData.title,
           status,
           metaTitle: formData.metaTitle,
-          metaDescription: formData.metaDescription
+          metaDescription: formData.metaDescription,
+          slug: formData.slug
         };
 
         if (isNew) {

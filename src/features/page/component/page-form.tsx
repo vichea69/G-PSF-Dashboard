@@ -30,12 +30,16 @@ export type PageFormData = {
 };
 
 export type PageFormEditingData = {
-  id?: string;
+  id?: string | number;
   title?: LocalizedText;
   slug?: string;
   status?: 'published' | 'draft';
   metaTitle?: LocalizedText;
   metaDescription?: LocalizedText;
+  seo?: {
+    metaTitle?: LocalizedText;
+    metaDescription?: LocalizedText;
+  };
 };
 
 interface PageFormProps {
@@ -73,8 +77,10 @@ const createInitialFormData = (
     page?.status === 'published' || page?.status === 'draft'
       ? page.status
       : 'draft',
-  metaTitle: normalizeLocalizedText(page?.metaTitle),
-  metaDescription: normalizeLocalizedText(page?.metaDescription)
+  metaTitle: normalizeLocalizedText(page?.metaTitle ?? page?.seo?.metaTitle),
+  metaDescription: normalizeLocalizedText(
+    page?.metaDescription ?? page?.seo?.metaDescription
+  )
 });
 
 const generateSlug = (value: string) =>

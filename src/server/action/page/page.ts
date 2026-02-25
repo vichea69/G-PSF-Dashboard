@@ -10,6 +10,11 @@ export type PageInput = {
   status: 'published' | 'draft';
   metaTitle: LocalizedText;
   metaDescription: LocalizedText;
+  slug?: string;
+  seo?: {
+    metaTitle?: LocalizedText;
+    metaDescription?: LocalizedText;
+  };
 };
 
 function normalizePageIdentifier(id: string | number) {
@@ -65,12 +70,77 @@ async function requestPageByIdentifier(
   }
 }
 
+function buildPagePayloadVariants(input: PageInput) {
+  const slug = String(input.slug ?? '').trim();
+  const seo = {
+    metaTitle: input.metaTitle,
+    metaDescription: input.metaDescription
+  };
+  const base: Record<string, unknown> = {
+    title: input.title,
+    status: input.status
+  };
+
+  const directBaseVariants: Record<string, unknown>[] = [
+    {
+      ...base,
+      metaTitle: input.metaTitle,
+      metaDescription: input.metaDescription
+    },
+    {
+      ...base,
+      seo
+    },
+    {
+      ...base,
+      metaTitle: input.metaTitle,
+      metaDescription: input.metaDescription,
+      seo
+    }
+  ];
+
+  const withSlugVariants = slug
+    ? directBaseVariants.map((variant) => ({ ...variant, slug }))
+    : [];
+  const directVariants = [...directBaseVariants, ...withSlugVariants];
+  const wrappedVariants = directVariants.map((variant) => ({ data: variant }));
+  const variants = [...directVariants, ...wrappedVariants];
+
+  const unique = new Map<string, Record<string, unknown>>();
+  for (const variant of variants) {
+    unique.set(JSON.stringify(variant), variant);
+  }
+  return Array.from(unique.values());
+}
+
+async function requestWithPayloadFallback(
+  input: PageInput,
+  request: (payload: Record<string, unknown>) => Promise<any>
+) {
+  const variants = buildPagePayloadVariants(input);
+  let lastError: unknown = null;
+
+  for (const payload of variants) {
+    try {
+      return await request(payload);
+    } catch (error: unknown) {
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+      if (status !== 400) throw error;
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error('Invalid page payload');
+}
+
 export async function createPage(input: PageInput) {
   const headers = await getAuthHeaders();
-  const res = await api.post('/pages', input, {
-    headers,
-    withCredentials: true
-  });
+  const res = await requestWithPayloadFallback(input, (payload) =>
+    api.post('/pages', payload, {
+      headers,
+      withCredentials: true
+    })
+  );
   return res.data;
 }
 
@@ -78,10 +148,12 @@ export async function updatePage(id: string | number, input: PageInput) {
   const pageId = normalizePageIdentifier(id);
 
   const headers = await getAuthHeaders();
-  const res = await api.put(`/pages/${encodeURIComponent(pageId)}`, input, {
-    headers,
-    withCredentials: true
-  });
+  const res = await requestWithPayloadFallback(input, (payload) =>
+    api.put(`/pages/${encodeURIComponent(pageId)}`, payload, {
+      headers,
+      withCredentials: true
+    })
+  );
   return res.data;
 }
 

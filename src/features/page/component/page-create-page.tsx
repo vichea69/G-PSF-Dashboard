@@ -10,7 +10,14 @@ import { createPage, type PageInput } from '@/server/action/page/page';
 const getErrorMessage = (e: any, fallback = 'Something went wrong') => {
   if (typeof e?.message === 'string' && e.message.trim()) return e.message;
   const resp = e?.response?.data;
-  return resp?.message || resp?.error || fallback;
+  if (typeof resp?.message === 'string' && resp.message.trim()) {
+    return resp.message;
+  }
+  if (Array.isArray(resp?.message) && resp.message.length > 0) {
+    return resp.message.join(', ');
+  }
+  if (typeof resp?.error === 'string' && resp.error.trim()) return resp.error;
+  return fallback;
 };
 
 export default function PageCreatePage() {
@@ -24,7 +31,8 @@ export default function PageCreatePage() {
           title: formData.title,
           status: formData.status === 'published' ? 'published' : 'draft',
           metaTitle: formData.metaTitle,
-          metaDescription: formData.metaDescription
+          metaDescription: formData.metaDescription,
+          slug: formData.slug
         };
 
         await createPage(payload);
