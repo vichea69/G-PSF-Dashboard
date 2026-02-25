@@ -306,7 +306,8 @@ export function isNodeTypeSelected(
 export const handleImageUpload = async (
   file: File,
   onProgress?: (event: { progress: number }) => void,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
+  folderId?: string
 ): Promise<ImageUploadResult> => {
   // Validate file
   if (!file) {
@@ -323,10 +324,15 @@ export const handleImageUpload = async (
     throw new Error('Upload cancelled');
   }
 
+  const normalizedFolderId = String(folderId ?? '').trim();
+  const uploadEndpoint = normalizedFolderId
+    ? `/media/upload/folders/${encodeURIComponent(normalizedFolderId)}`
+    : '/media/upload';
+
   const formData = new FormData();
   formData.append('files', file);
 
-  const response = await api.post('/media/upload', formData, {
+  const response = await api.post(uploadEndpoint, formData, {
     withCredentials: true,
     headers: {
       'Content-Type': 'multipart/form-data'

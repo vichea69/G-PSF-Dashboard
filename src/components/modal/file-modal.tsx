@@ -21,7 +21,7 @@ interface FileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (file: MediaFile) => void;
-  onUploadFromDevice?: (files: File[]) => void;
+  onUploadFromDevice?: (files: File[], folderId?: string | null) => void;
   loading?: boolean;
   title?: string;
   description?: string;
@@ -131,7 +131,7 @@ export const FileModal: React.FC<FileModalProps> = ({
     const files = Array.from(event.target.files ?? []);
     if (files.length === 0) return;
     if (!onUploadFromDevice) return;
-    onUploadFromDevice(files);
+    onUploadFromDevice(files, activeFolderId);
     event.target.value = '';
     onClose();
   };

@@ -45,6 +45,14 @@ export const contentItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Contact',
+    url: '/admin/contact',
+    icon: 'post',
+    shortcut: ['p', 'p'],
+    isActive: true,
+    items: []
+  },
+  {
     title: 'Content',
     url: '/admin/overview',
     icon: 'section',

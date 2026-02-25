@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { FileText, ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { FileModal } from '@/components/modal/file-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import type { MediaFile } from '@/features/media/types/media-type';
 import type { LocalizedPostDocuments } from '@/features/post/component/post-form-types';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
+import { handleImageUpload } from '@/lib/tiptap-utils';
 
 type DocumentLocale = 'en' | 'km';
 
@@ -173,6 +176,8 @@ export function PostResourcesCard({
   onLinkChange
 }: PostResourcesCardProps) {
   const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
+  const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
+  const qc = useQueryClient();
 
   const coverPreviewUrl = useMemo(
     () => resolveApiAssetUrl(coverImage),
@@ -232,6 +237,45 @@ export function PostResourcesCard({
         url: selectedUrl,
         thumbnailUrl: (file.thumbnail ?? '').trim()
       });
+    }
+  };
+
+  const handleUploadFromDevice = async (
+    files: File[],
+    folderId?: string | null
+  ) => {
+    const firstFile = files[0];
+    if (!firstFile || !pickerTarget) return;
+
+    setUploadingFromDevice(true);
+    try {
+      const normalizedFolderId = String(folderId ?? '').trim();
+      const result = await handleImageUpload(
+        firstFile,
+        undefined,
+        undefined,
+        normalizedFolderId || undefined
+      );
+      const uploadedUrl = (result?.url ?? '').trim();
+      if (!uploadedUrl) {
+        throw new Error('Upload succeeded but no URL was returned');
+      }
+
+      if (pickerTarget === 'coverImage') {
+        onCoverImageChange(uploadedUrl);
+      } else {
+        applyDocumentChange(activeLanguage, {
+          url: uploadedUrl,
+          thumbnailUrl: (result?.metadata?.thumbnail ?? '').trim()
+        });
+      }
+
+      await qc.invalidateQueries({ queryKey: ['media'], exact: false });
+      toast.success('File uploaded successfully');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to upload file');
+    } finally {
+      setUploadingFromDevice(false);
     }
   };
 
@@ -320,6 +364,8 @@ export function PostResourcesCard({
         isOpen={pickerTarget !== null}
         onClose={() => setPickerTarget(null)}
         onSelect={handleSelectFromMedia}
+        onUploadFromDevice={handleUploadFromDevice}
+        loading={uploadingFromDevice}
         title={
           pickerTarget === 'coverImage'
             ? 'Select cover image'
@@ -328,7 +374,7 @@ export function PostResourcesCard({
         description='Choose a file from Media Manager.'
         types={pickerTarget === 'coverImage' ? ['image'] : ['pdf', 'document']}
         accept={pickerTarget === 'coverImage' ? 'image/*' : '*/*'}
-        allowUploadFromDevice={false}
+        allowUploadFromDevice
       />
     </Card>
   );
