@@ -23,22 +23,50 @@ const resolveLocalizedValue = (
 
   for (const locale of localePriority) {
     const localized = value[locale];
-    if (localized) return localized;
+    if (typeof localized === 'string' && localized) return localized;
   }
-  return Object.values(value).find((entry) => Boolean(entry)) ?? '';
+  return (
+    Object.values(value).find(
+      (entry): entry is string => typeof entry === 'string' && Boolean(entry)
+    ) ?? ''
+  );
 };
 
 const listOtherLocales = (value?: LocalizedValue, primary?: string) => {
   if (!value || typeof value === 'string') return [];
   return Object.entries(value).filter(
-    ([, text]) => Boolean(text) && text !== primary
+    ([, text]) => typeof text === 'string' && Boolean(text) && text !== primary
   ) as [string, string][];
+};
+
+const toDisplayText = (
+  value: unknown,
+  localePriority: string[] = DEFAULT_LOCALE_PRIORITY
+) => {
+  if (value === null || value === undefined) return '';
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return String(value);
+  }
+
+  if (typeof value === 'object') {
+    const localized = resolveLocalizedValue(
+      value as LocalizedValue,
+      localePriority
+    );
+    return localized ? String(localized) : '';
+  }
+
+  return '';
 };
 
 export type PageRow = {
   id: number | string;
   title?: LocalizedValue;
-  slug: string;
+  slug: string | LocalizedValue;
   status: 'published' | 'draft' | string;
   content?: string;
   publishedAt?: string;
@@ -47,7 +75,7 @@ export type PageRow = {
   sectionCount?: number;
   authorId?: {
     id: number;
-    displayName: string;
+    displayName: string | LocalizedValue;
     email: string;
   };
   seo?: {
@@ -91,7 +119,15 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
       accessorKey: 'id',
       header: ({ column }: { column: Column<PageRow, unknown> }) => (
         <DataTableColumnHeader column={column} title='ID' />
-      )
+      ),
+      cell: ({ row }) => {
+        const rawId =
+          row.original?.id ??
+          (row.original as any)?._id ??
+          (row.original as any)?.pageId;
+        const idText = toDisplayText(rawId, localePriority);
+        return <span>{idText || '-'}</span>;
+      }
     },
     {
       id: 'name',
@@ -153,31 +189,48 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
     {
       accessorKey: 'slug',
       header: 'URL',
-      cell: ({ cell }) => (
-        <div className='max-w-[360px] truncate'>/{cell.getValue<string>()}</div>
-      )
+      cell: ({ cell }) => {
+        const slug = toDisplayText(cell.getValue<unknown>(), localePriority);
+        return <div className='max-w-[360px] truncate'>/{slug || '-'}</div>;
+      }
     },
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ cell }) => getStatusBadge(cell.getValue<string>())
+      cell: ({ cell }) => {
+        const status = toDisplayText(cell.getValue<unknown>(), localePriority);
+        return getStatusBadge(status);
+      }
     },
     {
       accessorKey: 'sectionCount',
       header: ({ column }: { column: Column<PageRow, unknown> }) => (
         <DataTableColumnHeader column={column} title='Section' />
-      )
+      ),
+      cell: ({ cell }) => {
+        const value = toDisplayText(cell.getValue<unknown>(), localePriority);
+        return <span>{value || '0'}</span>;
+      }
     },
     {
       accessorKey: 'publishedAt',
       header: 'Published At',
       cell: ({ cell }) => {
-        const value = <RelativeTime value={cell.getValue<string>() ?? ''} />;
-        return value ? (
-          <span>{value}</span>
-        ) : (
-          <span className='text-muted-foreground italic'>Not yet publish</span>
-        );
+        const rawValue = cell.getValue<unknown>();
+        const isSupportedDateValue =
+          typeof rawValue === 'string' ||
+          typeof rawValue === 'number' ||
+          rawValue instanceof Date;
+
+        if (!isSupportedDateValue) {
+          return (
+            <span className='text-muted-foreground italic'>
+              Not yet publish
+            </span>
+          );
+        }
+
+        return <RelativeTime value={rawValue} />;
       }
     },
     {
@@ -185,7 +238,10 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
       accessorFn: (row) => row.authorId?.displayName ?? '',
       header: 'Created By',
       cell: ({ cell }) => {
-        const raw = (cell.getValue<string>() ?? '').toString();
+        const raw = toDisplayText(cell.getValue<unknown>(), localePriority);
+        if (!raw) {
+          return <span className='text-muted-foreground'>-</span>;
+        }
         const role = raw.toLowerCase();
 
         const variant =
