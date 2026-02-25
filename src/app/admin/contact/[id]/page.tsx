@@ -11,9 +11,8 @@ type PageProps = {
 };
 
 export default async function Page({ params }: PageProps) {
-  const { id } = await params; // Next 15: params is Promise
-  const payload = await getContactById(id);
-  const contact = (payload as any)?.data ?? payload;
+  const { id } = await params;
+  const contact = await getContactById(id);
 
   return (
     <PageContainer scrollable>

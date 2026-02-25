@@ -33,13 +33,15 @@ import {
   IconMenu2,
   IconLayoutBottombar,
   IconActivity,
-  IconSection
+  IconSection,
+  IconMail
 } from '@tabler/icons-react';
 import { ImageUpIcon, PaletteIcon } from 'lucide-react';
 
 export type Icon = React.ComponentType<IconProps>;
 
 export const Icons = {
+  mail: IconMail,
   section: IconSection,
   activity: IconActivity,
   dashboard: IconLayoutDashboard,

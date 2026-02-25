@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { useUpdateContact } from '@/features/contact/hook/use-contact';
 
 export type ContactFormData = {
   id?: string | number;
@@ -10,7 +13,7 @@ export type ContactFormData = {
   name?: string;
 
   email: string;
-  organisationName?: string;
+  organisationName?: string | null;
   subject: string;
   message?: string;
   isRead?: boolean;
@@ -22,6 +25,7 @@ export default function ContactForm({
   initialData: ContactFormData | null;
 }) {
   const router = useRouter();
+  const updateContactMutation = useUpdateContact();
 
   const [form, setForm] = useState<ContactFormData>(
     initialData ?? {
@@ -50,10 +54,9 @@ export default function ContactForm({
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/contact/${initialData.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await updateContactMutation.mutateAsync({
+        id: String(initialData.id),
+        body: {
           firstName: form.firstName?.trim() || '',
           lastName: form.lastName?.trim() || '',
           email: form.email?.trim() || '',
@@ -61,30 +64,13 @@ export default function ContactForm({
           subject: form.subject?.trim() || '',
           message: form.message?.trim() || '',
           isRead: !!form.isRead
-        })
+        }
       });
 
-      const text = await res.text();
-      let json: any = null;
-      try {
-        json = text ? JSON.parse(text) : null;
-      } catch {}
-
-      if (!res.ok) {
-        const msg =
-          json?.message ||
-          json?.error?.details ||
-          json?.error ||
-          text ||
-          'Update failed';
-        throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
-      }
-
-      // go back to list page (no 404)
+      toast.success('Contact updated');
       router.push('/admin/contact');
-      router.refresh();
     } catch (err: any) {
-      alert(err?.message || 'Save error');
+      toast.error(err?.message || 'Save error');
     } finally {
       setLoading(false);
     }
@@ -158,17 +144,18 @@ export default function ContactForm({
           Mark as read
         </label>
 
-        <button
+        <Button
           type='submit'
           disabled={loading}
-          className='inline-flex h-12 items-center justify-center rounded-full bg-orange-500 px-9 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600 focus:ring-4 focus:ring-orange-100 focus:outline-none disabled:opacity-60'
+          variant='primary'
+          appearance='default'
         >
           {loading
             ? 'Saving...'
             : initialData
               ? 'Save Changes'
               : 'Send Message'}
-        </button>
+        </Button>
       </div>
     </form>
   );

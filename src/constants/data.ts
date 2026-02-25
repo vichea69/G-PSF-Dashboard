@@ -47,7 +47,7 @@ export const contentItems: NavItem[] = [
   {
     title: 'Contact',
     url: '/admin/contact',
-    icon: 'post',
+    icon: 'mail',
     shortcut: ['p', 'p'],
     isActive: true,
     items: []
