@@ -18,7 +18,7 @@ export default async function Page({ params }: PageProps) {
     <PageContainer scrollable>
       <div className='flex-1 space-y-4'>
         <Heading
-          title='View / Edit Contact'
+          title='View Message'
           description='Review the contact message.'
         />
         <Separator />
