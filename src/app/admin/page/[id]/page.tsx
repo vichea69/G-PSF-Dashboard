@@ -9,7 +9,7 @@ export const metadata = {
   title: 'Dashboard: Edit Page'
 };
 
-type PageProps = { params: Promise<{ pageId: string }> };
+type PageProps = { params: Promise<{ id: string }> };
 
 export default async function Page(props: PageProps) {
   const params = await props.params;
@@ -22,7 +22,7 @@ export default async function Page(props: PageProps) {
         />
         <Separator />
         <Suspense fallback={<FormCardSkeleton />}>
-          <PageViewPage pageId={params.pageId} />
+          <PageViewPage pageId={params.id} />
         </Suspense>
       </div>
     </PageContainer>

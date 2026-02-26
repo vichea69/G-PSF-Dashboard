@@ -335,14 +335,6 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                   <Save />
                   {editingPage ? 'Update Page' : 'Create Page'}
                 </Button>
-
-                {editingPage && (
-                  <Button variant='outline' className='w-full bg-transparent'>
-                    <Eye className='mr-2 h-4 w-4' />
-                    Preview Changes
-                  </Button>
-                )}
-
                 <Button variant='outline' onClick={onCancel} className='w-full'>
                   <ArrowLeft />
                   Cancel
