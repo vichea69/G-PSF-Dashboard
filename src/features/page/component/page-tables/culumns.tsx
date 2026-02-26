@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CellAction } from './cell-action';
 import { type Language } from '@/context/language-context';
 import { RelativeTime } from '@/components/ui/relative-time';
+import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 
 type LocalizedText = Record<string, string | undefined>;
 type LocalizedValue = string | LocalizedText;
@@ -85,28 +86,24 @@ export type PageRow = {
 };
 
 const getStatusBadge = (status: string) => {
-  const statusConfig = {
-    published: {
-      className: 'bg-green-100 text-green-800 border-green-200',
-      label: 'Published'
-    },
-    draft: {
-      className: 'bg-amber-100 text-amber-800 border-amber-200',
-      label: 'Draft'
-    },
-    default: {
-      className: 'bg-gray-100 text-gray-800 border-gray-200',
-      label: 'Unknown'
-    }
-  } as const;
-
-  const config =
-    statusConfig[(status as keyof typeof statusConfig) ?? 'default'] ??
-    statusConfig.default;
+  const normalized = status?.toLowerCase?.() ?? '';
+  const isPublished = normalized === 'published';
+  const isDraft = normalized === 'draft';
+  const label = isPublished ? 'Published' : isDraft ? 'Draft' : 'Unknown';
+  const variant = isPublished
+    ? ('success' as const)
+    : isDraft
+      ? ('warning' as const)
+      : ('secondary' as const);
 
   return (
-    <Badge variant='outline' className={config.className}>
-      {config.label}
+    <Badge variant={variant} appearance='outline' className='gap-1'>
+      {isPublished ? (
+        <IconCircleCheck className='h-3 w-3' />
+      ) : (
+        <IconCircleX className='h-3 w-3' />
+      )}{' '}
+      {label}
     </Badge>
   );
 };
