@@ -25,6 +25,13 @@ function normalizePageIdentifier(id: string | number) {
   return pageId;
 }
 
+function normalizePageNumericId(id: number) {
+  if (!Number.isFinite(id) || !Number.isInteger(id) || id <= 0) {
+    throw new Error('Page id must be a positive number');
+  }
+  return id;
+}
+
 function extractPageRows(payload: any): any[] {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.data)) return payload.data;
@@ -157,11 +164,11 @@ export async function updatePage(id: string | number, input: PageInput) {
   return res.data;
 }
 
-export async function deletePage(id: string | number) {
-  const pageId = normalizePageIdentifier(id);
+export async function deletePage(id: number) {
+  const pageId = normalizePageNumericId(id);
 
   const headers = await getAuthHeaders();
-  const res = await api.delete(`/pages/${encodeURIComponent(pageId)}`, {
+  const res = await api.delete(`/pages/${pageId}`, {
     headers,
     withCredentials: true
   });

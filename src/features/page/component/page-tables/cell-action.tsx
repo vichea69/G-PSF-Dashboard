@@ -25,6 +25,22 @@ function resolvePageId(data: CellActionProps['data']) {
   return id;
 }
 
+function resolvePageNumericId(data: CellActionProps['data']) {
+  const rawId = data?.id ?? (data as any)?._id ?? (data as any)?.pageId;
+  const numericId =
+    typeof rawId === 'number' ? rawId : Number(String(rawId ?? '').trim());
+
+  if (
+    !Number.isFinite(numericId) ||
+    !Number.isInteger(numericId) ||
+    numericId <= 0
+  ) {
+    throw new Error('Page id must be a positive number');
+  }
+
+  return numericId;
+}
+
 export function CellAction({ data }: CellActionProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -33,7 +49,7 @@ export function CellAction({ data }: CellActionProps) {
 
   const deleteMutation = useMutation({
     mutationFn: () => {
-      const pageId = resolvePageId(data);
+      const pageId = resolvePageNumericId(data);
       return deletePage(pageId);
     },
     onSuccess: () => {
