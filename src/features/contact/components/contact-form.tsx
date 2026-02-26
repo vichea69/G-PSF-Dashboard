@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useUpdateContact } from '@/features/contact/hook/use-contact';
 
 export type ContactFormData = {
@@ -79,36 +83,48 @@ export default function ContactForm({
   return (
     <form
       onSubmit={onSubmit}
-      className='space-y-6 rounded-2xl border border-slate-200 bg-white p-6'
+      className='bg-card text-card-foreground space-y-6 rounded-2xl border p-6'
     >
       <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-        <Field label='First Name'>
+        <Field label='First Name' htmlFor='firstName'>
           <Input
+            id='firstName'
+            variant='lg'
+            className='h-12 rounded-xl'
             placeholder='Ex. Pheak'
             value={form.firstName ?? ''}
             onChange={(e) => set('firstName', e.target.value)}
           />
         </Field>
 
-        <Field label='Last Name'>
+        <Field label='Last Name' htmlFor='lastName'>
           <Input
+            id='lastName'
+            variant='lg'
+            className='h-12 rounded-xl'
             placeholder='Ex. Kdey'
             value={form.lastName ?? ''}
             onChange={(e) => set('lastName', e.target.value)}
           />
         </Field>
 
-        <Field label='Email' required>
+        <Field label='Email' required htmlFor='email'>
           <Input
+            id='email'
             type='email'
+            variant='lg'
+            className='h-12 rounded-xl'
             placeholder='example@gmail.com'
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
           />
         </Field>
 
-        <Field label='Organisation Name'>
+        <Field label='Organisation Name' htmlFor='organisationName'>
           <Input
+            id='organisationName'
+            variant='lg'
+            className='h-12 rounded-xl'
             placeholder='Enter Organisation Name'
             value={form.organisationName ?? ''}
             onChange={(e) => set('organisationName', e.target.value)}
@@ -116,29 +132,36 @@ export default function ContactForm({
         </Field>
       </div>
 
-      <Field label='Subject' required>
+      <Field label='Subject' required htmlFor='subject'>
         <Input
+          id='subject'
+          variant='lg'
+          className='h-12 rounded-xl'
           placeholder='Enter subject here...'
           value={form.subject}
           onChange={(e) => set('subject', e.target.value)}
         />
       </Field>
 
-      <Field label='Your Message' required>
-        <textarea
+      <Field label='Your Message' required htmlFor='message'>
+        <Textarea
+          id='message'
           placeholder='Enter here...'
           value={form.message ?? ''}
           onChange={(e) => set('message', e.target.value)}
-          className='min-h-[200px] w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100'
+          className='min-h-[200px] resize-none rounded-xl'
         />
       </Field>
 
       <div className='flex items-center justify-between'>
-        <label className='flex items-center gap-2 text-sm text-slate-700'>
-          <input
-            type='checkbox'
+        <label
+          htmlFor='isRead'
+          className='text-foreground flex cursor-pointer items-center gap-2 text-sm font-medium'
+        >
+          <Checkbox
+            id='isRead'
             checked={!!form.isRead}
-            onChange={(e) => set('isRead', e.target.checked)}
+            onCheckedChange={(checked) => set('isRead', checked === true)}
             className='h-4 w-4'
           />
           Mark as read
@@ -163,28 +186,25 @@ export default function ContactForm({
 
 function Field({
   label,
+  htmlFor,
   required,
   children
 }: {
   label: string;
+  htmlFor: string;
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className='space-y-2'>
-      <div className='text-base font-bold text-slate-900'>
-        {label} {required ? <span className='text-orange-500'>*</span> : null}
-      </div>
+      <Label
+        htmlFor={htmlFor}
+        className='text-foreground text-sm font-semibold'
+      >
+        {label}
+        {required ? <span className='text-destructive ml-1'>*</span> : null}
+      </Label>
       {children}
     </div>
-  );
-}
-
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className='h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100'
-    />
   );
 }
