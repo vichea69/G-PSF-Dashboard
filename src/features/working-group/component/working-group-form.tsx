@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/context/language-context';
 import type { MediaFile } from '@/features/media/types/media-type';
-import { usePage } from '@/hooks/use-page';
+import { extractPageRows, usePage } from '@/hooks/use-page';
 import { useWorkingGroups } from '@/hooks/use-working-group';
 import { handleImageUpload } from '@/lib/tiptap-utils';
 import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
@@ -103,8 +103,7 @@ export default function WorkingGroupForm({
   const currentPageId = formData.pageId ? String(formData.pageId) : '';
 
   const pages = useMemo(() => {
-    const raw = (pagesData?.data ?? pagesData) as any;
-    const list = Array.isArray(raw) ? raw : [];
+    const list = extractPageRows(pagesData);
     return list
       .map((page) => ({
         id: String(page?.id ?? ''),

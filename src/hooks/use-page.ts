@@ -2,6 +2,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
+const PAGE_LIST_LIMIT = 100;
+
 function getClientAuthHeaders(): Record<string, string> {
   if (typeof document === 'undefined') return {};
 
@@ -18,13 +20,20 @@ export function extractPageRows(payload: unknown): any[] {
   const raw = payload as any;
   if (Array.isArray(raw)) return raw;
   if (Array.isArray(raw?.data)) return raw.data;
+  if (Array.isArray(raw?.data?.data)) return raw.data.data;
   if (Array.isArray(raw?.items)) return raw.items;
   if (Array.isArray(raw?.data?.items)) return raw.data.items;
+  if (Array.isArray(raw?.result?.data)) return raw.result.data;
   return [];
 }
 
 async function fetchPages() {
   const res = await api.get('/pages', {
+    params: {
+      page: 1,
+      pageSize: PAGE_LIST_LIMIT,
+      limit: PAGE_LIST_LIMIT
+    },
     headers: getClientAuthHeaders(),
     withCredentials: true
   });

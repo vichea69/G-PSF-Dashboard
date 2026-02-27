@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useCategories } from '@/hooks/use-category';
 import { useLanguage } from '@/context/language-context';
 import { getLocalizedText } from '@/lib/helpers';
-import { usePage } from '@/hooks/use-page';
+import { extractPageRows, usePage } from '@/hooks/use-page';
 import type { PostContent } from '@/server/action/post/types';
 import { useSection } from '@/features/section/hook/use-section';
 import {
@@ -65,8 +65,7 @@ export default function PostForm({
 
   const { data: pagesData } = usePage();
   const pages = useMemo(() => {
-    const raw = (pagesData?.data ?? pagesData) as any;
-    const rows = Array.isArray(raw) ? raw : [];
+    const rows = extractPageRows(pagesData);
 
     return rows.map((page) => ({
       ...page,

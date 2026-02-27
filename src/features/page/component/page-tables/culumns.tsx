@@ -6,18 +6,20 @@ import { CellAction } from './cell-action';
 import { type Language } from '@/context/language-context';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
-
-type LocalizedText = Record<string, string | undefined>;
+import { limitWords, type LocalizedText } from '@/lib/helpers';
 type LocalizedValue = string | LocalizedText;
+type LocaleKey = 'en' | 'km';
+const PAGE_TITLE_WORD_LIMIT = 6;
+const PAGE_SLUG_WORD_LIMIT = 20;
 
-const DEFAULT_LOCALE_PRIORITY = ['en', 'km'];
+const DEFAULT_LOCALE_PRIORITY: LocaleKey[] = ['en', 'km'];
 
-const createLocalePriority = (language: Language) =>
+const createLocalePriority = (language: Language): LocaleKey[] =>
   language === 'kh' ? ['km', 'en'] : ['en', 'km'];
 
 const resolveLocalizedValue = (
   value?: LocalizedValue,
-  localePriority: string[] = DEFAULT_LOCALE_PRIORITY
+  localePriority: LocaleKey[] = DEFAULT_LOCALE_PRIORITY
 ) => {
   if (!value) return '';
   if (typeof value === 'string') return value;
@@ -33,16 +35,9 @@ const resolveLocalizedValue = (
   );
 };
 
-const listOtherLocales = (value?: LocalizedValue, primary?: string) => {
-  if (!value || typeof value === 'string') return [];
-  return Object.entries(value).filter(
-    ([, text]) => typeof text === 'string' && Boolean(text) && text !== primary
-  ) as [string, string][];
-};
-
 const toDisplayText = (
   value: unknown,
-  localePriority: string[] = DEFAULT_LOCALE_PRIORITY
+  localePriority: LocaleKey[] = DEFAULT_LOCALE_PRIORITY
 ) => {
   if (value === null || value === undefined) return '';
   if (
@@ -111,71 +106,36 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
   const localePriority = createLocalePriority(language);
 
   return [
-    {
-      id: 'id',
-      accessorKey: 'id',
-      header: ({ column }: { column: Column<PageRow, unknown> }) => (
-        <DataTableColumnHeader column={column} title='ID' />
-      ),
-      cell: ({ row }) => {
-        const rawId =
-          row.original?.id ??
-          (row.original as any)?._id ??
-          (row.original as any)?.pageId;
-        const idText = toDisplayText(rawId, localePriority);
-        return <span>{idText || '-'}</span>;
-      }
-    },
+    // {
+    //   id: 'id',
+    //   accessorKey: 'id',
+    //   header: ({ column }: { column: Column<PageRow, unknown> }) => (
+    //     <DataTableColumnHeader column={column} title='ID' />
+    //   ),
+    //   cell: ({ row }) => {
+    //     const rawId =
+    //       row.original?.id ??
+    //       (row.original as any)?._id ??
+    //       (row.original as any)?.pageId;
+    //     const idText = toDisplayText(rawId, localePriority);
+    //     return <span>{idText || '-'}</span>;
+    //   }
+    // },
     {
       id: 'name',
-      accessorKey: 'title',
+      accessorFn: (row) => resolveLocalizedValue(row.title, localePriority),
       header: ({ column }: { column: Column<PageRow, unknown> }) => (
         <DataTableColumnHeader column={column} title='Page Title' />
       ),
-      cell: ({ cell }) => {
-        const rawValue = cell.getValue<LocalizedValue>();
-        const value = resolveLocalizedValue(rawValue, localePriority);
-        const extraLocales = listOtherLocales(rawValue, value);
-        const raw = cell.column.getFilterValue() as string | undefined;
-        const term = (raw ?? '').trim();
-        if (!term) {
-          return (
-            <div>
-              <div>{value}</div>
-              {extraLocales.length > 0 && (
-                <div className='text-muted-foreground text-xs'></div>
-              )}
-            </div>
-          );
-        }
-        const escapeRegExp = (s: string) =>
-          s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(${escapeRegExp(term)})`, 'ig');
-        const parts = value.split(regex);
-        return (
-          <div>
-            <div>
-              {parts.map((part, i) =>
-                i % 2 === 1 ? (
-                  <span key={i} className='font-semibold text-green-600'>
-                    {part}
-                  </span>
-                ) : (
-                  <span key={i}>{part}</span>
-                )
-              )}
-            </div>
-            {extraLocales.length > 0 && (
-              <div className='text-muted-foreground text-xs'>
-                {extraLocales.map(([locale, text]) => (
-                  <span key={locale} className='mr-2 capitalize'>
-                    {locale}: {text}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+      cell: ({ row }) => {
+        const value = resolveLocalizedValue(
+          row.original?.title,
+          localePriority
         );
+        const limitedValue = value
+          ? limitWords(value, PAGE_TITLE_WORD_LIMIT)
+          : '-';
+        return <div>{limitedValue}</div>;
       },
       meta: {
         label: 'Name',
@@ -188,7 +148,8 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
       header: 'URL',
       cell: ({ cell }) => {
         const slug = toDisplayText(cell.getValue<unknown>(), localePriority);
-        return <div className='max-w-[360px] truncate'>/{slug || '-'}</div>;
+        const limitedSlug = slug ? limitWords(slug, PAGE_SLUG_WORD_LIMIT) : '-';
+        return <div className='max-w-[360px] truncate'>/{limitedSlug}</div>;
       }
     },
     {
