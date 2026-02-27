@@ -10,6 +10,7 @@ import {
 } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import { RelativeTime } from '@/components/ui/relative-time';
+import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 
 export type SectionRow = {
   id: number | string;
@@ -26,13 +27,15 @@ const getEnabledBadge = (enabled?: boolean) => {
   const isEnabled = Boolean(enabled);
   return (
     <Badge
-      variant='outline'
-      className={
-        isEnabled
-          ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-          : 'border-amber-200 bg-amber-100 text-amber-700'
-      }
+      variant={isEnabled ? 'success' : 'warning'}
+      appearance='outline'
+      className='gap-1'
     >
+      {isEnabled ? (
+        <IconCircleCheck className='h-3 w-3' />
+      ) : (
+        <IconCircleX className='h-3 w-3' />
+      )}{' '}
       {isEnabled ? 'Enabled' : 'Disabled'}
     </Badge>
   );

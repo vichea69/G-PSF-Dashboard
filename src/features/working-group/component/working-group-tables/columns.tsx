@@ -8,6 +8,7 @@ import { getLocalizedText } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import type { WorkingGroupItem } from '@/server/action/working-group/working-group-type';
 import { CellAction } from './cell-action';
+import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 
 export type WorkingGroupRow = WorkingGroupItem;
 
@@ -16,19 +17,20 @@ const getStatusBadge = (status?: string) => {
   const isPublished = normalized === 'published';
   const isDraft = normalized === 'draft';
 
-  const label = isPublished
-    ? 'Published'
+  const label = isPublished ? 'Published' : isDraft ? 'Draft' : 'Unknown';
+  const variant = isPublished
+    ? ('success' as const)
     : isDraft
-      ? 'Draft'
-      : (status ?? 'N/A');
-  const className = isPublished
-    ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-    : isDraft
-      ? 'border-amber-200 bg-amber-100 text-amber-700'
-      : 'border-slate-200 bg-slate-100 text-slate-700';
+      ? ('warning' as const)
+      : ('secondary' as const);
 
   return (
-    <Badge variant='outline' className={className}>
+    <Badge variant={variant} appearance='outline' className='gap-1'>
+      {isPublished ? (
+        <IconCircleCheck className='h-3 w-3' />
+      ) : (
+        <IconCircleX className='h-3 w-3' />
+      )}{' '}
       {label}
     </Badge>
   );
