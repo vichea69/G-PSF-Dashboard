@@ -28,15 +28,19 @@ import { CodeBlockButton } from '@/components/tiptap-ui/code-block-button';
 import { MarkButton } from '@/components/tiptap-ui/mark-button';
 import { ColorHighlightPopover } from '@/components/tiptap-ui/color-highlight-popover';
 import { LinkPopover } from '@/components/tiptap-ui/link-popover';
+import { VideoPopover } from '@/components/tiptap-ui/video-popover';
 import { TextAlignButton } from '@/components/tiptap-ui/text-align-button';
+import { ImagePlusIcon } from '@/components/tiptap-icons/image-plus-icon';
 
 import { HorizontalRule } from '@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension';
 import { ImageUploadNode } from '@/components/tiptap-node/image-upload-node/image-upload-node-extension';
+import { YouTubeNode } from '@/components/tiptap-node/youtube-node/youtube-node-extension';
 import '@/components/tiptap-node/blockquote-node/blockquote-node.scss';
 import '@/components/tiptap-node/code-block-node/code-block-node.scss';
 import '@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss';
 import '@/components/tiptap-node/list-node/list-node.scss';
 import '@/components/tiptap-node/image-node/image-node.scss';
+import '@/components/tiptap-node/youtube-node/youtube-node.scss';
 import '@/components/tiptap-node/heading-node/heading-node.scss';
 import '@/components/tiptap-node/paragraph-node/paragraph-node.scss';
 
@@ -217,6 +221,7 @@ export function PostContentEditor({
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),
       ResizableImage,
+      YouTubeNode,
       Typography,
       Superscript,
       Subscript,
@@ -226,7 +231,10 @@ export function PostContentEditor({
         maxSize: MAX_FILE_SIZE,
         limit: 5,
         upload: handleImageUpload,
-        onError: (error) => console.error('Upload failed:', error)
+        onError: (error) => {
+          // eslint-disable-next-line no-console
+          console.error('Upload failed:', error);
+        }
       })
     ],
     onUpdate: ({ editor }) => {
@@ -570,12 +578,15 @@ export function PostContentEditor({
           <ToolbarSeparator />
 
           <ToolbarGroup>
+            <VideoPopover />
             <Button
               type='button'
               data-style='ghost'
+              aria-label='Add image'
+              tooltip='Add image'
               onClick={() => setImageDialogOpen(true)}
             >
-              Add image
+              <ImagePlusIcon className='tiptap-button-icon' />
             </Button>
           </ToolbarGroup>
 
