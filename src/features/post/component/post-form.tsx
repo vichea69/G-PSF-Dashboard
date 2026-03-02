@@ -15,13 +15,18 @@ import {
   createEmptyStatsData,
   type StatsBlockData
 } from '@/features/post/component/block/stats/stats-form';
+import {
+  createEmptyTextBlockData,
+  type TextBlockData
+} from '@/features/post/component/block/text-block/text-block-form';
 import { PostContentCard } from '@/features/post/component/post-form-sections/post-content-card';
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
 import {
   getLocalizedContent,
   isHeroBannerContent,
-  isStatsContent
+  isStatsContent,
+  isTextBlockContent
 } from '@/features/post/component/post-form-helpers';
 import { usePostFormState } from '@/features/post/component/use-post-form-state';
 import type { PostFormData } from '@/features/post/component/post-form-types';
@@ -96,6 +101,7 @@ export default function PostForm({
   const isHeroBannerSection = selectedSection?.blockType === 'hero_banner';
   const isAddressSection = selectedSection?.blockType === 'address';
   const isStatsSection = selectedSection?.blockType === 'stats';
+  const isTextBlockSection = selectedSection?.blockType === 'text_block';
 
   const heroBannerValue = isHeroBannerContent(formData.content?.en)
     ? (formData.content?.en as HeroBannerData)
@@ -105,9 +111,14 @@ export default function PostForm({
     ? (formData.content?.en as StatsBlockData)
     : createEmptyStatsData();
 
+  const textBlockValue = isTextBlockContent(formData.content?.en)
+    ? (formData.content?.en as TextBlockData)
+    : createEmptyTextBlockData();
+
   const editorValue =
     isHeroBannerContent(formData.content?.en) ||
-    isStatsContent(formData.content?.en)
+    isStatsContent(formData.content?.en) ||
+    isTextBlockContent(formData.content?.en)
       ? ''
       : getLocalizedContent(formData.content, activeLanguage);
 
@@ -143,7 +154,13 @@ export default function PostForm({
     const title = titleEn || titleKm || formData.title?.trim() || '';
 
     const normalizeContentEntry = (
-      value: PostContent | HeroBannerData | StatsBlockData | string | undefined
+      value:
+        | PostContent
+        | HeroBannerData
+        | StatsBlockData
+        | TextBlockData
+        | string
+        | undefined
     ) => {
       if (!value) return { type: 'doc', content: [] } as PostContent;
       if (typeof value === 'string') {
@@ -162,12 +179,16 @@ export default function PostForm({
         ? ({
             en: statsValue
           } as PostFormData['content'])
-        : {
-            en: normalizeContentEntry(formData.content?.en),
-            km: formData.content?.km
-              ? normalizeContentEntry(formData.content?.km)
-              : undefined
-          };
+        : isTextBlockSection
+          ? ({
+              en: textBlockValue
+            } as PostFormData['content'])
+          : {
+              en: normalizeContentEntry(formData.content?.en),
+              km: formData.content?.km
+                ? normalizeContentEntry(formData.content?.km)
+                : undefined
+            };
 
     onSave({
       ...formData,
@@ -207,10 +228,12 @@ export default function PostForm({
             descriptionKm={formData.descriptionKm ?? ''}
             isHeroBannerSection={isHeroBannerSection}
             isStatsSection={isStatsSection}
+            isTextBlockSection={isTextBlockSection}
             isAddressSection={isAddressSection}
             editorValue={editorValue}
             heroBannerValue={heroBannerValue}
             statsValue={statsValue}
+            textBlockValue={textBlockValue}
             onTitleEnChange={(value) =>
               setFormData((prev) => ({ ...prev, titleEn: value }))
             }
@@ -251,9 +274,18 @@ export default function PostForm({
                 }
               }))
             }
+            onTextBlockChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: {
+                  ...(prev.content ?? {}),
+                  en: value
+                }
+              }))
+            }
           />
 
-          {!isHeroBannerSection && !isStatsSection && (
+          {!isHeroBannerSection && !isStatsSection && !isTextBlockSection && (
             <>
               {/* <PostImagesCard
                 previewImages={previewImages}

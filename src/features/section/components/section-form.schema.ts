@@ -6,16 +6,16 @@ import type { LocalizedText } from '@/lib/helpers';
 export const blockTypes = [
   'hero_banner',
   'stats',
-  'benefits',
   'post_list',
-  'announcement'
+  'announcement',
+  'text_block'
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
   stats: 'Stats',
-  benefits: 'Benefits',
   post_list: 'Post List',
-  announcement: 'Announcement'
+  announcement: 'Announcement',
+  text_block: 'Text Block'
 };
 
 const localizedRequired = z.string().trim().min(1, {

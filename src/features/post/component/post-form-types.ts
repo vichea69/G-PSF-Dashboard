@@ -1,10 +1,11 @@
 import type { PostContent } from '@/server/action/post/types';
 import type { HeroBannerData } from '@/features/post/component/block/hero-banner/hero-banner-form';
 import type { StatsBlockData } from '@/features/post/component/block/stats/stats-form';
+import type { TextBlockData } from '@/features/post/component/block/text-block/text-block-form';
 
 export type LocalizedPostContent = {
-  en: PostContent | HeroBannerData | StatsBlockData | string;
-  km?: PostContent | HeroBannerData | StatsBlockData | string;
+  en: PostContent | HeroBannerData | StatsBlockData | TextBlockData | string;
+  km?: PostContent | HeroBannerData | StatsBlockData | TextBlockData | string;
 };
 
 export type PostDocumentAsset = {

@@ -14,6 +14,10 @@ import {
   StatsForm,
   type StatsBlockData
 } from '@/features/post/component/block/stats/stats-form';
+import {
+  TextBlockForm,
+  type TextBlockData
+} from '@/features/post/component/block/text-block/text-block-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -25,10 +29,12 @@ type PostContentCardProps = {
   descriptionKm: string;
   isHeroBannerSection: boolean;
   isStatsSection: boolean;
+  isTextBlockSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
   statsValue: StatsBlockData;
+  textBlockValue: TextBlockData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
@@ -36,6 +42,7 @@ type PostContentCardProps = {
   onEditorChange: (value: PostContent) => void;
   onBannerChange: (value: HeroBannerData) => void;
   onStatsChange: (value: StatsBlockData) => void;
+  onTextBlockChange: (value: TextBlockData) => void;
 };
 
 export function PostContentCard({
@@ -47,17 +54,20 @@ export function PostContentCard({
   descriptionKm,
   isHeroBannerSection,
   isStatsSection,
+  isTextBlockSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
   statsValue,
+  textBlockValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
   onDescriptionKmChange,
   onEditorChange,
   onBannerChange,
-  onStatsChange
+  onStatsChange,
+  onTextBlockChange
 }: PostContentCardProps) {
   return (
     <Card>
@@ -146,6 +156,17 @@ export function PostContentCard({
               language={activeLanguage}
               value={statsValue}
               onChange={onStatsChange}
+            />
+          </div>
+        ) : isTextBlockSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>
+              Text Block Content
+            </CardTitle>
+            <TextBlockForm
+              language={activeLanguage}
+              value={textBlockValue}
+              onChange={onTextBlockChange}
             />
           </div>
         ) : isAddressSection ? (
