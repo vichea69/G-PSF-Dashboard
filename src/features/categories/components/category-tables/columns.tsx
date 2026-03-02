@@ -3,6 +3,7 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { CategoryCellAction } from './cell-action';
 import { RelativeTime } from '@/components/ui/relative-time';
+import { Badge } from '@/components/ui/badge';
 
 export type CategoryRow = {
   id: number;
@@ -71,7 +72,31 @@ export const categoryColumns: ColumnDef<CategoryRow>[] = [
     id: 'createdBy',
     accessorFn: (row) => row.createdBy?.displayName ?? '',
     header: 'Created By',
-    cell: ({ cell }) => <div>{cell.getValue<string>()}</div>
+    cell: ({ cell }) => {
+      const raw = (cell.getValue<string>() ?? '').trim();
+      if (!raw) {
+        return <span className='text-muted-foreground'>-</span>;
+      }
+
+      const role = raw.toLowerCase();
+      const variant =
+        role === 'admin'
+          ? ('destructive' as const)
+          : role === 'editor'
+            ? ('info' as const)
+            : ('primary' as const);
+
+      return (
+        <Badge
+          variant={variant}
+          appearance='light'
+          size='sm'
+          className='capitalize'
+        >
+          {raw}
+        </Badge>
+      );
+    }
   },
   // {
   //   accessorKey: 'createdAt',
