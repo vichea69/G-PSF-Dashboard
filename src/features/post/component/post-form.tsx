@@ -19,6 +19,10 @@ import {
   createEmptyTextBlockData,
   type TextBlockData
 } from '@/features/post/component/block/text-block/text-block-form';
+import {
+  createEmptyWgCoChairsData,
+  type WgCoChairsData
+} from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 import { PostContentCard } from '@/features/post/component/post-form-sections/post-content-card';
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
@@ -26,7 +30,8 @@ import {
   getLocalizedContent,
   isHeroBannerContent,
   isStatsContent,
-  isTextBlockContent
+  isTextBlockContent,
+  isWgCoChairsContent
 } from '@/features/post/component/post-form-helpers';
 import { usePostFormState } from '@/features/post/component/use-post-form-state';
 import type { PostFormData } from '@/features/post/component/post-form-types';
@@ -102,6 +107,8 @@ export default function PostForm({
   const isAddressSection = selectedSection?.blockType === 'address';
   const isStatsSection = selectedSection?.blockType === 'stats';
   const isTextBlockSection = selectedSection?.blockType === 'text_block';
+  const isWgCoChairsSection =
+    selectedSection?.blockType === 'working_group_co_chairs';
 
   const heroBannerValue = isHeroBannerContent(formData.content?.en)
     ? (formData.content?.en as HeroBannerData)
@@ -115,10 +122,15 @@ export default function PostForm({
     ? (formData.content?.en as TextBlockData)
     : createEmptyTextBlockData();
 
+  const wgCoChairsValue = isWgCoChairsContent(formData.content?.en)
+    ? (formData.content?.en as WgCoChairsData)
+    : createEmptyWgCoChairsData();
+
   const editorValue =
     isHeroBannerContent(formData.content?.en) ||
     isStatsContent(formData.content?.en) ||
-    isTextBlockContent(formData.content?.en)
+    isTextBlockContent(formData.content?.en) ||
+    isWgCoChairsContent(formData.content?.en)
       ? ''
       : getLocalizedContent(formData.content, activeLanguage);
 
@@ -159,6 +171,7 @@ export default function PostForm({
         | HeroBannerData
         | StatsBlockData
         | TextBlockData
+        | WgCoChairsData
         | string
         | undefined
     ) => {
@@ -183,12 +196,16 @@ export default function PostForm({
           ? ({
               en: textBlockValue
             } as PostFormData['content'])
-          : {
-              en: normalizeContentEntry(formData.content?.en),
-              km: formData.content?.km
-                ? normalizeContentEntry(formData.content?.km)
-                : undefined
-            };
+          : isWgCoChairsSection
+            ? ({
+                en: wgCoChairsValue
+              } as PostFormData['content'])
+            : {
+                en: normalizeContentEntry(formData.content?.en),
+                km: formData.content?.km
+                  ? normalizeContentEntry(formData.content?.km)
+                  : undefined
+              };
 
     onSave({
       ...formData,
@@ -229,11 +246,13 @@ export default function PostForm({
             isHeroBannerSection={isHeroBannerSection}
             isStatsSection={isStatsSection}
             isTextBlockSection={isTextBlockSection}
+            isWgCoChairsSection={isWgCoChairsSection}
             isAddressSection={isAddressSection}
             editorValue={editorValue}
             heroBannerValue={heroBannerValue}
             statsValue={statsValue}
             textBlockValue={textBlockValue}
+            wgCoChairsValue={wgCoChairsValue}
             onTitleEnChange={(value) =>
               setFormData((prev) => ({ ...prev, titleEn: value }))
             }
@@ -283,44 +302,56 @@ export default function PostForm({
                 }
               }))
             }
+            onWgCoChairsChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: {
+                  ...(prev.content ?? {}),
+                  en: value
+                }
+              }))
+            }
           />
 
-          {!isHeroBannerSection && !isStatsSection && !isTextBlockSection && (
-            <>
-              {/* <PostImagesCard
+          {!isHeroBannerSection &&
+            !isStatsSection &&
+            !isTextBlockSection &&
+            !isWgCoChairsSection && (
+              <>
+                {/* <PostImagesCard
                 previewImages={previewImages}
                 initialFiles={initialFileMetadata}
                 onFilesChange={handleImagesChange}
               /> */}
 
-              <PostResourcesCard
-                coverImage={formData.coverImage ?? ''}
-                documents={formData.documents}
-                document={formData.document ?? ''}
-                documentThumbnail={formData.documentThumbnail ?? ''}
-                link={formData.link ?? ''}
-                activeLanguage={activeLanguage}
-                onCoverImageChange={(value) =>
-                  setFormData((prev) => ({ ...prev, coverImage: value }))
-                }
-                onDocumentsChange={(value) =>
-                  setFormData((prev) => ({ ...prev, documents: value }))
-                }
-                onDocumentChange={(value) =>
-                  setFormData((prev) => ({ ...prev, document: value }))
-                }
-                onDocumentThumbnailChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    documentThumbnail: value
-                  }))
-                }
-                onLinkChange={(value) =>
-                  setFormData((prev) => ({ ...prev, link: value }))
-                }
-              />
-            </>
-          )}
+                <PostResourcesCard
+                  coverImage={formData.coverImage ?? ''}
+                  documents={formData.documents}
+                  document={formData.document ?? ''}
+                  documentThumbnail={formData.documentThumbnail ?? ''}
+                  link={formData.link ?? ''}
+                  activeLanguage={activeLanguage}
+                  onCoverImageChange={(value) =>
+                    setFormData((prev) => ({ ...prev, coverImage: value }))
+                  }
+                  onDocumentsChange={(value) =>
+                    setFormData((prev) => ({ ...prev, documents: value }))
+                  }
+                  onDocumentChange={(value) =>
+                    setFormData((prev) => ({ ...prev, document: value }))
+                  }
+                  onDocumentThumbnailChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      documentThumbnail: value
+                    }))
+                  }
+                  onLinkChange={(value) =>
+                    setFormData((prev) => ({ ...prev, link: value }))
+                  }
+                />
+              </>
+            )}
         </div>
 
         <div className='space-y-6'>

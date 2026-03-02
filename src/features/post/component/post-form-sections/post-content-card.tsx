@@ -18,6 +18,10 @@ import {
   TextBlockForm,
   type TextBlockData
 } from '@/features/post/component/block/text-block/text-block-form';
+import {
+  WgCoChairsForm,
+  type WgCoChairsData
+} from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -30,11 +34,13 @@ type PostContentCardProps = {
   isHeroBannerSection: boolean;
   isStatsSection: boolean;
   isTextBlockSection: boolean;
+  isWgCoChairsSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
   statsValue: StatsBlockData;
   textBlockValue: TextBlockData;
+  wgCoChairsValue: WgCoChairsData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
@@ -43,6 +49,7 @@ type PostContentCardProps = {
   onBannerChange: (value: HeroBannerData) => void;
   onStatsChange: (value: StatsBlockData) => void;
   onTextBlockChange: (value: TextBlockData) => void;
+  onWgCoChairsChange: (value: WgCoChairsData) => void;
 };
 
 export function PostContentCard({
@@ -55,11 +62,13 @@ export function PostContentCard({
   isHeroBannerSection,
   isStatsSection,
   isTextBlockSection,
+  isWgCoChairsSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
   statsValue,
   textBlockValue,
+  wgCoChairsValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
@@ -67,7 +76,8 @@ export function PostContentCard({
   onEditorChange,
   onBannerChange,
   onStatsChange,
-  onTextBlockChange
+  onTextBlockChange,
+  onWgCoChairsChange
 }: PostContentCardProps) {
   return (
     <Card>
@@ -167,6 +177,17 @@ export function PostContentCard({
               language={activeLanguage}
               value={textBlockValue}
               onChange={onTextBlockChange}
+            />
+          </div>
+        ) : isWgCoChairsSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>
+              Working Group Co-Chairs
+            </CardTitle>
+            <WgCoChairsForm
+              language={activeLanguage}
+              value={wgCoChairsValue}
+              onChange={onWgCoChairsChange}
             />
           </div>
         ) : isAddressSection ? (

@@ -3,19 +3,23 @@ import * as z from 'zod';
 import type { Section } from '@/server/action/section/types';
 import type { LocalizedText } from '@/lib/helpers';
 
+export const WORKING_GROUP_CO_CHAIRS = 'working_group_co_chairs' as const;
+
 export const blockTypes = [
   'hero_banner',
   'stats',
   'post_list',
   'announcement',
-  'text_block'
+  'text_block',
+  WORKING_GROUP_CO_CHAIRS
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
   stats: 'Stats',
   post_list: 'Post List',
   announcement: 'Announcement',
-  text_block: 'Text Block'
+  text_block: 'Text Block',
+  [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs'
 };
 
 const localizedRequired = z.string().trim().min(1, {

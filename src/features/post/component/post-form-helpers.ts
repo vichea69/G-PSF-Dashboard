@@ -3,6 +3,7 @@ import { resolveApiAssetUrl } from '@/lib/asset-url';
 import type { HeroBannerData } from '@/features/post/component/block/hero-banner/hero-banner-form';
 import type { StatsBlockData } from '@/features/post/component/block/stats/stats-form';
 import type { TextBlockData } from '@/features/post/component/block/text-block/text-block-form';
+import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 import type {
   DerivedPostFields,
   LocalizedPostDocuments,
@@ -244,6 +245,14 @@ export const isTextBlockContent = (value: unknown): value is TextBlockData => {
   );
 };
 
+export const isWgCoChairsContent = (
+  value: unknown
+): value is WgCoChairsData => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as WgCoChairsData;
+  return Array.isArray(candidate.items);
+};
+
 export const getLocalizedContent = (
   content: LocalizedPostContent | undefined,
   language: 'en' | 'km'
@@ -253,6 +262,7 @@ export const getLocalizedContent = (
   if (isHeroBannerContent(value)) return '';
   if (isStatsContent(value)) return '';
   if (isTextBlockContent(value)) return '';
+  if (isWgCoChairsContent(value)) return '';
   return value as PostContent | string;
 };
 

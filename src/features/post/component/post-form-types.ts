@@ -2,10 +2,23 @@ import type { PostContent } from '@/server/action/post/types';
 import type { HeroBannerData } from '@/features/post/component/block/hero-banner/hero-banner-form';
 import type { StatsBlockData } from '@/features/post/component/block/stats/stats-form';
 import type { TextBlockData } from '@/features/post/component/block/text-block/text-block-form';
+import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 
 export type LocalizedPostContent = {
-  en: PostContent | HeroBannerData | StatsBlockData | TextBlockData | string;
-  km?: PostContent | HeroBannerData | StatsBlockData | TextBlockData | string;
+  en:
+    | PostContent
+    | HeroBannerData
+    | StatsBlockData
+    | TextBlockData
+    | WgCoChairsData
+    | string;
+  km?:
+    | PostContent
+    | HeroBannerData
+    | StatsBlockData
+    | TextBlockData
+    | WgCoChairsData
+    | string;
 };
 
 export type PostDocumentAsset = {
