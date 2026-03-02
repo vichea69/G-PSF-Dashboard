@@ -43,14 +43,6 @@ interface MenuItemRowProps {
   onDelete?: (itemId: string) => void;
 }
 
-const TYPE_DOT_COLORS: Record<MenuItem['type'], string> = {
-  page: 'bg-blue-400',
-  external: 'bg-emerald-400',
-  category: 'bg-violet-400',
-  post: 'bg-amber-400',
-  custom: 'bg-slate-400'
-};
-
 export function MenuItemRow({
   flat,
   index,
@@ -127,16 +119,6 @@ export function MenuItemRow({
               ) : (
                 <div className='w-5' />
               )}
-
-              {/* Type dot */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`h-2 w-2 shrink-0 rounded-full ${TYPE_DOT_COLORS[item.type] ?? TYPE_DOT_COLORS.custom}`}
-                  />
-                </TooltipTrigger>
-                <TooltipContent side='top'>{item.type}</TooltipContent>
-              </Tooltip>
 
               {/* Label & URL */}
               <div className='flex min-w-0 flex-1 items-center gap-3'>

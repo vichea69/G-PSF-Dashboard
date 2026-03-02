@@ -310,13 +310,11 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
             )}
             {menu ? (
               <Button
-                variant='ghost'
-                size='sm'
+                variant='destructive'
                 onClick={requestDeleteMenu}
                 disabled={deleteMenuMutation.isPending}
-                className='text-destructive hover:text-destructive hover:bg-destructive/10'
               >
-                <Trash2 className='mr-1.5 h-4 w-4' />
+                <Trash2 className='mr-2 h-4 w-4' />
                 Delete
               </Button>
             ) : null}

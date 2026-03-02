@@ -21,14 +21,13 @@ export function MenusList({ menus, activeSlug }: MenusListProps) {
                   ? 'border-l-primary bg-primary/5'
                   : 'hover:bg-muted/50 border-l-transparent'
               }`}
-              title={menu.description || undefined}
             >
               {/* Active/inactive dot */}
-              <div
+              {/* <div
                 className={`h-2 w-2 shrink-0 rounded-full ${
                   menu.isActive ? 'bg-emerald-500' : 'bg-muted-foreground/30'
                 }`}
-              />
+              /> */}
               {/* Menu name + item count */}
               <div className='flex min-w-0 flex-1 items-center justify-between gap-2'>
                 <span
