@@ -22,6 +22,10 @@ import {
   WgCoChairsForm,
   type WgCoChairsData
 } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
+import {
+  AnnualReportsForm,
+  type AnnualReportsData
+} from '@/features/post/component/block/annual-reports/annual-reports-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -35,12 +39,14 @@ type PostContentCardProps = {
   isStatsSection: boolean;
   isTextBlockSection: boolean;
   isWgCoChairsSection: boolean;
+  isAnnualReportsSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
   statsValue: StatsBlockData;
   textBlockValue: TextBlockData;
   wgCoChairsValue: WgCoChairsData;
+  annualReportsValue: AnnualReportsData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
@@ -50,6 +56,7 @@ type PostContentCardProps = {
   onStatsChange: (value: StatsBlockData) => void;
   onTextBlockChange: (value: TextBlockData) => void;
   onWgCoChairsChange: (value: WgCoChairsData) => void;
+  onAnnualReportsChange: (value: AnnualReportsData) => void;
 };
 
 export function PostContentCard({
@@ -63,12 +70,14 @@ export function PostContentCard({
   isStatsSection,
   isTextBlockSection,
   isWgCoChairsSection,
+  isAnnualReportsSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
   statsValue,
   textBlockValue,
   wgCoChairsValue,
+  annualReportsValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
@@ -77,7 +86,8 @@ export function PostContentCard({
   onBannerChange,
   onStatsChange,
   onTextBlockChange,
-  onWgCoChairsChange
+  onWgCoChairsChange,
+  onAnnualReportsChange
 }: PostContentCardProps) {
   return (
     <Card>
@@ -188,6 +198,17 @@ export function PostContentCard({
               language={activeLanguage}
               value={wgCoChairsValue}
               onChange={onWgCoChairsChange}
+            />
+          </div>
+        ) : isAnnualReportsSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>
+              Annual Reports
+            </CardTitle>
+            <AnnualReportsForm
+              language={activeLanguage}
+              value={annualReportsValue}
+              onChange={onAnnualReportsChange}
             />
           </div>
         ) : isAddressSection ? (

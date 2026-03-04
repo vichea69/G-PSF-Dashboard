@@ -3,6 +3,7 @@ import type { HeroBannerData } from '@/features/post/component/block/hero-banner
 import type { StatsBlockData } from '@/features/post/component/block/stats/stats-form';
 import type { TextBlockData } from '@/features/post/component/block/text-block/text-block-form';
 import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
+import type { AnnualReportsData } from '@/features/post/component/block/annual-reports/annual-reports-form';
 
 export type LocalizedPostContent = {
   en:
@@ -11,6 +12,7 @@ export type LocalizedPostContent = {
     | StatsBlockData
     | TextBlockData
     | WgCoChairsData
+    | AnnualReportsData
     | string;
   km?:
     | PostContent
@@ -18,6 +20,7 @@ export type LocalizedPostContent = {
     | StatsBlockData
     | TextBlockData
     | WgCoChairsData
+    | AnnualReportsData
     | string;
 };
 

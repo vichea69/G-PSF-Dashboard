@@ -23,6 +23,10 @@ import {
   createEmptyWgCoChairsData,
   type WgCoChairsData
 } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
+import {
+  createEmptyAnnualReportsData,
+  type AnnualReportsData
+} from '@/features/post/component/block/annual-reports/annual-reports-form';
 import { PostContentCard } from '@/features/post/component/post-form-sections/post-content-card';
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
@@ -31,7 +35,8 @@ import {
   isHeroBannerContent,
   isStatsContent,
   isTextBlockContent,
-  isWgCoChairsContent
+  isWgCoChairsContent,
+  isAnnualReportsContent
 } from '@/features/post/component/post-form-helpers';
 import { usePostFormState } from '@/features/post/component/use-post-form-state';
 import type { PostFormData } from '@/features/post/component/post-form-types';
@@ -109,6 +114,8 @@ export default function PostForm({
   const isTextBlockSection = selectedSection?.blockType === 'text_block';
   const isWgCoChairsSection =
     selectedSection?.blockType === 'working_group_co_chairs';
+  const isAnnualReportsSection =
+    selectedSection?.blockType === 'annual_reports';
 
   const heroBannerValue = isHeroBannerContent(formData.content?.en)
     ? (formData.content?.en as HeroBannerData)
@@ -126,11 +133,16 @@ export default function PostForm({
     ? (formData.content?.en as WgCoChairsData)
     : createEmptyWgCoChairsData();
 
+  const annualReportsValue = isAnnualReportsContent(formData.content?.en)
+    ? (formData.content?.en as AnnualReportsData)
+    : createEmptyAnnualReportsData();
+
   const editorValue =
     isHeroBannerContent(formData.content?.en) ||
     isStatsContent(formData.content?.en) ||
     isTextBlockContent(formData.content?.en) ||
-    isWgCoChairsContent(formData.content?.en)
+    isWgCoChairsContent(formData.content?.en) ||
+    isAnnualReportsContent(formData.content?.en)
       ? ''
       : getLocalizedContent(formData.content, activeLanguage);
 
@@ -172,6 +184,7 @@ export default function PostForm({
         | StatsBlockData
         | TextBlockData
         | WgCoChairsData
+        | AnnualReportsData
         | string
         | undefined
     ) => {
@@ -200,12 +213,16 @@ export default function PostForm({
             ? ({
                 en: wgCoChairsValue
               } as PostFormData['content'])
-            : {
-                en: normalizeContentEntry(formData.content?.en),
-                km: formData.content?.km
-                  ? normalizeContentEntry(formData.content?.km)
-                  : undefined
-              };
+            : isAnnualReportsSection
+              ? ({
+                  en: annualReportsValue
+                } as PostFormData['content'])
+              : {
+                  en: normalizeContentEntry(formData.content?.en),
+                  km: formData.content?.km
+                    ? normalizeContentEntry(formData.content?.km)
+                    : undefined
+                };
 
     onSave({
       ...formData,
@@ -247,12 +264,14 @@ export default function PostForm({
             isStatsSection={isStatsSection}
             isTextBlockSection={isTextBlockSection}
             isWgCoChairsSection={isWgCoChairsSection}
+            isAnnualReportsSection={isAnnualReportsSection}
             isAddressSection={isAddressSection}
             editorValue={editorValue}
             heroBannerValue={heroBannerValue}
             statsValue={statsValue}
             textBlockValue={textBlockValue}
             wgCoChairsValue={wgCoChairsValue}
+            annualReportsValue={annualReportsValue}
             onTitleEnChange={(value) =>
               setFormData((prev) => ({ ...prev, titleEn: value }))
             }
@@ -311,12 +330,22 @@ export default function PostForm({
                 }
               }))
             }
+            onAnnualReportsChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: {
+                  ...(prev.content ?? {}),
+                  en: value
+                }
+              }))
+            }
           />
 
           {!isHeroBannerSection &&
             !isStatsSection &&
             !isTextBlockSection &&
-            !isWgCoChairsSection && (
+            !isWgCoChairsSection &&
+            !isAnnualReportsSection && (
               <>
                 {/* <PostImagesCard
                 previewImages={previewImages}
