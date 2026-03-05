@@ -32,29 +32,7 @@ export const categoryColumns: ColumnDef<CategoryRow>[] = [
     header: ({ column }: { column: Column<CategoryRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Category Title' />
     ),
-    cell: ({ cell }) => {
-      const value = (cell.getValue<string>() ?? '').toString();
-      const raw = cell.column.getFilterValue() as string | undefined;
-      const term = (raw ?? '').trim();
-      if (!term) return <div>{value}</div>;
-      const escapeRegExp = (s: string) =>
-        s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`(${escapeRegExp(term)})`, 'ig');
-      const parts = value.split(regex);
-      return (
-        <div>
-          {parts.map((part, i) =>
-            regex.test(part) ? (
-              <span key={i} className='font-semibold text-green-600'>
-                {part}
-              </span>
-            ) : (
-              <span key={i}>{part}</span>
-            )
-          )}
-        </div>
-      );
-    },
+    cell: ({ cell }) => <div>{(cell.getValue<string>() ?? '').toString()}</div>,
     meta: {
       label: 'Name',
       placeholder: 'Search name...',
