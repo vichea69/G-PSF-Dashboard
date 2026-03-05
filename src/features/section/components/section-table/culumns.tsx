@@ -3,14 +3,16 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
 import { CellAction } from './cell-action';
-import {
-  getLocalizedText,
-  limitWords,
-  type LocalizedText
-} from '@/lib/helpers';
+import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 
 export type SectionRow = {
   id: number | string;
@@ -41,25 +43,6 @@ const getEnabledBadge = (enabled?: boolean) => {
   );
 };
 
-const highlightMatch = (value: string, term?: string) => {
-  const trimmed = (term ?? '').trim();
-  if (!trimmed) return <span>{value}</span>;
-  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escapeRegExp(trimmed)})`, 'ig');
-  const parts = value.split(regex);
-  return (
-    <>
-      {parts.map((part, index) =>
-        index % 2 === 1 ? (
-          <span key={index}>{part}</span>
-        ) : (
-          <span key={index}>{part}</span>
-        )
-      )}
-    </>
-  );
-};
-
 export const getSectionColumns = (
   language: Language
 ): ColumnDef<SectionRow>[] => [
@@ -78,9 +61,15 @@ export const getSectionColumns = (
     ),
     cell: ({ cell }) => {
       const value = (cell.getValue<string>() ?? '').toString();
-      const raw = cell.column.getFilterValue() as string | undefined;
-      const display = limitWords(value || 'Untitled', 8);
-      return <div>{highlightMatch(display, raw)}</div>;
+      return (
+        <TruncatedTooltipCell
+          text={value}
+          widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]'
+          tooltipClassName='max-w-[24rem] break-words'
+          minLength={12}
+          fallback='Untitled'
+        />
+      );
     },
     meta: {
       label: 'Title',
@@ -90,7 +79,30 @@ export const getSectionColumns = (
   },
   {
     accessorKey: 'pageSlug',
-    header: 'Page'
+    header: 'Page',
+    cell: ({ cell }) => {
+      const value = String(cell.getValue<string>() ?? '').trim();
+      if (!value) return <span className='text-muted-foreground'>-</span>;
+
+      const content = (
+        <div className='block w-[7rem] truncate sm:w-[9rem] lg:w-[12rem]'>
+          {value}
+        </div>
+      );
+
+      if (value.length <= 12) {
+        return content;
+      }
+
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{content}</TooltipTrigger>
+          <TooltipContent className='max-w-[20rem] break-all'>
+            {value}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
   },
   {
     accessorKey: 'blockType',

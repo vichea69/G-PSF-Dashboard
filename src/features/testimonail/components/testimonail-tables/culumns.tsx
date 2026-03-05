@@ -14,6 +14,7 @@ import {
 } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import { TestimonialCellAction } from './cell-action';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 
 export type TestimonialRow = {
   id: number | string;
@@ -59,27 +60,6 @@ const clampRating = (value: unknown) => {
   return Math.min(5, Math.max(0, numberValue));
 };
 
-const highlightMatch = (value: string, term?: string) => {
-  const trimmed = (term ?? '').trim();
-  if (!trimmed) return <span>{value}</span>;
-  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`(${escapeRegExp(trimmed)})`, 'ig');
-  const parts = value.split(regex);
-  return (
-    <>
-      {parts.map((part, index) =>
-        index % 2 === 1 ? (
-          <span key={index} className=''>
-            {part}
-          </span>
-        ) : (
-          <span key={index}>{part}</span>
-        )
-      )}
-    </>
-  );
-};
-
 const getAvatarSrc = (row: TestimonialRow) => {
   const raw = row as TestimonialRow & {
     avatar?: string;
@@ -117,12 +97,15 @@ export const getTestimonialColumns = (
     cell: ({ cell, row }) => {
       const value = (cell.getValue<string>() ?? '').toString() || 'Untitled';
       const quote = getLocalizedText(row.original.quote ?? '', language);
-      const raw = cell.column.getFilterValue() as string | undefined;
       return (
         <div className='space-y-1'>
-          <div className='leading-snug font-medium'>
-            {highlightMatch(value, raw)}
-          </div>
+          <TruncatedTooltipCell
+            text={value}
+            widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem] leading-snug font-medium'
+            tooltipClassName='max-w-[24rem] break-words'
+            minLength={12}
+            fallback='Untitled'
+          />
           {quote ? (
             <div className='text-muted-foreground line-clamp-2 max-w-[360px] text-xs'>
               “{limitWords(quote, 6)}”
@@ -147,14 +130,17 @@ export const getTestimonialColumns = (
       const name = (cell.getValue<string>() ?? '').toString();
       const role = getLocalizedText(row.original.authorRole ?? '', language);
       const company = (row.original.company ?? '').toString();
-      const raw = cell.column.getFilterValue() as string | undefined;
       const subtitle = [role, company].filter(Boolean).join(' • ');
 
       return (
         <div className='space-y-1'>
-          <div className='leading-none font-medium'>
-            {highlightMatch(name || 'Unknown', raw)}
-          </div>
+          <TruncatedTooltipCell
+            text={name || 'Unknown'}
+            widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem] leading-none font-medium'
+            tooltipClassName='max-w-[24rem] break-words'
+            minLength={12}
+            fallback='Unknown'
+          />
           {subtitle ? (
             <div className='text-muted-foreground text-xs'>
               {limitWords(subtitle)}

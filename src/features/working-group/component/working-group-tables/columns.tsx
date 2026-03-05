@@ -9,6 +9,7 @@ import { type Language } from '@/context/language-context';
 import type { WorkingGroupItem } from '@/server/action/working-group/working-group-type';
 import { CellAction } from './cell-action';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 
 export type WorkingGroupRow = WorkingGroupItem;
 
@@ -74,6 +75,14 @@ export const getWorkingGroupColumns = (
     header: ({ column }: { column: Column<WorkingGroupRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Title' />
     ),
+    cell: ({ cell }) => (
+      <TruncatedTooltipCell
+        text={String(cell.getValue() ?? '')}
+        widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]'
+        tooltipClassName='max-w-[24rem] break-words'
+        minLength={12}
+      />
+    ),
     meta: {
       label: 'Title',
       placeholder: 'Search title...',
@@ -84,7 +93,15 @@ export const getWorkingGroupColumns = (
     id: 'page',
     accessorFn: (row) =>
       getLocalizedText(row.page?.title ?? '', language) ?? row.page?.slug ?? '',
-    header: 'Page'
+    header: 'Page',
+    cell: ({ cell }) => (
+      <TruncatedTooltipCell
+        text={String(cell.getValue() ?? '')}
+        widthClassName='block w-[7rem] truncate sm:w-[9rem] lg:w-[12rem]'
+        tooltipClassName='max-w-[20rem] break-all'
+        minLength={12}
+      />
+    )
   },
   {
     accessorKey: 'status',

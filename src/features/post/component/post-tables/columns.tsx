@@ -5,13 +5,10 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Badge } from '@/components/ui/badge';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 import { CellAction } from './cell-action';
-import {
-  getLocalizedText,
-  limitWords,
-  type LocalizedText
-} from '@/lib/helpers';
+import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 
 export type PostRow = {
   id: number;
@@ -208,7 +205,14 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     header: ({ column }: { column: Column<PostRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Title' />
     ),
-    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 6),
+    cell: ({ cell }) => (
+      <TruncatedTooltipCell
+        text={String(cell.getValue() ?? '')}
+        widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]'
+        tooltipClassName='max-w-[24rem] break-words'
+        minLength={12}
+      />
+    ),
     enableColumnFilter: true,
     meta: { label: 'Title', placeholder: 'Search title...', variant: 'text' }
   },
@@ -222,7 +226,14 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     accessorFn: (row) =>
       getLocalizedText(row.category?.name ?? '', language) ?? '',
     header: 'Category',
-    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5)
+    cell: ({ cell }) => (
+      <TruncatedTooltipCell
+        text={String(cell.getValue() ?? '')}
+        widthClassName='block w-[7rem] truncate sm:w-[9rem] lg:w-[12rem]'
+        tooltipClassName='max-w-[20rem] break-words'
+        minLength={10}
+      />
+    )
   },
   {
     id: 'section',
@@ -248,7 +259,14 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
       return '';
     },
     header: 'Section',
-    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5),
+    cell: ({ cell }) => (
+      <TruncatedTooltipCell
+        text={String(cell.getValue() ?? '')}
+        widthClassName='block w-[7rem] truncate sm:w-[9rem] lg:w-[12rem]'
+        tooltipClassName='max-w-[20rem] break-all'
+        minLength={10}
+      />
+    ),
     enableColumnFilter: true,
     meta: {
       label: 'Section',
@@ -261,7 +279,14 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
     accessorFn: (row) =>
       getLocalizedText(row.page?.title ?? '', language) ?? row.page?.slug ?? '',
     header: 'Page',
-    cell: ({ cell }) => limitWords(String(cell.getValue() ?? ''), 5)
+    cell: ({ cell }) => (
+      <TruncatedTooltipCell
+        text={String(cell.getValue() ?? '')}
+        widthClassName='block w-[7rem] truncate sm:w-[9rem] lg:w-[12rem]'
+        tooltipClassName='max-w-[20rem] break-all'
+        minLength={12}
+      />
+    )
   },
   // {
   //   accessorKey: 'updatedAt',

@@ -6,11 +6,10 @@ import { CellAction } from './cell-action';
 import { type Language } from '@/context/language-context';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
-import { limitWords, type LocalizedText } from '@/lib/helpers';
+import { type LocalizedText } from '@/lib/helpers';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 type LocalizedValue = string | LocalizedText;
 type LocaleKey = 'en' | 'km';
-const PAGE_TITLE_WORD_LIMIT = 6;
-const PAGE_SLUG_WORD_LIMIT = 20;
 
 const DEFAULT_LOCALE_PRIORITY: LocaleKey[] = ['en', 'km'];
 
@@ -132,10 +131,14 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
           row.original?.title,
           localePriority
         );
-        const limitedValue = value
-          ? limitWords(value, PAGE_TITLE_WORD_LIMIT)
-          : '-';
-        return <div>{limitedValue}</div>;
+        return (
+          <TruncatedTooltipCell
+            text={value}
+            widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]'
+            tooltipClassName='max-w-[24rem] break-words'
+            minLength={12}
+          />
+        );
       },
       meta: {
         label: 'Name',
@@ -148,8 +151,15 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
       header: 'URL',
       cell: ({ cell }) => {
         const slug = toDisplayText(cell.getValue<unknown>(), localePriority);
-        const limitedSlug = slug ? limitWords(slug, PAGE_SLUG_WORD_LIMIT) : '-';
-        return <div className='max-w-[360px] truncate'>/{limitedSlug}</div>;
+        const fullUrl = slug ? `/${slug}` : '';
+        return (
+          <TruncatedTooltipCell
+            text={fullUrl}
+            widthClassName='block w-[7rem] truncate sm:w-[9rem] lg:w-[12rem]'
+            tooltipClassName='max-w-[20rem] break-all'
+            minLength={12}
+          />
+        );
       }
     },
     {
