@@ -6,12 +6,14 @@ import type { LocalizedText } from '@/lib/helpers';
 export const WORKING_GROUP_CO_CHAIRS = 'working_group_co_chairs' as const;
 export const ANNUAL_REPORTS = 'annual_reports' as const;
 export const ISSUES_RESPONSES = 'issues_responses' as const;
+export const ANNOUNCEMENT = 'announcement' as const;
+export const POST_LIST = 'post_list' as const;
 
 export const blockTypes = [
   'hero_banner',
   'stats',
-  'post_list',
-  'announcement',
+  POST_LIST,
+  ANNOUNCEMENT,
   'text_block',
   WORKING_GROUP_CO_CHAIRS,
   ANNUAL_REPORTS,
@@ -20,8 +22,8 @@ export const blockTypes = [
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
   stats: 'Stats',
-  post_list: 'Post List',
-  announcement: 'Announcement',
+  [POST_LIST]: 'Post List',
+  [ANNOUNCEMENT]: 'Announcement',
   text_block: 'Text Block',
   [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs',
   [ANNUAL_REPORTS]: 'Annual Reports',
@@ -66,6 +68,9 @@ export const formSchema = z.object({
 
 export type SectionFormValues = z.infer<typeof formSchema>;
 export type BlockType = (typeof blockTypes)[number];
+
+export const supportsSettingsWithCategories = (blockType: BlockType) =>
+  blockType === POST_LIST || blockType === ANNOUNCEMENT;
 
 const getLocalizedValue = (value: LocalizedText, key: 'en' | 'km') => {
   if (typeof value === 'string') return value;

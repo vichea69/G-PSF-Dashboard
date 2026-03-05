@@ -13,6 +13,7 @@ import { Form } from '@/components/ui/form';
 import {
   defaultValues,
   formSchema,
+  supportsSettingsWithCategories,
   type BlockType,
   type SectionFormValues
 } from './section-form.schema';
@@ -133,7 +134,7 @@ export default function SectionForm({
 
             <OrderEnabledRow control={form.control} />
 
-            {selectedBlockType === 'post_list' ? (
+            {supportsSettingsWithCategories(selectedBlockType) ? (
               <PostListForm
                 control={form.control as any}
                 categoryOptions={categoryOptions}
