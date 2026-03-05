@@ -20,7 +20,7 @@ export type Post = {
 export type PostInput = {
   title: { en: string; km?: string } | string;
   slug?: string;
-  description?: { en?: string; km?: string } | string;
+  description?: { en?: string; km?: string } | string | null;
   content?: LocalizedContent<PostContentValue> | PostContentValue;
   status: 'published' | 'draft';
   publishedAt?: string;

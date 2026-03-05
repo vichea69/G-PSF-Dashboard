@@ -5,6 +5,7 @@ import type { StatsBlockData } from '@/features/post/component/block/stats/stats
 import type { TextBlockData } from '@/features/post/component/block/text-block/text-block-form';
 import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 import type { AnnualReportsData } from '@/features/post/component/block/annual-reports/annual-reports-form';
+import type { IssuesResponsesData } from '@/features/post/component/block/issues-responses/issues-responses-form';
 import type {
   DerivedPostFields,
   LocalizedPostDocuments,
@@ -262,6 +263,14 @@ export const isAnnualReportsContent = (
   return Array.isArray(candidate.items);
 };
 
+export const isIssuesResponsesContent = (
+  value: unknown
+): value is IssuesResponsesData => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as IssuesResponsesData;
+  return Array.isArray(candidate.items);
+};
+
 export const getLocalizedContent = (
   content: LocalizedPostContent | undefined,
   language: 'en' | 'km'
@@ -273,6 +282,7 @@ export const getLocalizedContent = (
   if (isTextBlockContent(value)) return '';
   if (isWgCoChairsContent(value)) return '';
   if (isAnnualReportsContent(value)) return '';
+  if (isIssuesResponsesContent(value)) return '';
   return value as PostContent | string;
 };
 

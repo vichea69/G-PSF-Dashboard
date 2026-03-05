@@ -5,6 +5,7 @@ import type { LocalizedText } from '@/lib/helpers';
 
 export const WORKING_GROUP_CO_CHAIRS = 'working_group_co_chairs' as const;
 export const ANNUAL_REPORTS = 'annual_reports' as const;
+export const ISSUES_RESPONSES = 'issues_responses' as const;
 
 export const blockTypes = [
   'hero_banner',
@@ -13,7 +14,8 @@ export const blockTypes = [
   'announcement',
   'text_block',
   WORKING_GROUP_CO_CHAIRS,
-  ANNUAL_REPORTS
+  ANNUAL_REPORTS,
+  ISSUES_RESPONSES
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
@@ -22,7 +24,8 @@ export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   announcement: 'Announcement',
   text_block: 'Text Block',
   [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs',
-  [ANNUAL_REPORTS]: 'Annual Reports'
+  [ANNUAL_REPORTS]: 'Annual Reports',
+  [ISSUES_RESPONSES]: 'Issues & Responses'
 };
 
 const localizedRequired = z.string().trim().min(1, {

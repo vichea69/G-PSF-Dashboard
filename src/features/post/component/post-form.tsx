@@ -27,6 +27,10 @@ import {
   createEmptyAnnualReportsData,
   type AnnualReportsData
 } from '@/features/post/component/block/annual-reports/annual-reports-form';
+import {
+  createEmptyIssuesResponsesData,
+  type IssuesResponsesData
+} from '@/features/post/component/block/issues-responses/issues-responses-form';
 import { PostContentCard } from '@/features/post/component/post-form-sections/post-content-card';
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
@@ -36,7 +40,8 @@ import {
   isStatsContent,
   isTextBlockContent,
   isWgCoChairsContent,
-  isAnnualReportsContent
+  isAnnualReportsContent,
+  isIssuesResponsesContent
 } from '@/features/post/component/post-form-helpers';
 import { usePostFormState } from '@/features/post/component/use-post-form-state';
 import type { PostFormData } from '@/features/post/component/post-form-types';
@@ -116,6 +121,8 @@ export default function PostForm({
     selectedSection?.blockType === 'working_group_co_chairs';
   const isAnnualReportsSection =
     selectedSection?.blockType === 'annual_reports';
+  const isIssuesResponsesSection =
+    selectedSection?.blockType === 'issues_responses';
 
   const heroBannerValue = isHeroBannerContent(formData.content?.en)
     ? (formData.content?.en as HeroBannerData)
@@ -137,12 +144,17 @@ export default function PostForm({
     ? (formData.content?.en as AnnualReportsData)
     : createEmptyAnnualReportsData();
 
+  const issuesResponsesValue = isIssuesResponsesContent(formData.content?.en)
+    ? (formData.content?.en as IssuesResponsesData)
+    : createEmptyIssuesResponsesData();
+
   const editorValue =
     isHeroBannerContent(formData.content?.en) ||
     isStatsContent(formData.content?.en) ||
     isTextBlockContent(formData.content?.en) ||
     isWgCoChairsContent(formData.content?.en) ||
-    isAnnualReportsContent(formData.content?.en)
+    isAnnualReportsContent(formData.content?.en) ||
+    isIssuesResponsesContent(formData.content?.en)
       ? ''
       : getLocalizedContent(formData.content, activeLanguage);
 
@@ -185,6 +197,7 @@ export default function PostForm({
         | TextBlockData
         | WgCoChairsData
         | AnnualReportsData
+        | IssuesResponsesData
         | string
         | undefined
     ) => {
@@ -217,12 +230,16 @@ export default function PostForm({
               ? ({
                   en: annualReportsValue
                 } as PostFormData['content'])
-              : {
-                  en: normalizeContentEntry(formData.content?.en),
-                  km: formData.content?.km
-                    ? normalizeContentEntry(formData.content?.km)
-                    : undefined
-                };
+              : isIssuesResponsesSection
+                ? ({
+                    en: issuesResponsesValue
+                  } as PostFormData['content'])
+                : {
+                    en: normalizeContentEntry(formData.content?.en),
+                    km: formData.content?.km
+                      ? normalizeContentEntry(formData.content?.km)
+                      : undefined
+                  };
 
     onSave({
       ...formData,
@@ -265,6 +282,7 @@ export default function PostForm({
             isTextBlockSection={isTextBlockSection}
             isWgCoChairsSection={isWgCoChairsSection}
             isAnnualReportsSection={isAnnualReportsSection}
+            isIssuesResponsesSection={isIssuesResponsesSection}
             isAddressSection={isAddressSection}
             editorValue={editorValue}
             heroBannerValue={heroBannerValue}
@@ -272,6 +290,7 @@ export default function PostForm({
             textBlockValue={textBlockValue}
             wgCoChairsValue={wgCoChairsValue}
             annualReportsValue={annualReportsValue}
+            issuesResponsesValue={issuesResponsesValue}
             onTitleEnChange={(value) =>
               setFormData((prev) => ({ ...prev, titleEn: value }))
             }
@@ -339,13 +358,23 @@ export default function PostForm({
                 }
               }))
             }
+            onIssuesResponsesChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: {
+                  ...(prev.content ?? {}),
+                  en: value
+                }
+              }))
+            }
           />
 
           {!isHeroBannerSection &&
             !isStatsSection &&
             !isTextBlockSection &&
             !isWgCoChairsSection &&
-            !isAnnualReportsSection && (
+            !isAnnualReportsSection &&
+            !isIssuesResponsesSection && (
               <>
                 {/* <PostImagesCard
                 previewImages={previewImages}

@@ -26,6 +26,10 @@ import {
   AnnualReportsForm,
   type AnnualReportsData
 } from '@/features/post/component/block/annual-reports/annual-reports-form';
+import {
+  IssuesResponsesForm,
+  type IssuesResponsesData
+} from '@/features/post/component/block/issues-responses/issues-responses-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -40,6 +44,7 @@ type PostContentCardProps = {
   isTextBlockSection: boolean;
   isWgCoChairsSection: boolean;
   isAnnualReportsSection: boolean;
+  isIssuesResponsesSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
@@ -47,6 +52,7 @@ type PostContentCardProps = {
   textBlockValue: TextBlockData;
   wgCoChairsValue: WgCoChairsData;
   annualReportsValue: AnnualReportsData;
+  issuesResponsesValue: IssuesResponsesData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
@@ -57,6 +63,7 @@ type PostContentCardProps = {
   onTextBlockChange: (value: TextBlockData) => void;
   onWgCoChairsChange: (value: WgCoChairsData) => void;
   onAnnualReportsChange: (value: AnnualReportsData) => void;
+  onIssuesResponsesChange: (value: IssuesResponsesData) => void;
 };
 
 export function PostContentCard({
@@ -71,6 +78,7 @@ export function PostContentCard({
   isTextBlockSection,
   isWgCoChairsSection,
   isAnnualReportsSection,
+  isIssuesResponsesSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
@@ -78,6 +86,7 @@ export function PostContentCard({
   textBlockValue,
   wgCoChairsValue,
   annualReportsValue,
+  issuesResponsesValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
@@ -87,7 +96,8 @@ export function PostContentCard({
   onStatsChange,
   onTextBlockChange,
   onWgCoChairsChange,
-  onAnnualReportsChange
+  onAnnualReportsChange,
+  onIssuesResponsesChange
 }: PostContentCardProps) {
   return (
     <Card>
@@ -209,6 +219,17 @@ export function PostContentCard({
               language={activeLanguage}
               value={annualReportsValue}
               onChange={onAnnualReportsChange}
+            />
+          </div>
+        ) : isIssuesResponsesSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>
+              Issues & Responses
+            </CardTitle>
+            <IssuesResponsesForm
+              language={activeLanguage}
+              value={issuesResponsesValue}
+              onChange={onIssuesResponsesChange}
             />
           </div>
         ) : isAddressSection ? (

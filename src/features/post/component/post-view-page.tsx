@@ -80,7 +80,7 @@ export default function PostViewPage({
               en: formData.descriptionEn?.trim() || undefined,
               km: formData.descriptionKm?.trim() || undefined
             }
-          : undefined;
+          : null;
         const normalizeContentEntry = (value: unknown) => {
           if (!value) return { type: 'doc', content: [] };
           if (typeof value === 'string') {
@@ -160,7 +160,7 @@ export default function PostViewPage({
 
         const fd = new FormData();
         fd.append('title', JSON.stringify(payload.title));
-        if (payload.description) {
+        if (payload.description !== undefined) {
           fd.append('description', JSON.stringify(payload.description));
         }
         fd.append('content', JSON.stringify(payload.content));
@@ -210,11 +210,15 @@ export default function PostViewPage({
         const body = fd;
         // eslint-disable-next-line no-console
         console.log('[PostView] CREATE', 'server action');
-        if (isEditing) {
-          await updatePost(_postId, body);
-        } else {
-          await createPost(body);
+        const result = isEditing
+          ? await updatePost(_postId, body)
+          : await createPost(body);
+
+        if (result?.success === false) {
+          toast.error(result.error ?? 'Save failed');
+          return;
         }
+
         toast.success(isEditing ? 'Post updated' : 'Post created');
         qc.invalidateQueries({ queryKey: ['posts'] });
         router.replace('/admin/post');

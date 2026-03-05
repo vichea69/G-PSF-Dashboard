@@ -5,26 +5,61 @@ import { getAuthHeaders } from '@/server/action/userAuth/user';
 import { isAxiosError } from 'axios';
 import type { PostInput } from './types';
 
+const getActionErrorMessage = (error: unknown, fallback: string): string => {
+  if (isAxiosError(error)) {
+    const payload = error.response?.data as any;
+    const message =
+      payload?.message ??
+      payload?.error?.details ??
+      payload?.error?.message ??
+      payload?.error ??
+      error.message;
+
+    if (Array.isArray(message)) return message.join(', ');
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
 // Create post using server action
 export async function createPost(payload: PostInput | FormData) {
-  const headers = await getAuthHeaders();
-  const res = await api.post('/posts', payload, {
-    headers,
-    withCredentials: true
-  });
-  return res.data;
+  try {
+    const headers = await getAuthHeaders();
+    const res = await api.post('/posts', payload, {
+      headers,
+      withCredentials: true
+    });
+    return { success: true, data: res.data };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: getActionErrorMessage(error, 'Failed to create post')
+    };
+  }
 }
 // Update post using server action api
 export async function updatePost(
   postId: number | string,
   payload: PostInput | FormData
 ) {
-  const headers = await getAuthHeaders();
-  const res = await api.put(`/posts/${postId}`, payload, {
-    headers,
-    withCredentials: true
-  });
-  return res.data;
+  try {
+    const headers = await getAuthHeaders();
+    const res = await api.put(`/posts/${postId}`, payload, {
+      headers,
+      withCredentials: true
+    });
+    return { success: true, data: res.data };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: getActionErrorMessage(error, 'Failed to update post')
+    };
+  }
 }
 
 export async function getPost(postId: number | string) {
