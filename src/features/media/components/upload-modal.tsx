@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,19 +11,24 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Upload,
-  X,
-  FileImage,
-  FileVideo,
-  FileText,
-  File as FileIcon,
-  CheckCircle2
-} from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/lib/api';
+import { cn, formatBytes } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
+import {
+  CheckCircle2,
+  File as FileIcon,
+  FileArchive,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  FileVideo,
+  LoaderCircle,
+  RefreshCw,
+  TriangleAlert,
+  Upload
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UploadModalProps {
@@ -36,9 +41,13 @@ interface UploadFile {
   id: string;
   file: File;
   progress: number;
-  status: 'pending' | 'uploading' | 'complete' | 'error';
+  uploadedBytes: number;
+  totalBytes: number;
+  status: 'uploading' | 'complete' | 'error';
   error?: string;
 }
+
+const ACCEPTED_FILE_TYPES = 'image/*,video/*,application/pdf,.doc,.docx';
 
 const createUploadId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -74,11 +83,11 @@ export function UploadModal({
     : '/media/upload';
   const [uploads, setUploads] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
   const progressTimers = useRef<Map<string, ReturnType<typeof setInterval>>>(
     new Map()
   );
+  const requestControllers = useRef<Map<string, AbortController>>(new Map());
 
   const clearProgressTimer = useCallback((id: string) => {
     const timer = progressTimers.current.get(id);
@@ -93,12 +102,32 @@ export function UploadModal({
     progressTimers.current.clear();
   }, []);
 
+  const clearUploadRequest = useCallback((id: string) => {
+    requestControllers.current.delete(id);
+  }, []);
+
+  const cancelUploadRequest = useCallback((id: string) => {
+    const controller = requestControllers.current.get(id);
+    if (controller) {
+      controller.abort();
+      requestControllers.current.delete(id);
+    }
+  }, []);
+
+  const clearAllUploadRequests = useCallback(() => {
+    requestControllers.current.forEach((controller) => controller.abort());
+    requestControllers.current.clear();
+  }, []);
+
   const updateUploadProgress = useCallback((id: string, progress: number) => {
     setUploads((prev) =>
-      prev.map((u) =>
-        u.id === id
-          ? { ...u, progress: Math.min(100, Math.max(progress, u.progress)) }
-          : u
+      prev.map((upload) =>
+        upload.id === id
+          ? {
+              ...upload,
+              progress: Math.min(100, Math.max(progress, upload.progress))
+            }
+          : upload
       )
     );
   }, []);
@@ -106,27 +135,49 @@ export function UploadModal({
   const uploadFile = useCallback(
     async (upload: UploadFile): Promise<boolean> => {
       clearProgressTimer(upload.id);
+      cancelUploadRequest(upload.id);
+
+      const controller = new AbortController();
+      requestControllers.current.set(upload.id, controller);
+
       const timer = setInterval(() => {
         setUploads((prev) =>
-          prev.map((u) =>
-            u.id === upload.id
-              ? { ...u, progress: Math.min(95, u.progress + 3) }
-              : u
-          )
+          prev.map((item) => {
+            if (item.id !== upload.id || item.status !== 'uploading') {
+              return item;
+            }
+
+            const nextProgress = Math.min(95, item.progress + 3);
+            const nextUploadedBytes = item.totalBytes
+              ? Math.min(
+                  item.totalBytes,
+                  Math.round((item.totalBytes * nextProgress) / 100)
+                )
+              : item.uploadedBytes;
+
+            return {
+              ...item,
+              progress: nextProgress,
+              uploadedBytes: Math.max(item.uploadedBytes, nextUploadedBytes)
+            };
+          })
         );
-      }, 500);
+      }, 450);
+
       progressTimers.current.set(upload.id, timer);
 
       setUploads((prev) =>
-        prev.map((u) =>
-          u.id === upload.id
+        prev.map((item) =>
+          item.id === upload.id
             ? {
-                ...u,
+                ...item,
                 status: 'uploading',
-                progress: u.progress || 1,
+                progress: item.progress || 1,
+                uploadedBytes: item.uploadedBytes || 0,
+                totalBytes: item.totalBytes || item.file.size || 0,
                 error: undefined
               }
-            : u
+            : item
         )
       );
 
@@ -135,6 +186,7 @@ export function UploadModal({
 
       try {
         await api.post(uploadEndpoint, formData, {
+          signal: controller.signal,
           withCredentials: true,
           headers: {
             ...getClientAuthHeaders(),
@@ -142,23 +194,48 @@ export function UploadModal({
           },
           onUploadProgress: (event) => {
             clearProgressTimer(upload.id);
+
             const total = event.total ?? upload.file.size ?? 0;
+            const loaded = Math.min(
+              event.loaded ?? 0,
+              total || event.loaded || 0
+            );
             const nextProgress =
               total > 0
-                ? Math.round((event.loaded * 100) / total)
+                ? Math.round((loaded * 100) / total)
                 : Math.min(99, upload.progress + 5);
-            updateUploadProgress(upload.id, nextProgress);
+
+            setUploads((prev) =>
+              prev.map((item) =>
+                item.id === upload.id
+                  ? {
+                      ...item,
+                      progress: Math.max(item.progress, nextProgress),
+                      uploadedBytes: Math.max(item.uploadedBytes, loaded),
+                      totalBytes: total || item.totalBytes
+                    }
+                  : item
+              )
+            );
           }
         });
 
         clearProgressTimer(upload.id);
+        clearUploadRequest(upload.id);
         updateUploadProgress(upload.id, 100);
 
         setUploads((prev) =>
-          prev.map((u) =>
-            u.id === upload.id
-              ? { ...u, progress: 100, status: 'complete', error: undefined }
-              : u
+          prev.map((item) =>
+            item.id === upload.id
+              ? {
+                  ...item,
+                  progress: 100,
+                  uploadedBytes: item.totalBytes || item.file.size || 0,
+                  totalBytes: item.totalBytes || item.file.size || 0,
+                  status: 'complete',
+                  error: undefined
+                }
+              : item
           )
         );
 
@@ -167,6 +244,12 @@ export function UploadModal({
         return true;
       } catch (error: unknown) {
         clearProgressTimer(upload.id);
+        clearUploadRequest(upload.id);
+
+        if (isAxiosError(error) && error.code === 'ERR_CANCELED') {
+          return false;
+        }
+
         const message = isAxiosError(error)
           ? ((error.response?.data as any)?.message ??
             (error.response?.data as any)?.error ??
@@ -176,8 +259,10 @@ export function UploadModal({
             : 'Failed to upload file';
 
         setUploads((prev) =>
-          prev.map((u) =>
-            u.id === upload.id ? { ...u, status: 'error', error: message } : u
+          prev.map((item) =>
+            item.id === upload.id
+              ? { ...item, status: 'error', error: message }
+              : item
           )
         );
 
@@ -185,187 +270,289 @@ export function UploadModal({
         return false;
       }
     },
-    [clearProgressTimer, queryClient, updateUploadProgress, uploadEndpoint]
+    [
+      cancelUploadRequest,
+      clearProgressTimer,
+      clearUploadRequest,
+      queryClient,
+      updateUploadProgress,
+      uploadEndpoint
+    ]
   );
 
-  const handleFiles = useCallback((files: File[]) => {
-    if (!files.length) return;
+  const openFilePicker = useCallback(
+    (
+      onFilesSelected: (files: File[]) => void,
+      options?: { multiple?: boolean }
+    ) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = options?.multiple ?? true;
+      input.accept = ACCEPTED_FILE_TYPES;
+      input.onchange = (event) => {
+        const files = Array.from(
+          (event.target as HTMLInputElement).files || []
+        );
+        onFilesSelected(files);
+      };
+      input.click();
+    },
+    []
+  );
 
-    const newUploads: UploadFile[] = files.map((file) => ({
-      id: createUploadId(),
-      file,
-      progress: 0,
-      status: 'pending'
-    }));
+  const handleFiles = useCallback(
+    (files: File[]) => {
+      if (!files.length) return;
 
-    setUploads((prev) => [...prev, ...newUploads]);
-  }, []);
+      const newUploads: UploadFile[] = files.map((file) => ({
+        id: createUploadId(),
+        file,
+        progress: 0,
+        uploadedBytes: 0,
+        totalBytes: file.size || 0,
+        status: 'uploading'
+      }));
+
+      setUploads((prev) => [...prev, ...newUploads]);
+      newUploads.forEach((upload) => {
+        void uploadFile(upload);
+      });
+    },
+    [uploadFile]
+  );
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
+    (event: React.DragEvent) => {
+      event.preventDefault();
       setIsDragging(false);
-      const files = Array.from(e.dataTransfer.files);
-      handleFiles(files);
+      handleFiles(Array.from(event.dataTransfer.files));
     },
     [handleFiles]
   );
 
-  const handleSubmitUploads = useCallback(async () => {
-    const pending = uploads.filter(
-      (u) => u.status === 'pending' || u.status === 'error'
-    );
+  const retryUpload = useCallback(
+    (id: string) => {
+      const currentUpload = uploads.find((upload) => upload.id === id);
+      if (!currentUpload) return;
 
-    if (pending.length === 0) {
-      onOpenChange(false);
-      clearAllProgressTimers();
-      setUploads([]);
-      return;
-    }
+      const nextUpload: UploadFile = {
+        ...currentUpload,
+        progress: 0,
+        uploadedBytes: 0,
+        totalBytes: currentUpload.file.size || 0,
+        status: 'uploading',
+        error: undefined
+      };
 
-    setIsSubmitting(true);
-    const results = await Promise.all(pending.map((u) => uploadFile(u)));
-    setIsSubmitting(false);
+      setUploads((prev) =>
+        prev.map((upload) => (upload.id === id ? nextUpload : upload))
+      );
+      void uploadFile(nextUpload);
+    },
+    [uploadFile, uploads]
+  );
+
+  const clearUploads = useCallback(() => {
     clearAllProgressTimers();
+    clearAllUploadRequests();
+    setUploads([]);
+  }, [clearAllProgressTimers, clearAllUploadRequests]);
 
-    const hasError = results.some((r) => r === false);
-    if (!hasError) {
-      onOpenChange(false);
-      setUploads([]);
-    }
-  }, [clearAllProgressTimers, onOpenChange, uploadFile, uploads]);
+  useEffect(() => {
+    return () => {
+      clearAllProgressTimers();
+      clearAllUploadRequests();
+    };
+  }, [clearAllProgressTimers, clearAllUploadRequests]);
+
+  const hasActiveUploads = uploads.some(
+    (upload) => upload.status === 'uploading'
+  );
 
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return <FileImage className='h-8 w-8' />;
     if (type.startsWith('video/')) return <FileVideo className='h-8 w-8' />;
     if (type === 'application/pdf') return <FileText className='h-8 w-8' />;
+    if (type.includes('sheet') || type.includes('excel'))
+      return <FileSpreadsheet className='h-8 w-8' />;
+    if (type.includes('zip') || type.includes('rar'))
+      return <FileArchive className='h-8 w-8' />;
     return <FileIcon className='h-8 w-8' />;
   };
 
-  const removeUpload = (id: string) => {
-    clearProgressTimer(id);
-    setUploads((prev) => prev.filter((u) => u.id !== id));
+  const getProgressColor = (status: UploadFile['status']) => {
+    if (status === 'complete') return 'bg-green-600';
+    if (status === 'error') return 'bg-destructive';
+    return 'bg-orange-500';
+  };
+
+  const getProgressText = (upload: UploadFile) => {
+    const totalBytes = upload.totalBytes || upload.file.size || 0;
+    const uploadedBytes =
+      upload.status === 'complete'
+        ? totalBytes
+        : Math.min(upload.uploadedBytes, totalBytes || upload.uploadedBytes);
+
+    return `${formatBytes(uploadedBytes, { decimals: 1 })} of ${formatBytes(
+      totalBytes,
+      { decimals: 1 }
+    )}`;
+  };
+
+  const getStatusContent = (upload: UploadFile) => {
+    if (upload.status === 'complete') {
+      return (
+        <span className='inline-flex items-center gap-1 text-xs font-medium text-green-600'>
+          <CheckCircle2 className='h-3.5 w-3.5' />
+          Done
+        </span>
+      );
+    }
+
+    if (upload.status === 'error') {
+      return (
+        <span className='text-destructive inline-flex items-center gap-1 text-xs font-medium'>
+          <TriangleAlert className='h-3.5 w-3.5' />
+          Failed
+        </span>
+      );
+    }
+
+    return (
+      <span className='text-muted-foreground inline-flex items-center gap-1 text-xs font-medium'>
+        <LoaderCircle className='h-3 w-3 animate-spin' />
+        {Math.round(upload.progress)}%
+      </span>
+    );
+  };
+
+  const handleDialogChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      clearUploads();
+    }
+
+    onOpenChange(nextOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl'>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
+      <DialogContent className='max-w-[calc(100vw-1rem)] p-4 sm:max-w-xl sm:p-5'>
         <DialogHeader>
           <DialogTitle>Upload Files</DialogTitle>
-          <DialogDescription>
-            Drag and drop files here or click to browse. Supports images,
-            videos, PDFs, and documents.{' '}
+          <DialogDescription className='text-sm leading-5'>
+            Drag and drop files here or click to browse.{' '}
             {targetFolderId ? 'Files will be uploaded to this folder.' : ''}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Drop Zone */}
         <div
-          className={`relative rounded-lg border-2 border-dashed p-12 text-center transition-colors ${
+          className={cn(
+            'relative rounded-lg border-2 border-dashed p-5 text-center transition-colors sm:p-8',
             isDragging
               ? 'border-primary bg-primary/5'
               : 'border-border bg-muted/30'
-          }`}
-          onDragOver={(e) => {
-            e.preventDefault();
+          )}
+          onDragOver={(event) => {
+            event.preventDefault();
             setIsDragging(true);
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
         >
-          <Upload className='text-muted-foreground mx-auto h-12 w-12' />
-          <h3 className='mt-4 text-lg font-semibold'>
-            {isDragging ? 'Drop files here' : 'Drag & drop files here'}
+          <Upload className='text-muted-foreground mx-auto h-8 w-8 sm:h-10 sm:w-10' />
+          <h3 className='mt-3 text-sm font-semibold sm:text-base'>
+            {isDragging ? 'Drop files here' : 'Drag and drop files here'}
           </h3>
-          <p className='text-muted-foreground mt-2 text-sm'>or</p>
+          <p className='text-muted-foreground mt-1.5 text-xs sm:text-sm'>or</p>
           <Button
-            className='mt-4'
-            onClick={() => {
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.multiple = true;
-              input.accept = 'image/*,video/*,application/pdf,.doc,.docx';
-              input.onchange = (e) => {
-                const files = Array.from(
-                  (e.target as HTMLInputElement).files || []
-                );
-                handleFiles(files);
-              };
-              input.click();
-            }}
+            size='sm'
+            className='mt-3 w-full sm:w-auto'
+            onClick={() => openFilePicker(handleFiles)}
           >
             Browse Files
           </Button>
         </div>
 
-        {/* Upload Progress */}
         {uploads.length > 0 && (
-          <div className='mt-4 max-h-[300px] space-y-3 overflow-auto'>
+          <div className='mt-3 max-h-[50vh] space-y-2 overflow-auto'>
             {uploads.map((upload) => (
               <div
                 key={upload.id}
-                className='border-border bg-card flex items-center gap-3 rounded-lg border p-3'
+                className='border-border bg-card rounded-lg border p-3'
               >
-                <div className='text-muted-foreground'>
-                  {getFileIcon(upload.file.type)}
-                </div>
-                <div className='min-w-0 flex-1'>
-                  <p className='truncate text-sm font-medium'>
-                    {upload.file.name}
-                  </p>
-                  <div className='mt-1 flex items-center gap-2'>
-                    <Progress value={upload.progress} className='flex-1' />
-                    <span className='text-muted-foreground text-xs'>
-                      {Math.round(upload.progress)}%
-                    </span>
+                <div className='flex items-start gap-3'>
+                  <div className='border-border bg-muted/40 text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border'>
+                    {getFileIcon(upload.file.type)}
                   </div>
-                  {upload.status === 'error' && upload.error && (
-                    <p className='text-destructive mt-1 truncate text-xs'>
-                      {upload.error}
-                    </p>
-                  )}
+
+                  <div className='min-w-0 flex-1 space-y-2'>
+                    <div className='flex items-start justify-between gap-2'>
+                      <p className='truncate text-sm font-medium'>
+                        {upload.file.name}
+                      </p>
+                      {getStatusContent(upload)}
+                    </div>
+
+                    <Progress
+                      value={upload.progress}
+                      className='h-1.5'
+                      indicatorClassName={getProgressColor(upload.status)}
+                    />
+
+                    <div className='flex items-center justify-between gap-2'>
+                      <div className='min-w-0'>
+                        <p className='text-muted-foreground text-xs'>
+                          {getProgressText(upload)}
+                        </p>
+                        {upload.status === 'error' && upload.error && (
+                          <p className='text-destructive mt-1 truncate text-xs'>
+                            {upload.error}
+                          </p>
+                        )}
+                      </div>
+
+                      {upload.status === 'error' && (
+                        <div className='shrink-0'>
+                          <Button
+                            size='sm'
+                            variant='outline'
+                            className='h-7 px-2 text-xs'
+                            onClick={() => retryUpload(upload.id)}
+                          >
+                            <RefreshCw className='h-3.5 w-3.5' />
+                            Retry
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                {upload.status === 'complete' ? (
-                  <CheckCircle2 className='h-5 w-5 text-green-500' />
-                ) : (
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    onClick={() => removeUpload(upload.id)}
-                  >
-                    <X className='h-4 w-4' />
-                  </Button>
-                )}
               </div>
             ))}
           </div>
         )}
 
-        {/* Actions */}
-        {uploads.length > 0 && (
-          <div className='mt-4 flex justify-end gap-2'>
+        <div className='mt-3 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between'>
+          <p className='text-muted-foreground text-xs'>
+            {uploads.length === 0
+              ? 'Choose files to start uploading.'
+              : hasActiveUploads
+                ? 'Uploading...'
+                : 'Upload complete.'}
+          </p>
+
+          <div className='flex items-center justify-end gap-2'>
             <Button
-              variant='outline'
-              onClick={() => {
-                clearAllProgressTimers();
-                setUploads([]);
-              }}
+              variant={uploads.length > 0 ? 'primary' : 'outline'}
+              size='sm'
+              className='w-full sm:w-auto'
+              onClick={() => handleDialogChange(false)}
+              disabled={hasActiveUploads}
             >
-              Clear
-            </Button>
-            <Button
-              onClick={handleSubmitUploads}
-              disabled={
-                isSubmitting ||
-                uploads.every(
-                  (u) => u.status === 'complete' || u.status === 'uploading'
-                )
-              }
-            >
-              {isSubmitting ? 'Uploading...' : 'Done'}
+              Close
             </Button>
           </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );
