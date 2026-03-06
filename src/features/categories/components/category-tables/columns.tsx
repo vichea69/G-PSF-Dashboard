@@ -4,11 +4,19 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { CategoryCellAction } from './cell-action';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { Badge } from '@/components/ui/badge';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 
 export type CategoryRow = {
   id: number;
   name: string;
   description?: string;
+  relation?: {
+    totalPosts?: number;
+    totalPages?: number;
+    totalSections?: number;
+    pages?: unknown[];
+    sections?: unknown[];
+  };
   createdAt: string;
   updatedAt: string;
   createdBy: {
@@ -16,6 +24,12 @@ export type CategoryRow = {
     displayName: string;
     email: string;
   };
+};
+
+const toCount = (value: unknown) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.floor(parsed);
 };
 
 export const categoryColumns: ColumnDef<CategoryRow>[] = [
@@ -43,8 +57,25 @@ export const categoryColumns: ColumnDef<CategoryRow>[] = [
     accessorKey: 'description',
     header: 'Description',
     cell: ({ cell }) => (
-      <div className='max-w-[360px] truncate'>{cell.getValue<string>()}</div>
+      <TruncatedTooltipCell
+        text={String(cell.getValue<string>() ?? '')}
+        widthClassName='block w-[9rem] truncate sm:w-[13rem] lg:w-[20rem]'
+        tooltipClassName='max-w-[28rem] break-words'
+        minLength={20}
+      />
     )
+  },
+  {
+    id: 'totalPosts',
+    accessorFn: (row) => row.relation?.totalPosts ?? 0,
+    header: 'Posts',
+    cell: ({ cell }) => <span>{toCount(cell.getValue<number>())}</span>
+  },
+  {
+    id: 'Sections',
+    accessorFn: (row) => row.relation?.totalSections ?? 0,
+    header: 'Sections',
+    cell: ({ cell }) => <span>{toCount(cell.getValue<number>())}</span>
   },
   {
     id: 'createdBy',

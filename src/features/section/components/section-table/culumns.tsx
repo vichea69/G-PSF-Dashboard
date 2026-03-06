@@ -113,10 +113,10 @@ export const getSectionColumns = (
     header: 'Status',
     cell: ({ cell }) => getEnabledBadge(cell.getValue<boolean>())
   },
-  {
-    accessorKey: 'orderIndex',
-    header: 'Order'
-  },
+  // {
+  //   accessorKey: 'orderIndex',
+  //   header: 'Order'
+  // },
   {
     accessorKey: 'updatedAt',
     header: 'Updated',
