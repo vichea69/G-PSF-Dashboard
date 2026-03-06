@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 type PostQueryParams = {
   page?: number;
   pageSize?: number;
+  q?: string;
 };
 
 type PostListResponse = {
@@ -21,8 +22,15 @@ async function fetchPosts(
 ): Promise<PostListResponse> {
   const page = params.page ?? 1;
   const pageSize = params.pageSize ?? 10;
-  const res = await api.get('/posts', {
-    params: { page, pageSize }
+  const q = (params.q ?? '').trim();
+  const endpoint = q ? '/posts/search' : '/posts';
+  const res = await api.get(endpoint, {
+    params: {
+      page,
+      pageSize,
+      limit: pageSize,
+      ...(q ? { q } : {})
+    }
   });
   return res.data;
 }
@@ -30,9 +38,10 @@ async function fetchPosts(
 export function usePost(params: PostQueryParams = {}) {
   const page = params.page ?? 1;
   const pageSize = params.pageSize ?? 10;
+  const q = (params.q ?? '').trim();
 
   return useQuery({
-    queryKey: ['posts', page, pageSize],
-    queryFn: () => fetchPosts({ page, pageSize })
+    queryKey: ['posts', page, pageSize, q],
+    queryFn: () => fetchPosts({ page, pageSize, q })
   });
 }

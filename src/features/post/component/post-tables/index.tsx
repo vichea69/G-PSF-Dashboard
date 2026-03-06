@@ -4,13 +4,13 @@ import { useRouter } from 'next/navigation';
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
   getSortedRowModel
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
-import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
+import { DataTableViewOptions } from '@/components/ui/table/data-table-view-options';
 import { useLanguage } from '@/context/language-context';
 import { getPostColumns, type PostRow } from './columns';
+import { Input } from '@/components/ui/input';
 
 type PostTableListProps = {
   data: PostRow[];
@@ -19,6 +19,8 @@ type PostTableListProps = {
   pageCount: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 };
 
 export function PostTableList({
@@ -27,7 +29,9 @@ export function PostTableList({
   pageSize,
   pageCount,
   onPageChange,
-  onPageSizeChange
+  onPageSizeChange,
+  searchQuery,
+  onSearchChange
 }: PostTableListProps) {
   const router = useRouter();
   const { language } = useLanguage();
@@ -36,7 +40,6 @@ export function PostTableList({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
     pageCount,
@@ -80,8 +83,14 @@ export function PostTableList({
         }
       }}
     >
-      <div className='flex items-center justify-between'>
-        <DataTableToolbar table={table} />
+      <div className='flex w-full items-center justify-between gap-2 p-1'>
+        <Input
+          placeholder='Search posts...'
+          value={searchQuery}
+          onChange={(event) => onSearchChange(event.target.value)}
+          className='h-8 w-[12rem] lg:w-[20rem]'
+        />
+        <DataTableViewOptions table={table} />
       </div>
     </DataTable>
   );
