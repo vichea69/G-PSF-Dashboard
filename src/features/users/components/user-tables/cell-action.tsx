@@ -90,7 +90,7 @@ export function UsersCellAction({ data }: CellActionProps) {
 
           <DropdownMenuItem onClick={() => setOpenEdit(true)}>
             <IconEdit className='mr-2 h-4 w-4 text-fuchsia-500' />
-            <span className='text-fuchsia-500'> Edit Data </span>
+            <span className='text-fuchsia-500'> Edit </span>
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>

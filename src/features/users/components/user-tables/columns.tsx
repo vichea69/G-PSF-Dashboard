@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { UsersCellAction } from './cell-action';
+import { resolveApiAssetUrl } from '@/lib/asset-url';
 
 export type UserRow = {
   id: number;
@@ -21,8 +22,7 @@ export const userColumns: ColumnDef<UserRow>[] = [
     accessorKey: 'image',
     header: 'AVATAR',
     cell: ({ row }) => {
-      const src =
-        (row.getValue('image') as string) || 'https://github.com/shadcn.png';
+      const src = resolveApiAssetUrl((row.getValue('image') as string) || '');
       const username = (row.getValue('username') as string) || '';
       const base = username;
       const initials = base.slice(0, 2).toUpperCase() || 'US';

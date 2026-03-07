@@ -1,122 +1,352 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import Image from 'next/image';
+import { FileModal } from '@/components/modal/file-modal';
+import type { MediaFile } from '@/features/media/types/media-type';
+import { resolveApiAssetUrl, toApiAssetPath } from '@/lib/asset-url';
+import { handleImageUpload } from '@/lib/tiptap-utils';
+import { updateProfile } from '@/server/action/profile/profile';
+import {
+  getUserFromLocalStorage,
+  saveUserToLocalStorage
+} from '@/lib/auth-client';
+
+type ProfileRecord = {
+  username?: string | null;
+  email?: string | null;
+  bio?: string | null;
+  image?: string | null;
+};
+
+type ProfileFormValues = {
+  username: string;
+  email: string;
+  bio: string;
+  image: string;
+  password: string;
+};
 
 interface ProfileSettingsProps {
-  profile?: any;
+  profile?: ProfileRecord | null;
+}
+
+function createFormValues(profile?: ProfileRecord | null): ProfileFormValues {
+  return {
+    username: profile?.username ?? '',
+    email: profile?.email ?? '',
+    bio: profile?.bio ?? '',
+    image: profile?.image ?? '',
+    password: ''
+  };
+}
+
+function getInitials(value: string): string {
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, 2).toUpperCase() : 'PR';
 }
 
 export default function ProfileSettings({ profile }: ProfileSettingsProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState<ProfileFormValues>(() =>
+    createFormValues(profile)
+  );
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
+
+  useEffect(() => {
+    setFormData(createFormValues(profile));
+  }, [profile]);
+
+  const avatarPreviewUrl = useMemo(
+    () => resolveApiAssetUrl(formData.image),
+    [formData.image]
+  );
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const username = formData.username.trim();
+      const email = formData.email.trim();
+      const password = formData.password.trim();
+
+      if (!username) {
+        throw new Error('Username should not be empty');
+      }
+
+      if (!email) {
+        throw new Error('Email should not be empty');
+      }
+
+      const payload = {
+        username,
+        email,
+        bio: formData.bio.trim() || null,
+        image: formData.image.trim() || null,
+        ...(password ? { password } : {})
+      };
+
+      return updateProfile(payload);
+    },
+    onSuccess: (result: any) => {
+      const returnedUser =
+        result?.user ?? result?.data?.user ?? result?.data ?? null;
+      const currentUser = getUserFromLocalStorage();
+      if (currentUser) {
+        const nextUsername =
+          (typeof returnedUser?.username === 'string'
+            ? returnedUser.username.trim()
+            : '') ||
+          formData.username.trim() ||
+          currentUser.username;
+        const nextEmail =
+          (typeof returnedUser?.email === 'string'
+            ? returnedUser.email.trim()
+            : '') ||
+          formData.email.trim() ||
+          currentUser.email;
+        const nextBio =
+          (typeof returnedUser?.bio === 'string' ? returnedUser.bio : null) ??
+          formData.bio.trim() ??
+          '';
+        const nextImage = toApiAssetPath(
+          (typeof returnedUser?.image === 'string'
+            ? returnedUser.image
+            : null) ?? formData.image.trim()
+        );
+
+        saveUserToLocalStorage({
+          ...currentUser,
+          username: nextUsername,
+          email: nextEmail,
+          bio: nextBio,
+          image: nextImage
+        });
+      }
+
+      toast.success('Profile updated');
+      setFormData((prev) => ({ ...prev, password: '' }));
+      router.refresh();
+    },
+    onError: (error: any) => {
+      toast.error(error?.message ?? 'Failed to update profile');
+    }
+  });
+
+  const handleFieldChange = (field: keyof ProfileFormValues, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCancel = () => {
+    setFormData(createFormValues(profile));
+  };
+
+  const handleSelectImageFromMedia = (file: MediaFile) => {
+    const selectedUrl = (file.url ?? file.thumbnail ?? '').trim();
+    if (!selectedUrl) {
+      toast.error('Selected media does not have a valid image URL');
+      return;
+    }
+
+    handleFieldChange('image', toApiAssetPath(selectedUrl));
+  };
+
+  const handleUploadImageFromDevice = async (files: File[]) => {
+    const firstFile = files[0];
+    if (!firstFile) return;
+
+    setImageUploadLoading(true);
+    try {
+      const result = await handleImageUpload(firstFile);
+      if (!result?.url) {
+        throw new Error('Upload succeeded but no URL was returned');
+      }
+
+      handleFieldChange('image', toApiAssetPath(result.url));
+      await queryClient.invalidateQueries({
+        queryKey: ['media'],
+        exact: false
+      });
+      toast.success('Avatar selected successfully');
+    } catch (error: any) {
+      toast.error(error?.message ?? 'Failed to upload avatar');
+    } finally {
+      setImageUploadLoading(false);
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    saveMutation.mutate();
+  };
+
+  const isBusy = saveMutation.isPending || imageUploadLoading;
+
   return (
-    <div className='flex flex-col gap-6'>
-      <Card className='overflow-hidden'>
-        <CardContent className='py-6'>
-          <div className='grid gap-6'>
-            {/* Avatar Row */}
-            <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
-              <div className='text-sm font-medium md:col-span-2'>Avatar</div>
-              <div className='flex items-center justify-between md:col-span-10'>
-                <div className='flex items-center gap-3'>
-                  <Avatar className='h-16 w-16'>
-                    {profile?.image ? (
-                      <Image
-                        src={profile.image}
-                        alt='avatar'
-                        className='h-full w-full rounded-full object-cover'
-                        width={100}
-                        height={100}
-                      />
-                    ) : (
-                      <AvatarFallback>
-                        {profile?.username ? (
-                          profile.username.slice(0, 2).toUpperCase()
+    <>
+      <form onSubmit={handleSubmit}>
+        <div className='flex flex-col gap-6'>
+          <Card className='overflow-hidden'>
+            <CardContent className='py-6'>
+              <div className='grid gap-6'>
+                <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>
+                    Avatar
+                  </div>
+                  <div className='flex flex-col gap-4 md:col-span-10 md:flex-row md:items-center md:justify-between'>
+                    <div className='flex items-center gap-3'>
+                      <Avatar className='h-16 w-16'>
+                        {avatarPreviewUrl ? (
+                          <AvatarImage src={avatarPreviewUrl} alt='avatar' />
                         ) : (
-                          <span className='h-full w-full rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400' />
+                          <AvatarFallback className='text-sm font-semibold'>
+                            {getInitials(formData.username)}
+                          </AvatarFallback>
                         )}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className='text-muted-foreground text-sm'>Optional</div>
+                      </Avatar>
+                    </div>
+
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => setImagePickerOpen(true)}
+                        disabled={isBusy}
+                      >
+                        Select from Media
+                      </Button>
+                      {formData.image ? (
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => handleFieldChange('image', '')}
+                          disabled={isBusy}
+                        >
+                          Clear
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
-                <div className='flex items-center gap-2'>
-                  <Input type='file' accept='image/*' />
+
+                <Separator />
+
+                <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>
+                    Username
+                  </div>
+                  <div className='md:col-span-4'>
+                    <Input
+                      id='username'
+                      value={formData.username}
+                      onChange={(event) =>
+                        handleFieldChange('username', event.target.value)
+                      }
+                      placeholder='Your username'
+                      disabled={isBusy}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>Email</div>
+                  <div className='md:col-span-4'>
+                    <Input
+                      id='email'
+                      type='email'
+                      value={formData.email}
+                      onChange={(event) =>
+                        handleFieldChange('email', event.target.value)
+                      }
+                      placeholder='you@example.com'
+                      disabled={isBusy}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>Bio</div>
+                  <div className='md:col-span-4'>
+                    <Textarea
+                      id='bio'
+                      value={formData.bio}
+                      onChange={(event) =>
+                        handleFieldChange('bio', event.target.value)
+                      }
+                      rows={4}
+                      placeholder='Tell us about yourself'
+                      disabled={isBusy}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>
+                    Password
+                  </div>
+                  <div className='md:col-span-4'>
+                    <Input
+                      id='password'
+                      type='password'
+                      value={formData.password}
+                      onChange={(event) =>
+                        handleFieldChange('password', event.target.value)
+                      }
+                      placeholder='New password'
+                      disabled={isBusy}
+                    />
+                    <p className='text-muted-foreground mt-2 text-xs'>
+                      Leave blank to keep your current password.
+                    </p>
+                  </div>
+                </div>
+
+                <div className='flex items-center justify-end gap-2 pt-2'>
+                  <Button
+                    variant='outline'
+                    type='button'
+                    onClick={handleCancel}
+                    disabled={isBusy}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type='submit' disabled={isBusy}>
+                    {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+        </div>
+      </form>
 
-            <Separator />
-
-            {/* Username Row */}
-            <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
-              <div className='text-sm font-medium md:col-span-2'>Username</div>
-              <div className='md:col-span-3'>
-                <Input
-                  id='username'
-                  defaultValue={profile?.username}
-                  placeholder='Your username'
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Email Row */}
-            <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
-              <div className='text-sm font-medium md:col-span-2'>Email</div>
-              <div className='md:col-span-3'>
-                <Input
-                  id='email'
-                  type='email'
-                  defaultValue={profile.email}
-                  placeholder='you@example.com'
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Bio Row */}
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-              <div className='text-sm font-medium md:col-span-2'>Bio</div>
-              <div className='md:col-span-3'>
-                <Textarea
-                  id='bio'
-                  defaultValue={profile.bio}
-                  rows={4}
-                  placeholder='Tell us about yourself'
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Password Row */}
-            <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
-              <div className='text-sm font-medium md:col-span-2'>Password:</div>
-              <div className='md:col-span-3'>
-                <Input
-                  id='password'
-                  type='password'
-                  placeholder='New password'
-                />
-              </div>
-            </div>
-
-            <div className='flex items-center justify-end gap-2 pt-2'>
-              <Button variant='outline' type='button'>
-                Cancel
-              </Button>
-              <Button type='button'>Save Change</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      <FileModal
+        isOpen={imagePickerOpen}
+        onClose={() => setImagePickerOpen(false)}
+        onSelect={handleSelectImageFromMedia}
+        onUploadFromDevice={handleUploadImageFromDevice}
+        loading={imageUploadLoading}
+        title='Select avatar image'
+        description='Choose an image from Media Manager.'
+        types={['image']}
+        accept='image/*'
+      />
+    </>
   );
 }

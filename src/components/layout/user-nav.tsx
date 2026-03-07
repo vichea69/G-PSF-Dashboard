@@ -1,9 +1,8 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import * as React from 'react';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { getUserFromLocalStorage } from '@/lib/auth-client';
+import { clearUserFromLocalStorage } from '@/lib/auth-client';
 import { logoutAction } from '@/server/action/userAuth/user';
 import {
   DropdownMenu,
@@ -16,45 +15,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { IconLogout, IconUserCircle } from '@tabler/icons-react';
 import { PaletteIcon } from 'lucide-react';
-import { ThemeSelector } from '../theme-selector';
+import { useAuthUser } from '@/hooks/use-auth-user';
 
 export function UserNav() {
   const router = useRouter();
-  const [user, setUser] = React.useState<any | null>(null);
-
-  React.useEffect(() => {
-    const u = getUserFromLocalStorage();
-    if (u) {
-      setUser({
-        imageUrl: u.image ?? '',
-        fullName: u.username ?? u.email?.split('@')[0] ?? '',
-        emailAddresses: [{ emailAddress: u.email }]
-      });
-    }
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'current_user') {
-        const next = getUserFromLocalStorage();
-        if (next) {
-          setUser({
-            imageUrl: next.image ?? '',
-            fullName: next.username ?? next.email?.split('@')[0] ?? '',
-            emailAddresses: [{ emailAddress: next.email }]
-          });
-        } else {
-          setUser(null);
-        }
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  const user = useAuthUser();
 
   async function handleLogout() {
-    try {
-      localStorage.removeItem('current_user');
-      window.dispatchEvent(new Event('auth:user'));
-    } catch {}
+    clearUserFromLocalStorage();
     await logoutAction();
   }
 

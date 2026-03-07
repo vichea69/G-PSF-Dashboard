@@ -1,4 +1,6 @@
 'use client';
+import Image from 'next/image';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -31,6 +33,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createAdminUser, updateAdminUser } from '@/server/action/admin/admin';
 import { toast } from 'sonner';
 import type { UserRow } from './user-tables/columns';
+import { FileModal } from '@/components/modal/file-modal';
+import type { MediaFile } from '@/features/media/types/media-type';
+import { resolveApiAssetUrl, toApiAssetPath } from '@/lib/asset-url';
 
 const baseSchema = z.object({
   username: z.string().trim().min(1, 'username should not be empty'),
@@ -75,6 +80,7 @@ export function UserUpsertDialog({
   initialData?: Partial<UserRow>;
 }) {
   const qc = useQueryClient();
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(mode === 'create' ? createSchema : editSchema),
     defaultValues: {
@@ -144,6 +150,20 @@ export function UserUpsertDialog({
   const onSubmit = (values: FormValues) => {
     if (mode === 'create') return createMutation.mutate(values);
     return updateMutation.mutate(values);
+  };
+
+  const handleSelectImageFromMedia = (file: MediaFile) => {
+    const selectedUrl = (file.url ?? file.thumbnail ?? '').trim();
+    if (!selectedUrl) {
+      toast.error('Selected media does not have a valid image URL');
+      return;
+    }
+
+    form.setValue('image', toApiAssetPath(selectedUrl), {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true
+    });
   };
 
   const loading = createMutation.isPending || updateMutation.isPending;
@@ -235,14 +255,48 @@ export function UserUpsertDialog({
               name='image'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL (optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='url'
-                      placeholder='https://example.com/avatar.png'
-                      {...field}
-                    />
-                  </FormControl>
+                  <div className='flex items-center justify-between gap-2'>
+                    <FormLabel>Image (optional)</FormLabel>
+                    <div className='flex items-center gap-2'>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => setImagePickerOpen(true)}
+                        disabled={loading}
+                      >
+                        Select from Media
+                      </Button>
+                      {field.value ? (
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => field.onChange('')}
+                          disabled={loading}
+                        >
+                          Clear
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                  {field.value ? (
+                    <div className='bg-muted/30 mt-2 flex items-center gap-3 rounded-md border p-3'>
+                      <div className='relative h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-white'>
+                        <Image
+                          src={resolveApiAssetUrl(field.value)}
+                          alt='User image preview'
+                          fill
+                          unoptimized
+                          className='object-cover'
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className='text-muted-foreground mt-2 rounded-md border border-dashed p-3 text-sm'>
+                      No image selected.
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -288,6 +342,17 @@ export function UserUpsertDialog({
             </div>
           </form>
         </Form>
+
+        <FileModal
+          isOpen={imagePickerOpen}
+          onClose={() => setImagePickerOpen(false)}
+          onSelect={handleSelectImageFromMedia}
+          allowUploadFromDevice={false}
+          title='Select user image'
+          description='Select an image from Media Manager.'
+          types={['image']}
+          accept='image/*'
+        />
       </DialogContent>
     </Dialog>
   );
