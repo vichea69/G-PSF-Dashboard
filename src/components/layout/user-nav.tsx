@@ -55,11 +55,11 @@ export function UserNav() {
             Profile & Setting
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        {/* <DropdownMenuSeparator /> */}
+        {/* <DropdownMenuItem>
           <PaletteIcon className='mr-2 h-4 w-4' />
           Theme colors
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <IconLogout className='mr-2 h-4 w-4' />

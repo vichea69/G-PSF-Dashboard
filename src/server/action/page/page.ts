@@ -189,3 +189,16 @@ export async function getPageById(id: string | number) {
   );
   return res.data;
 }
+
+export async function getPageTree(id: string | number) {
+  const pageId = normalizePageIdentifier(id);
+
+  const headers = await getAuthHeaders();
+  const res = await requestPageByIdentifier(pageId, headers, (identifier) =>
+    api.get(`/pages/${encodeURIComponent(identifier)}/tree`, {
+      headers,
+      withCredentials: true
+    })
+  );
+  return res.data;
+}

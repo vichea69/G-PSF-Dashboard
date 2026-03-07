@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
+import { GitBranch } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -76,6 +77,16 @@ export function CellAction({ data }: CellActionProps) {
     }
   };
 
+  const handleViewTree = () => {
+    const pageId = resolvePageId(data);
+    if (!pageId) {
+      toast.error('Page id is missing');
+      return;
+    }
+
+    router.push(`/admin/page/${encodeURIComponent(pageId)}/tree`);
+  };
+
   return (
     <>
       <AlertModal
@@ -84,32 +95,37 @@ export function CellAction({ data }: CellActionProps) {
         onConfirm={onConfirm}
         loading={loading}
       />
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
-            <IconDotsVertical className='h-4 w-4' />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => {
-              const pageId = resolvePageId(data);
-              if (!pageId) {
-                toast.error('Page id is missing');
-                return;
-              }
-              router.push(`/admin/page/${encodeURIComponent(pageId)}`);
-            }}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Update
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className='flex items-center gap-2'>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant='ghost' className='h-8 w-8 p-0'>
+              <span className='sr-only'>Open menu</span>
+              <IconDotsVertical className='h-4 w-4' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end'>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={handleViewTree}>
+              <GitBranch className='mr-2 h-4 w-4' /> View Tree
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const pageId = resolvePageId(data);
+                if (!pageId) {
+                  toast.error('Page id is missing');
+                  return;
+                }
+                router.push(`/admin/page/${encodeURIComponent(pageId)}`);
+              }}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Update
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </>
   );
 }
