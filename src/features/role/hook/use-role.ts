@@ -1,12 +1,17 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
 import {
   type RoleDetailData,
   type RolePermissionInput,
   RoleAPI,
   type RoleResourceDefinition
 } from '@/features/role/type/role';
+import {
+  getRoleById,
+  getRolePermissions,
+  getRoleResourceDefinitions,
+  getRoles
+} from '@/server/action/admin/role';
 
 function extractData<T>(payload: unknown): T | null {
   const raw = payload as any;
@@ -19,6 +24,8 @@ function extractData<T>(payload: unknown): T | null {
 }
 
 function extractRoles(payload: unknown): RoleAPI[] {
+  // Role endpoints sometimes wrap the list inside `data.data`,
+  // so we normalize everything here before the table uses it.
   const data = extractData<unknown>(payload);
 
   if (Array.isArray(data)) return data as RoleAPI[];
@@ -28,6 +35,8 @@ function extractRoles(payload: unknown): RoleAPI[] {
 }
 
 function extractRoleDetail(payload: unknown): RoleDetailData | null {
+  // Edit role uses the newer `{ role, matrix, stats }` response shape,
+  // but we keep a fallback for older flat role responses too.
   const data = extractData<unknown>(payload);
 
   if (data && typeof data === 'object' && !Array.isArray(data)) {
@@ -75,24 +84,25 @@ function extractRolePermissions(payload: unknown): RolePermissionInput[] {
   return [];
 }
 
-// Get all roles from API
+// All role reads go through server actions so production requests keep auth headers.
 export const useRole = () => {
   return useQuery<RoleAPI[]>({
     queryKey: ['roles'],
     queryFn: async () => {
-      const response = await api.get('/roles');
-      return extractRoles(response.data);
+      const response = await getRoles();
+      return extractRoles(response);
     }
   });
 };
 
 export const useRoleDetail = (identifier: string) => {
   return useQuery<RoleDetailData | null>({
+    // Wait until we have a usable id before calling the backend.
     enabled: Boolean(identifier?.trim()),
     queryKey: ['role', identifier],
     queryFn: async () => {
-      const response = await api.get(`/roles/${identifier}`);
-      return extractRoleDetail(response.data);
+      const response = await getRoleById(identifier);
+      return extractRoleDetail(response);
     }
   });
 };
@@ -104,8 +114,8 @@ export const useRolePermissions = (identifier?: string | number | null) => {
     enabled: Boolean(normalized),
     queryKey: ['role-permissions', normalized],
     queryFn: async () => {
-      const response = await api.get(`/roles/${normalized}/permissions`);
-      return extractRolePermissions(response.data);
+      const response = await getRolePermissions(normalized);
+      return extractRolePermissions(response);
     }
   });
 };
@@ -114,8 +124,8 @@ export const useResources = () => {
   return useQuery<RoleResourceDefinition[]>({
     queryKey: ['resources'],
     queryFn: async () => {
-      const response = await api.get('/roles/resources/definition');
-      return extractResources(response.data);
+      const response = await getRoleResourceDefinitions();
+      return extractResources(response);
     }
   });
 };

@@ -7,6 +7,43 @@ import type {
   UpdateRolePermissions
 } from './types';
 
+// Read actions are server-side so the browser does not call protected role APIs directly.
+export async function getRoles() {
+  const headers = await getAuthHeaders();
+  const res = await api.get('/roles', {
+    headers,
+    withCredentials: true
+  });
+  return res.data;
+}
+
+export async function getRoleById(id: string | number) {
+  const headers = await getAuthHeaders();
+  const res = await api.get(`/roles/${id}`, {
+    headers,
+    withCredentials: true
+  });
+  return res.data;
+}
+
+export async function getRolePermissions(id: string | number) {
+  const headers = await getAuthHeaders();
+  const res = await api.get(`/roles/${id}/permissions`, {
+    headers,
+    withCredentials: true
+  });
+  return res.data;
+}
+
+export async function getRoleResourceDefinitions() {
+  const headers = await getAuthHeaders();
+  const res = await api.get('/roles/resources/definition', {
+    headers,
+    withCredentials: true
+  });
+  return res.data;
+}
+
 // Delete role and permission
 export async function DeleteRole(id: number) {
   const headers = await getAuthHeaders();
@@ -74,6 +111,8 @@ export async function UpdateRoleInfoById(id: number, payload: UpdateRoleInfo) {
   } catch (error: any) {
     const status = error?.response?.status;
 
+    // Some environments accept PATCH instead of PUT for role info updates.
+    // Retry once so the edit page works against both variants.
     if (status === 404 || status === 405) {
       try {
         const res = await api.patch(`/roles/${id}`, payload, {

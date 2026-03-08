@@ -99,7 +99,7 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
           {canUpdateRole ? (
             <DropdownMenuItem onClick={onManage}>
               <IconEdit className='mr-2 h-4 w-4 text-blue-500' />
-              <span className='text-blue-500'>Edit role</span>
+              <span className='text-blue-500'>Edit</span>
             </DropdownMenuItem>
           ) : null}
           {canDeleteRole ? (
