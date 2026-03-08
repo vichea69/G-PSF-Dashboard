@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AlertModal } from '@/components/modal/alert-modal';
 import { Button } from '@/components/ui/button';
+import { usePermissions } from '@/context/permission-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { deleteWorkingGroup } from '@/server/action/working-group/working-group';
 import type { WorkingGroupRow } from './columns';
 
@@ -26,6 +28,16 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateWorkingGroup = can(
+    adminRoutePermissions.workingGroups.update.resource,
+    adminRoutePermissions.workingGroups.update.action
+  );
+  const canDeleteWorkingGroup = can(
+    adminRoutePermissions.workingGroups.delete.resource,
+    adminRoutePermissions.workingGroups.delete.action
+  );
 
   const onConfirm = async () => {
     try {
@@ -59,6 +71,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     }
   };
 
+  if (!canUpdateWorkingGroup && !canDeleteWorkingGroup) {
+    return null;
+  }
+
   return (
     <>
       <AlertModal
@@ -81,22 +97,26 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              router.push(`/admin/working-group/${data.id}`);
-            }}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              setOpen(true);
-            }}
-          >
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdateWorkingGroup ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(`/admin/working-group/${data.id}`);
+              }}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Edit
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteWorkingGroup ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                setOpen(true);
+              }}
+            >
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

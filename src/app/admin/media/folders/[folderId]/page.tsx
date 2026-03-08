@@ -1,4 +1,6 @@
+import { AdminPageGuard } from '@/components/permissions/admin-page-guard';
 import { MediaManager } from '@/features/media/components/media-manager';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 type MediaFolderPageProps = {
   params: Promise<{
@@ -8,5 +10,12 @@ type MediaFolderPageProps = {
 
 export default async function MediaFolderPage(props: MediaFolderPageProps) {
   const params = await props.params;
-  return <MediaManager folderId={params.folderId} />;
+  return (
+    <AdminPageGuard
+      resource={adminRoutePermissions.media.list.resource}
+      action={adminRoutePermissions.media.list.action}
+    >
+      <MediaManager folderId={params.folderId} />
+    </AdminPageGuard>
+  );
 }

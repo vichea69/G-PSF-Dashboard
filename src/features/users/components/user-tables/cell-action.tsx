@@ -8,13 +8,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  IconDotsVertical,
-  IconEdit,
-  IconTrash,
-  IconEye
-} from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
+import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import type { UserRow } from './columns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,8 +25,17 @@ interface CellActionProps {
 export function UsersCellAction({ data }: CellActionProps) {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateUser = can(
+    adminRoutePermissions.users.update.resource,
+    adminRoutePermissions.users.update.action
+  );
+  const canDeleteUser = can(
+    adminRoutePermissions.users.delete.resource,
+    adminRoutePermissions.users.delete.action
+  );
 
   const deleteMutation = useMutation({
     mutationFn: async () => deleteAdminUser(String(data.id)),
@@ -55,6 +60,10 @@ export function UsersCellAction({ data }: CellActionProps) {
     await deleteMutation.mutateAsync();
     setOpenDelete(false);
   };
+
+  if (!canUpdateUser && !canDeleteUser) {
+    return null;
+  }
 
   return (
     <>
@@ -81,22 +90,19 @@ export function UsersCellAction({ data }: CellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => router.push(`/admin/roles?userId=${data.id}`)}
-          >
-            <IconEye className='mr-2 h-4 w-4 text-green-500' />
-            <span className='text-green-500'>Permission</span>
-          </DropdownMenuItem>
+          {canUpdateUser ? (
+            <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+              <IconEdit className='mr-2 h-4 w-4 text-fuchsia-500' />
+              <span className='text-fuchsia-500'> Edit </span>
+            </DropdownMenuItem>
+          ) : null}
 
-          <DropdownMenuItem onClick={() => setOpenEdit(true)}>
-            <IconEdit className='mr-2 h-4 w-4 text-fuchsia-500' />
-            <span className='text-fuchsia-500'> Edit </span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-            <IconTrash className='mr-2 h-4 w-4 text-red-500' />
-            <span className='text-red-500'>Delete </span>
-          </DropdownMenuItem>
+          {canDeleteUser ? (
+            <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+              <IconTrash className='mr-2 h-4 w-4 text-red-500' />
+              <span className='text-red-500'>Delete </span>
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

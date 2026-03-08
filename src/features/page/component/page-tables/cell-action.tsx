@@ -8,6 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { GitBranch } from 'lucide-react';
 import { useState } from 'react';
@@ -47,6 +49,20 @@ export function CellAction({ data }: CellActionProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canReadPage = can(
+    adminRoutePermissions.pages.list.resource,
+    adminRoutePermissions.pages.list.action
+  );
+  const canUpdatePage = can(
+    adminRoutePermissions.pages.update.resource,
+    adminRoutePermissions.pages.update.action
+  );
+  const canDeletePage = can(
+    adminRoutePermissions.pages.delete.resource,
+    adminRoutePermissions.pages.delete.action
+  );
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -87,6 +103,11 @@ export function CellAction({ data }: CellActionProps) {
     router.push(`/admin/page/${encodeURIComponent(pageId)}/tree`);
   };
 
+  // Return nothing when the user has no allowed action for this row menu.
+  if (!canReadPage && !canUpdatePage && !canDeletePage) {
+    return null;
+  }
+
   return (
     <>
       <AlertModal
@@ -105,24 +126,30 @@ export function CellAction({ data }: CellActionProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={handleViewTree}>
-              <GitBranch className='mr-2 h-4 w-4' /> View Tree
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const pageId = resolvePageId(data);
-                if (!pageId) {
-                  toast.error('Page id is missing');
-                  return;
-                }
-                router.push(`/admin/page/${encodeURIComponent(pageId)}`);
-              }}
-            >
-              <IconEdit className='mr-2 h-4 w-4' /> Update
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setOpen(true)}>
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
-            </DropdownMenuItem>
+            {canReadPage ? (
+              <DropdownMenuItem onClick={handleViewTree}>
+                <GitBranch className='mr-2 h-4 w-4' /> View Tree
+              </DropdownMenuItem>
+            ) : null}
+            {canUpdatePage ? (
+              <DropdownMenuItem
+                onClick={() => {
+                  const pageId = resolvePageId(data);
+                  if (!pageId) {
+                    toast.error('Page id is missing');
+                    return;
+                  }
+                  router.push(`/admin/page/${encodeURIComponent(pageId)}`);
+                }}
+              >
+                <IconEdit className='mr-2 h-4 w-4' /> Update
+              </DropdownMenuItem>
+            ) : null}
+            {canDeletePage ? (
+              <DropdownMenuItem onClick={() => setOpen(true)}>
+                <IconTrash className='mr-2 h-4 w-4' /> Delete
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

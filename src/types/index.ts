@@ -1,4 +1,5 @@
 import { Icons } from '@/components/icons';
+import type { PermissionAction } from '@/lib/permissions';
 
 export interface NavItem {
   title: string;
@@ -11,6 +12,11 @@ export interface NavItem {
   description?: string;
   isActive?: boolean;
   items?: NavItem[];
+  // Optional permission rule used to decide whether this nav item should be visible.
+  permission?: {
+    resource: string;
+    action: PermissionAction;
+  };
 }
 
 export interface NavItemWithChildren extends NavItem {

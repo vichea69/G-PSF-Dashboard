@@ -2,6 +2,8 @@ import KBar from '@/components/kbar';
 import AppSidebar from '@/components/layout/app-sidebar';
 import Header from '@/components/layout/header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { PermissionProvider } from '@/context/permission-context';
+import { getAdminAccess } from '@/lib/admin-access';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { LanguageProvider } from '@/context/language-context';
@@ -17,18 +19,25 @@ export default async function DashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  // Persisting the sidebar state in the cookie.
+  // Load the current user's permissions once at the admin layout level
+  // so every nested page and client component can reuse the same access data.
+  const access = await getAdminAccess();
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
   return (
     <KBar>
       <SidebarProvider defaultOpen={defaultOpen}>
         <LanguageProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <Header />
-            {children}
-          </SidebarInset>
+          <PermissionProvider
+            user={access.user}
+            permissions={access.permissions}
+          >
+            <AppSidebar />
+            <SidebarInset>
+              <Header />
+              {children}
+            </SidebarInset>
+          </PermissionProvider>
         </LanguageProvider>
       </SidebarProvider>
     </KBar>

@@ -9,7 +9,9 @@ import {
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableViewOptions } from '@/components/ui/table/data-table-view-options';
 import { useLanguage } from '@/context/language-context';
+import { usePermissions } from '@/context/permission-context';
 import { getPostColumns, type PostRow } from './columns';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { Input } from '@/components/ui/input';
 
 type PostTableListProps = {
@@ -34,7 +36,13 @@ export function PostTableList({
   onSearchChange
 }: PostTableListProps) {
   const router = useRouter();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
   const { language } = useLanguage();
+  const canUpdatePost = can(
+    adminRoutePermissions.posts.update.resource,
+    adminRoutePermissions.posts.update.action
+  );
   const columns = useMemo(() => getPostColumns(language), [language]);
   const table = useReactTable({
     data,
@@ -77,6 +85,7 @@ export function PostTableList({
     <DataTable
       table={table}
       onRowClick={(row) => {
+        if (!canUpdatePost) return;
         const id = row.original?.id;
         if (id !== undefined && id !== null) {
           router.push(`/admin/post/${id}`);

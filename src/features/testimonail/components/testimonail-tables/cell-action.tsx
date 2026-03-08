@@ -8,6 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -25,6 +27,20 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateTestimonial = can(
+    adminRoutePermissions.testimonials.update.resource,
+    adminRoutePermissions.testimonials.update.action
+  );
+  const canDeleteTestimonial = can(
+    adminRoutePermissions.testimonials.delete.resource,
+    adminRoutePermissions.testimonials.delete.action
+  );
+
+  if (!canUpdateTestimonial && !canDeleteTestimonial) {
+    return null;
+  }
 
   const onConfirm = async () => {
     try {
@@ -80,22 +96,26 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              router.push(`/admin/testimonial/${data.id}`);
-            }}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              setOpen(true);
-            }}
-          >
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdateTestimonial ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(`/admin/testimonial/${data.id}`);
+              }}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Edit
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteTestimonial ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                setOpen(true);
+              }}
+            >
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

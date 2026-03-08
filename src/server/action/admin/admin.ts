@@ -41,6 +41,7 @@ export async function updateAdminUser(adminUser: AdminUserUpdate) {
     throw new Error(msg);
   }
 }
+
 export async function deleteAdminUser(id: string) {
   const headers = await getAuthHeaders();
   try {

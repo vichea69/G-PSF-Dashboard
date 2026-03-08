@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { AlertModal } from '@/components/modal/alert-modal';
 import { Button } from '@/components/ui/button';
+import { usePermissions } from '@/context/permission-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 
 import { DeleteRole } from '@/server/action/admin/role';
 import { RoleAPI } from '@/features/role/type/role';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 interface RoleCellActionProps {
   role: RoleAPI;
@@ -28,8 +30,18 @@ const ROLES_QUERY_KEY = ['roles'] as const;
 export function RoleCellAction({ role }: RoleCellActionProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
   const editHref = useMemo(() => getRoleEditHref(role), [role]);
   const [openDelete, setOpenDelete] = useState(false);
+  const canUpdateRole = can(
+    adminRoutePermissions.roles.update.resource,
+    adminRoutePermissions.roles.update.action
+  );
+  const canDeleteRole = can(
+    adminRoutePermissions.roles.delete.resource,
+    adminRoutePermissions.roles.delete.action
+  );
 
   const deleteMutation = useMutation({
     mutationFn: async (roleId: number) => {
@@ -62,6 +74,10 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
     router.push(editHref);
   }, [editHref, router]);
 
+  if (!canUpdateRole && !canDeleteRole) {
+    return null;
+  }
+
   return (
     <>
       <AlertModal
@@ -80,14 +96,18 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={onManage}>
-            <IconEdit className='mr-2 h-4 w-4 text-blue-500' />
-            <span className='text-blue-500'>Edit role</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-            <IconTrash className='mr-2 h-4 w-4 text-red-500' />
-            <span className='text-red-500'>Delete</span>
-          </DropdownMenuItem>
+          {canUpdateRole ? (
+            <DropdownMenuItem onClick={onManage}>
+              <IconEdit className='mr-2 h-4 w-4 text-blue-500' />
+              <span className='text-blue-500'>Edit role</span>
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteRole ? (
+            <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+              <IconTrash className='mr-2 h-4 w-4 text-red-500' />
+              <span className='text-red-500'>Delete</span>
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

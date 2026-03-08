@@ -36,6 +36,8 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
           </span>
         </div>
         <Button
+          // Important: this lives inside a form, so it must not submit.
+          type='button'
           variant={isAllSelected ? 'secondary' : 'outline'}
           size='sm'
           onClick={onToggleAll}

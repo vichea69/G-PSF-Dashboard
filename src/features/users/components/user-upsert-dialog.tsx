@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -36,6 +36,8 @@ import type { UserRow } from './user-tables/columns';
 import { FileModal } from '@/components/modal/file-modal';
 import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl, toApiAssetPath } from '@/lib/asset-url';
+import { useRole } from '@/features/role/hook/use-role';
+import type { RoleAPI } from '@/features/role/type/role';
 
 const baseSchema = z.object({
   username: z.string().trim().min(1, 'username should not be empty'),
@@ -44,14 +46,7 @@ const baseSchema = z.object({
     .trim()
     .min(1, 'email should not be empty')
     .email('email must be an email'),
-  role: z
-    .enum(['admin', 'editor', 'user'], {
-      required_error:
-        'role must be one of the following values: admin, editor, user',
-      invalid_type_error:
-        'role must be one of the following values: admin, editor, user'
-    })
-    .default('user'),
+  role: z.string().trim().min(1, 'role should not be empty'),
   bio: z.string().optional(),
   image: z.string().optional(),
   password: z.string().optional()
@@ -68,6 +63,34 @@ const editSchema = baseSchema; // password optional when editing
 
 type FormValues = z.infer<typeof baseSchema>;
 
+function getRoleOptionValue(role: RoleAPI) {
+  return role.slug?.trim() || String(role.id);
+}
+
+function normalizeValue(value: unknown) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase();
+}
+
+function resolveRoleValue(value: unknown, roles: RoleAPI[]) {
+  const normalizedValue = normalizeValue(value);
+
+  if (!normalizedValue) {
+    return '';
+  }
+
+  const matchedRole = roles.find((role) => {
+    return [role.slug, role.name, role.id]
+      .map(normalizeValue)
+      .includes(normalizedValue);
+  });
+
+  return matchedRole
+    ? getRoleOptionValue(matchedRole)
+    : String(value ?? '').trim();
+}
+
 export function UserUpsertDialog({
   mode,
   open,
@@ -81,17 +104,43 @@ export function UserUpsertDialog({
 }) {
   const qc = useQueryClient();
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const rolesQuery = useRole();
+  const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
+  const resolvedInitialRole = useMemo(
+    () => resolveRoleValue(initialData?.role, roles),
+    [initialData?.role, roles]
+  );
+
   const form = useForm<FormValues>({
     resolver: zodResolver(mode === 'create' ? createSchema : editSchema),
     defaultValues: {
       username: initialData?.username ?? '',
       email: initialData?.email ?? '',
-      role: (initialData?.role as any) ?? 'user',
+      role: resolvedInitialRole,
       bio: initialData?.bio ?? '',
       image: initialData?.image ?? '',
       password: ''
     }
   });
+
+  useEffect(() => {
+    form.reset({
+      username: initialData?.username ?? '',
+      email: initialData?.email ?? '',
+      role: resolvedInitialRole,
+      bio: initialData?.bio ?? '',
+      image: initialData?.image ?? '',
+      password: ''
+    });
+  }, [
+    form,
+    initialData?.bio,
+    initialData?.email,
+    initialData?.id,
+    initialData?.image,
+    initialData?.username,
+    resolvedInitialRole
+  ]);
 
   const createMutation = useMutation({
     mutationFn: async (payload: FormValues) => {
@@ -122,18 +171,18 @@ export function UserUpsertDialog({
 
   const updateMutation = useMutation({
     mutationFn: async (payload: FormValues) => {
-      const base = {
+      const userPayload = {
         id: initialData?.id!,
         username: payload.username,
         email: payload.email,
         role: payload.role
       } as const;
-      // Extend only if backend supports extra fields in update
       const body = {
-        ...base,
-        ...(payload.bio ? { bio: payload.bio } : {}),
-        ...(payload.image ? { image: payload.image } : {})
-      } as any;
+        ...userPayload,
+        bio: payload.bio?.trim() || null,
+        image: payload.image?.trim() || null
+      };
+
       return await updateAdminUser(body);
     },
     onSuccess: () => {
@@ -309,19 +358,30 @@ export function UserUpsertDialog({
                   <FormLabel>Role</FormLabel>
                   <FormControl>
                     <Select
+                      value={field.value || undefined}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      disabled={loading || rolesQuery.isLoading}
                     >
                       <SelectTrigger className='w-full'>
                         <SelectValue placeholder='Select role' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='user'>User</SelectItem>
-                        <SelectItem value='editor'>Editor</SelectItem>
-                        <SelectItem value='admin'>Admin</SelectItem>
+                        {roles.map((role) => (
+                          <SelectItem
+                            key={role.id}
+                            value={getRoleOptionValue(role)}
+                          >
+                            {role.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  {rolesQuery.isError ? (
+                    <p className='text-destructive text-sm'>
+                      Failed to load roles.
+                    </p>
+                  ) : null}
                   <FormMessage />
                 </FormItem>
               )}

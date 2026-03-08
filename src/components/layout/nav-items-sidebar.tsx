@@ -3,6 +3,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icons } from '@/components/icons';
+import { usePermissions } from '@/context/permission-context';
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,15 +27,7 @@ import {
   userItems
 } from '@/constants/data';
 import { useLanguage, type Language } from '@/context/language-context';
-
-type IconKey = keyof typeof Icons;
-type NavItem = {
-  title: string;
-  url: string;
-  icon?: IconKey;
-  items?: NavItem[];
-  isActive?: boolean;
-};
+import type { NavItem } from '@/types';
 
 const SIDEBAR_TRANSLATIONS: Record<Language, Record<string, string>> = {
   en: {},
@@ -61,15 +54,69 @@ function translateLabel(label: string, language: Language) {
   return SIDEBAR_TRANSLATIONS[language]?.[label] ?? label;
 }
 
+function filterItemsByPermission(
+  items: NavItem[],
+  can: (
+    resource: string,
+    action: 'read' | 'create' | 'update' | 'delete'
+  ) => boolean
+): NavItem[] {
+  // Recursively remove items the user cannot read.
+  // Parent groups are hidden automatically when all child items are filtered out.
+  return items.reduce<NavItem[]>((acc, item) => {
+    if (
+      item.permission &&
+      !can(item.permission.resource, item.permission.action)
+    ) {
+      return acc;
+    }
+
+    const nextItems = item.items
+      ? filterItemsByPermission(item.items, can)
+      : undefined;
+
+    if (
+      item.items &&
+      item.items.length > 0 &&
+      (!nextItems || nextItems.length === 0)
+    ) {
+      return acc;
+    }
+
+    acc.push({
+      ...item,
+      items: nextItems
+    });
+    return acc;
+  }, []);
+}
+
 export function SidebarNavItems({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const { language } = useLanguage();
+  const { can } = usePermissions();
   const overviewLabel = translateLabel('Overview', language);
   const contentLabel = translateLabel('Content Management', language);
   const siteLabel = translateLabel('Site Menu Management', language);
   // const user = translateLabel('Users', language);
   const userLabel = translateLabel('Administration', language);
   const systemLabel = translateLabel('System Log', language);
+  const overviewItems = React.useMemo(
+    () => filterItemsByPermission(items, can),
+    [items, can]
+  );
+  const visibleContentItems = React.useMemo(
+    () => filterItemsByPermission(contentItems, can),
+    [can]
+  );
+  const visibleSiteItems = React.useMemo(
+    () => filterItemsByPermission(siteItems, can),
+    [can]
+  );
+  const visibleUserItems = React.useMemo(
+    () => filterItemsByPermission(userItems, can),
+    [can]
+  );
 
   const renderMenuItem = (item: NavItem) => {
     const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
@@ -132,19 +179,36 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{overviewLabel}</SidebarGroupLabel>
-      <SidebarMenu>{items.map(renderMenuItem)}</SidebarMenu>
-      {/* content management */}
-      <SidebarGroupLabel>{contentLabel}</SidebarGroupLabel>
-      <SidebarMenu>
-        {contentItems.map(renderMenuItem)}
-        <SidebarGroupLabel>{siteLabel}</SidebarGroupLabel>
-        {siteItems.map(renderMenuItem)}
-        <SidebarGroupLabel>{userLabel}</SidebarGroupLabel>
-        {userItems.map(renderMenuItem)}
-        <SidebarGroupLabel>{systemLabel}</SidebarGroupLabel>
-        {systemItem.map(renderMenuItem)}
-      </SidebarMenu>
+      {overviewItems.length > 0 ? (
+        <>
+          <SidebarGroupLabel>{overviewLabel}</SidebarGroupLabel>
+          <SidebarMenu>{overviewItems.map(renderMenuItem)}</SidebarMenu>
+        </>
+      ) : null}
+      {visibleContentItems.length > 0 ? (
+        <>
+          <SidebarGroupLabel>{contentLabel}</SidebarGroupLabel>
+          <SidebarMenu>{visibleContentItems.map(renderMenuItem)}</SidebarMenu>
+        </>
+      ) : null}
+      {visibleSiteItems.length > 0 ? (
+        <>
+          <SidebarGroupLabel>{siteLabel}</SidebarGroupLabel>
+          <SidebarMenu>{visibleSiteItems.map(renderMenuItem)}</SidebarMenu>
+        </>
+      ) : null}
+      {visibleUserItems.length > 0 ? (
+        <>
+          <SidebarGroupLabel>{userLabel}</SidebarGroupLabel>
+          <SidebarMenu>{visibleUserItems.map(renderMenuItem)}</SidebarMenu>
+        </>
+      ) : null}
+      {systemItem.length > 0 ? (
+        <>
+          <SidebarGroupLabel>{systemLabel}</SidebarGroupLabel>
+          <SidebarMenu>{systemItem.map(renderMenuItem)}</SidebarMenu>
+        </>
+      ) : null}
     </SidebarGroup>
   );
 }

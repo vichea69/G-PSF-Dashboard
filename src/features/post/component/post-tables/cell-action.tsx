@@ -8,6 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -25,6 +27,20 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdatePost = can(
+    adminRoutePermissions.posts.update.resource,
+    adminRoutePermissions.posts.update.action
+  );
+  const canDeletePost = can(
+    adminRoutePermissions.posts.delete.resource,
+    adminRoutePermissions.posts.delete.action
+  );
+
+  if (!canUpdatePost && !canDeletePost) {
+    return null;
+  }
 
   const onConfirm = async () => {
     try {
@@ -85,22 +101,26 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              router.push(`/admin/post/${data.id}`);
-            }}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              setOpen(true);
-            }}
-          >
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdatePost ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(`/admin/post/${data.id}`);
+              }}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Edit
+            </DropdownMenuItem>
+          ) : null}
+          {canDeletePost ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                setOpen(true);
+              }}
+            >
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

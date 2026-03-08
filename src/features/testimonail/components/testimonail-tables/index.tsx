@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { usePermissions } from '@/context/permission-context';
 import {
   type Row,
   useReactTable,
@@ -12,11 +13,18 @@ import {
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { useLanguage } from '@/context/language-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { getTestimonialColumns, type TestimonialRow } from './culumns';
 
 export function TestimonialTableList({ data }: { data: TestimonialRow[] }) {
   const router = useRouter();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
   const { language } = useLanguage();
+  const canUpdateTestimonial = can(
+    adminRoutePermissions.testimonials.update.resource,
+    adminRoutePermissions.testimonials.update.action
+  );
   const columns = useMemo(() => getTestimonialColumns(language), [language]);
   const table = useReactTable({
     data,
@@ -39,6 +47,7 @@ export function TestimonialTableList({ data }: { data: TestimonialRow[] }) {
     ) {
       return;
     }
+    if (!canUpdateTestimonial) return;
     const id = row.original?.id;
     if (id !== undefined && id !== null) {
       router.push(`/admin/testimonial/${id}`);

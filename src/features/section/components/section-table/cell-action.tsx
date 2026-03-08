@@ -8,6 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,6 +26,16 @@ export function CellAction({ data }: CellActionProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateSection = can(
+    adminRoutePermissions.sections.update.resource,
+    adminRoutePermissions.sections.update.action
+  );
+  const canDeleteSection = can(
+    adminRoutePermissions.sections.delete.resource,
+    adminRoutePermissions.sections.delete.action
+  );
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -48,6 +60,10 @@ export function CellAction({ data }: CellActionProps) {
     }
   };
 
+  if (!canUpdateSection && !canDeleteSection) {
+    return null;
+  }
+
   return (
     <>
       <AlertModal
@@ -65,20 +81,24 @@ export function CellAction({ data }: CellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() =>
-              router.push(
-                `/admin/section/${encodeURIComponent(
-                  String((data as any).slug ?? data.id)
-                )}`
-              )
-            }
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Update
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdateSection ? (
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(
+                  `/admin/section/${encodeURIComponent(
+                    String((data as any).slug ?? data.id)
+                  )}`
+                )
+              }
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Update
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteSection ? (
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

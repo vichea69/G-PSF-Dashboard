@@ -8,6 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -25,6 +27,16 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateCategory = can(
+    adminRoutePermissions.categories.update.resource,
+    adminRoutePermissions.categories.update.action
+  );
+  const canDeleteCategory = can(
+    adminRoutePermissions.categories.delete.resource,
+    adminRoutePermissions.categories.delete.action
+  );
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/categories/${data.id}`),
@@ -45,6 +57,10 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
     }
   };
 
+  if (!canUpdateCategory && !canDeleteCategory) {
+    return null;
+  }
+
   return (
     <>
       <AlertModal
@@ -62,14 +78,18 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => router.push(`/admin/category/${data.id}`)}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Update
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdateCategory ? (
+            <DropdownMenuItem
+              onClick={() => router.push(`/admin/category/${data.id}`)}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Update
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteCategory ? (
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

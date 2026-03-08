@@ -1,6 +1,7 @@
 import { NavItem } from '@/types';
 
-//Info: The following data is used for the sidebar navigation and Cmd K bar.
+// Shared admin navigation data.
+// If a nav item has `permission`, the sidebar will hide it when the user lacks access.
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
@@ -18,6 +19,7 @@ export const contentItems: NavItem[] = [
     icon: 'logo',
     shortcut: ['l', 'l'],
     isActive: false,
+    permission: { resource: 'logo', action: 'read' },
     items: [] // Empty array as there are no child items
   },
   {
@@ -26,6 +28,7 @@ export const contentItems: NavItem[] = [
     icon: 'media',
     shortcut: ['c', 'c'],
     isActive: true,
+    permission: { resource: 'categories', action: 'read' },
     items: []
   },
   {
@@ -34,6 +37,7 @@ export const contentItems: NavItem[] = [
     icon: 'page',
     shortcut: ['c', 'c'],
     isActive: true,
+    permission: { resource: 'pages', action: 'read' },
     items: []
   },
   {
@@ -42,6 +46,7 @@ export const contentItems: NavItem[] = [
     icon: 'post',
     shortcut: ['p', 'p'],
     isActive: true,
+    permission: { resource: 'posts', action: 'read' },
     items: []
   },
   {
@@ -63,18 +68,21 @@ export const contentItems: NavItem[] = [
         title: 'Section',
         url: '/admin/section',
         isActive: true,
+        permission: { resource: 'sections', action: 'read' },
         items: []
       },
       {
         title: 'Testimonial',
         url: '/admin/testimonial',
         isActive: true,
+        permission: { resource: 'testimonials', action: 'read' },
         items: []
       },
       {
         title: 'Working-Group',
         url: '/admin/working-group',
         isActive: true,
+        permission: { resource: 'working-groups', action: 'read' },
         items: []
       }
       // {
@@ -99,6 +107,7 @@ export const userItems: NavItem[] = [
     icon: 'user',
     shortcut: ['u', 'u'],
     isActive: true,
+    permission: { resource: 'users', action: 'read' },
     items: [] // No child items
   },
 
@@ -108,6 +117,7 @@ export const userItems: NavItem[] = [
     icon: 'shield',
     shortcut: ['r', 'r'],
     isActive: true,
+    permission: { resource: 'roles', action: 'read' },
     items: []
   },
   {
@@ -116,6 +126,7 @@ export const userItems: NavItem[] = [
     icon: 'settings',
     shortcut: ['r', 'r'],
     isActive: true,
+    permission: { resource: 'site-settings', action: 'read' },
     items: []
   },
   {
@@ -124,6 +135,7 @@ export const userItems: NavItem[] = [
     icon: 'media2',
     shortcut: ['r', 'r'],
     isActive: true,
+    permission: { resource: 'media', action: 'read' },
     items: []
   }
   // {
@@ -158,6 +170,7 @@ export const siteItems: NavItem[] = [
     icon: 'menu',
     shortcut: ['s', 's'],
     isActive: true,
+    permission: { resource: 'menu', action: 'read' },
     items: [] // No child items
   }
 ];

@@ -3,7 +3,7 @@ export type AdminUser = {
   id: string | number;
   username: string;
   email: string;
-  role: 'admin' | 'editor' | 'user';
+  role: string;
   bio?: string | null;
   image?: string | null;
   createdAt?: string | Date;
@@ -15,7 +15,7 @@ export type AdminUserCreate = {
   username: string;
   email: string;
   password: string;
-  role: 'admin' | 'editor' | 'user';
+  role: string;
 };
 
 // Update payload per backend contract
@@ -23,9 +23,11 @@ export type AdminUserUpdate = {
   id: string | number;
   username?: string;
   email?: string;
-  role?: 'admin' | 'editor' | 'user';
+  role?: string;
   // include password if your backend supports updating it
   password?: string;
+  bio?: string | null;
+  image?: string | null;
 };
 
 export type RolePermissionInput = {
@@ -37,4 +39,13 @@ export type CreateRole = {
   name: string;
   description: string;
   permissions: RolePermissionInput[];
+};
+
+export type UpdateRolePermissions = {
+  permissions: RolePermissionInput[];
+};
+
+export type UpdateRoleInfo = {
+  name: string;
+  description: string;
 };

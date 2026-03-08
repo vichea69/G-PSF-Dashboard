@@ -8,6 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/context/permission-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -25,6 +27,20 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateLogo = can(
+    adminRoutePermissions.logo.update.resource,
+    adminRoutePermissions.logo.update.action
+  );
+  const canDeleteLogo = can(
+    adminRoutePermissions.logo.delete.resource,
+    adminRoutePermissions.logo.delete.action
+  );
+
+  if (!canUpdateLogo && !canDeleteLogo) {
+    return null;
+  }
 
   const onConfirm = async () => {
     try {
@@ -80,14 +96,18 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => router.push(`/admin/logo/${data.id}/edit`)}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdateLogo ? (
+            <DropdownMenuItem
+              onClick={() => router.push(`/admin/logo/${data.id}/edit`)}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Edit
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteLogo ? (
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

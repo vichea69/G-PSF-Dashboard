@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertModal } from '@/components/modal/alert-modal';
 import { Button } from '@/components/ui/button';
+import { usePermissions } from '@/context/permission-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useDeleteMenu } from '@/features/menu/hook/use-menu';
 import type { MenuGroup } from '@/features/menu/types';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { toast } from 'sonner';
 
 interface CellActionProps {
@@ -26,6 +28,20 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const router = useRouter();
   const qc = useQueryClient();
   const deleteMenuMutation = useDeleteMenu();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateMenu = can(
+    adminRoutePermissions.menu.update.resource,
+    adminRoutePermissions.menu.update.action
+  );
+  const canDeleteMenu = can(
+    adminRoutePermissions.menu.delete.resource,
+    adminRoutePermissions.menu.delete.action
+  );
+
+  if (!canUpdateMenu && !canDeleteMenu) {
+    return null;
+  }
 
   const onConfirm = () => {
     deleteMenuMutation.mutate(
@@ -65,23 +81,27 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              router.push(`/admin/menu/${data.slug}`);
-            }}
-          >
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={(event) => {
-              event.stopPropagation();
-              event.preventDefault();
-              setOpen(true);
-            }}
-          >
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
-          </DropdownMenuItem>
+          {canUpdateMenu ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                router.push(`/admin/menu/${data.slug}`);
+              }}
+            >
+              <IconEdit className='mr-2 h-4 w-4' /> Edit
+            </DropdownMenuItem>
+          ) : null}
+          {canDeleteMenu ? (
+            <DropdownMenuItem
+              onClick={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                setOpen(true);
+              }}
+            >
+              <IconTrash className='mr-2 h-4 w-4' /> Delete
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

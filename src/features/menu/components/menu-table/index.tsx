@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { usePermissions } from '@/context/permission-context';
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,6 +17,7 @@ import {
   type CreateMenuPayload
 } from '@/features/menu/components/CreateMenuDialog';
 import type { MenuGroup } from '@/features/menu/types';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 interface MenuTableListProps {
   data: MenuGroup[];
@@ -24,6 +26,16 @@ interface MenuTableListProps {
 
 export function MenuTableList({ data, onCreate }: MenuTableListProps) {
   const router = useRouter();
+  // Read the shared permission context once, then hide actions the user should not see.
+  const { can } = usePermissions();
+  const canUpdateMenu = can(
+    adminRoutePermissions.menu.update.resource,
+    adminRoutePermissions.menu.update.action
+  );
+  const canCreateMenu = can(
+    adminRoutePermissions.menu.create.resource,
+    adminRoutePermissions.menu.create.action
+  );
 
   const table = useReactTable({
     data,
@@ -41,11 +53,14 @@ export function MenuTableList({ data, onCreate }: MenuTableListProps) {
     <DataTable
       table={table}
       onRowClick={(row) => {
+        if (!canUpdateMenu) return;
         router.push(`/admin/menu/${row.original.slug}`);
       }}
     >
       <DataTableToolbar table={table}>
-        {onCreate && <CreateMenuDialog onCreate={onCreate} />}
+        {onCreate && canCreateMenu ? (
+          <CreateMenuDialog onCreate={onCreate} />
+        ) : null}
       </DataTableToolbar>
     </DataTable>
   );

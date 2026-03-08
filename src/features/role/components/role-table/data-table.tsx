@@ -13,7 +13,9 @@ import { useRouter } from 'next/navigation';
 import { DataTable as BaseDataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { Button } from '@/components/ui/button';
+import { Can } from '@/context/permission-context';
 import { RoleAPI } from '@/features/role/type/role';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 interface DataTableProps {
   data: RoleAPI[];
@@ -50,9 +52,14 @@ export function DataTable({ data, columns, onCreate }: DataTableProps) {
     <BaseDataTable table={table}>
       <div className='flex items-center justify-between'>
         <DataTableToolbar table={table}>
-          <Button size='sm' className='gap-1.5' onClick={handleCreate}>
-            New Role
-          </Button>
+          <Can
+            resource={adminRoutePermissions.roles.create.resource}
+            action={adminRoutePermissions.roles.create.action}
+          >
+            <Button size='sm' className='gap-1.5' onClick={handleCreate}>
+              New Role
+            </Button>
+          </Can>
         </DataTableToolbar>
       </div>
     </BaseDataTable>
