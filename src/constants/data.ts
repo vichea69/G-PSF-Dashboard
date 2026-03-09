@@ -14,15 +14,6 @@ export const navItems: NavItem[] = [
 ];
 export const contentItems: NavItem[] = [
   {
-    title: 'Partner',
-    url: '/admin/logo',
-    icon: 'logo',
-    shortcut: ['l', 'l'],
-    isActive: false,
-    permission: { resource: 'logo', action: 'read' },
-    items: [] // Empty array as there are no child items
-  },
-  {
     title: 'Category',
     url: '/admin/category',
     icon: 'media',
@@ -38,6 +29,15 @@ export const contentItems: NavItem[] = [
     shortcut: ['c', 'c'],
     isActive: true,
     permission: { resource: 'pages', action: 'read' },
+    items: []
+  },
+  {
+    title: 'Section',
+    url: '/admin/section',
+    icon: 'section',
+    shortcut: ['s', 's'],
+    isActive: true,
+    permission: { resource: 'sections', action: 'read' },
     items: []
   },
   {
@@ -58,46 +58,31 @@ export const contentItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Content',
-    url: '/admin/overview',
-    icon: 'section',
-    shortcut: ['p', 'p'],
+    title: 'Partner',
+    url: '/admin/logo',
+    icon: 'logo',
+    shortcut: ['l', 'l'],
     isActive: false,
-    items: [
-      {
-        title: 'Section',
-        url: '/admin/section',
-        isActive: true,
-        permission: { resource: 'sections', action: 'read' },
-        items: []
-      },
-      {
-        title: 'Testimonial',
-        url: '/admin/testimonial',
-        isActive: true,
-        permission: { resource: 'testimonials', action: 'read' },
-        items: []
-      },
-      {
-        title: 'Working-Group',
-        url: '/admin/working-group',
-        isActive: true,
-        permission: { resource: 'working-groups', action: 'read' },
-        items: []
-      }
-      // {
-      //   title: 'New Job',
-      //   url: '/admin/testimonial',
-      //   isActive: true,
-      //   items: []
-      // },
-      // {
-      //   title: 'Announcement',
-      //   url: '/admin/testimonial',
-      //   isActive: true,
-      //   items: []
-      // }
-    ]
+    permission: { resource: 'logo', action: 'read' },
+    items: [] // Empty array as there are no child items
+  },
+  {
+    title: 'Testimonial',
+    url: '/admin/testimonial',
+    icon: 'message',
+    shortcut: ['t', 't'],
+    isActive: true,
+    permission: { resource: 'testimonials', action: 'read' },
+    items: []
+  },
+  {
+    title: 'Working-Group',
+    url: '/admin/working-group',
+    icon: 'binaryTree',
+    shortcut: ['w', 'w'],
+    isActive: true,
+    permission: { resource: 'working-groups', action: 'read' },
+    items: []
   }
 ];
 export const userItems: NavItem[] = [
@@ -138,30 +123,6 @@ export const userItems: NavItem[] = [
     permission: { resource: 'media', action: 'read' },
     items: []
   }
-  // {
-  //   title: 'Test Tab',
-  //   url: '/admin/testcomponent/tab',
-  //   icon: 'PaletteIcon',
-  //   shortcut: ['r', 'r'],
-  //   isActive: true,
-  //   items: []
-  // },
-  // {
-  //   title: 'Test RichEditor',
-  //   url: '/admin/testcomponent/editor',
-  //   icon: 'close',
-  //   shortcut: ['r', 'r'],
-  //   isActive: true,
-  //   items: []
-  // },
-  // {
-  //   title: 'Test Image-Uploader',
-  //   url: '/admin/testcomponent',
-  //   icon: 'close',
-  //   shortcut: ['r', 'r'],
-  //   isActive: true,
-  //   items: []
-  // }
 ];
 export const siteItems: NavItem[] = [
   {
@@ -178,10 +139,11 @@ export const siteItems: NavItem[] = [
 export const systemItem: NavItem[] = [
   {
     title: 'Activity Log',
-    url: '/admin/',
+    url: '/admin/activity-log',
     icon: 'activity',
     shortcut: ['s', 's'],
     isActive: true,
+    permission: { resource: 'activity-logs', action: 'read' },
     items: [] // No child items
   }
 ];

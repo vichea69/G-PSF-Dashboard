@@ -66,6 +66,9 @@ export const adminRoutePermissions = {
     update: { resource: 'working-groups', action: 'update' },
     delete: { resource: 'working-groups', action: 'delete' }
   },
+  activityLogs: {
+    list: { resource: 'activity-logs', action: 'read' }
+  },
   siteSettings: {
     list: { resource: 'site-settings', action: 'read' }
   }

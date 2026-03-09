@@ -69,29 +69,37 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
         onConfirm={onConfirm}
         loading={loading}
       />
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button variant='ghost' className='h-8 w-8 p-0' data-row-action>
-            <span className='sr-only'>Open menu</span>
-            <IconDotsVertical className='h-4 w-4' />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          {canUpdateCategory ? (
-            <DropdownMenuItem
-              onClick={() => router.push(`/admin/category/${data.id}`)}
+      <div onClick={(event) => event.stopPropagation()}>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant='ghost'
+              className='h-8 w-8 p-0'
+              data-row-action
+              onClick={(event) => event.stopPropagation()}
+              onPointerDown={(event) => event.stopPropagation()}
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Update
-            </DropdownMenuItem>
-          ) : null}
-          {canDeleteCategory ? (
-            <DropdownMenuItem onClick={() => setOpen(true)}>
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
-            </DropdownMenuItem>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <span className='sr-only'>Open menu</span>
+              <IconDotsVertical className='h-4 w-4' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end'>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            {canUpdateCategory ? (
+              <DropdownMenuItem
+                onClick={() => router.push(`/admin/category/${data.id}`)}
+              >
+                <IconEdit className='mr-2 h-4 w-4' /> Update
+              </DropdownMenuItem>
+            ) : null}
+            {canDeleteCategory ? (
+              <DropdownMenuItem onClick={() => setOpen(true)}>
+                <IconTrash className='mr-2 h-4 w-4' /> Delete
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </>
   );
 };

@@ -117,6 +117,10 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
     () => filterItemsByPermission(userItems, can),
     [can]
   );
+  const visibleSystemItems = React.useMemo(
+    () => filterItemsByPermission(systemItem, can),
+    [can]
+  );
 
   const renderMenuItem = (item: NavItem) => {
     const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
@@ -203,10 +207,10 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
           <SidebarMenu>{visibleUserItems.map(renderMenuItem)}</SidebarMenu>
         </>
       ) : null}
-      {systemItem.length > 0 ? (
+      {visibleSystemItems.length > 0 ? (
         <>
           <SidebarGroupLabel>{systemLabel}</SidebarGroupLabel>
-          <SidebarMenu>{systemItem.map(renderMenuItem)}</SidebarMenu>
+          <SidebarMenu>{visibleSystemItems.map(renderMenuItem)}</SidebarMenu>
         </>
       ) : null}
     </SidebarGroup>
