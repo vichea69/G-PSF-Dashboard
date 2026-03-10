@@ -106,7 +106,7 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
       cell: ({ row }) => (
         <TruncatedTooltipCell
           text={row.original.targetLabel}
-          widthClassName='block w-[4rem] truncate sm:w-[5rem] lg:w-[4rem]'
+          widthClassName='block w-[4rem] truncate sm:w-[5rem] lg:w-[6rem]'
           tooltipClassName='max-w-[20rem] break-words'
           minLength={14}
         />
