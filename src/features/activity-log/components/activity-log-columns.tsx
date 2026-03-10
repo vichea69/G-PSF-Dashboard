@@ -91,19 +91,26 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
         variant: 'text'
       }
     },
-    {
-      accessorKey: 'module',
-      header: 'Module',
-      cell: ({ row }) => (
-        <span className='text-muted-foreground text-sm'>
-          {row.original.module || '-'}
-        </span>
-      )
-    },
+    // {
+    //   accessorKey: 'module',
+    //   header: 'Module',
+    //   cell: ({ row }) => (
+    //     <span className='text-muted-foreground text-sm'>
+    //       {row.original.module || '-'}
+    //     </span>
+    //   )
+    // },
     {
       accessorKey: 'targetLabel',
       header: 'Target',
-      cell: ({ row }) => <span>{row.original.targetLabel || '-'}</span>
+      cell: ({ row }) => (
+        <TruncatedTooltipCell
+          text={row.original.targetLabel}
+          widthClassName='block w-[4rem] truncate sm:w-[5rem] lg:w-[4rem]'
+          tooltipClassName='max-w-[20rem] break-words'
+          minLength={14}
+        />
+      )
     },
     {
       id: 'content',
