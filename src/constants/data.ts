@@ -126,7 +126,7 @@ export const userItems: NavItem[] = [
 ];
 export const siteItems: NavItem[] = [
   {
-    title: 'Menu',
+    title: 'Menu and Footer',
     url: '/admin/menu',
     icon: 'menu',
     shortcut: ['s', 's'],

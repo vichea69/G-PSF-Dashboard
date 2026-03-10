@@ -69,11 +69,9 @@ export function ActivityLogDetailDialog({
             }
           />
           <DetailRow label='Module' value={item.module} />
-          <DetailRow label='Target' value={item.targetLabel || '-'} />
           <DetailRow label='User' value={item.userName} />
           <DetailRow label='Email' value={item.userEmail || '-'} />
           <DetailRow label='Date' value={formatDateTime(item.date)} />
-          <DetailRow label='Content' value={item.contentPath || '-'} />
         </div>
       </DialogContent>
     </Dialog>

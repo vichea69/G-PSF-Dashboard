@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge, BadgeDot } from '@/components/ui/badge';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
+import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 import type { ActivityLogEvent, ActivityLogItem } from '../types';
 import { ActivityLogCellAction } from './activity-log-cell-action';
 
@@ -35,15 +36,15 @@ function getInitials(name: string) {
   return parts.map((part) => part.charAt(0).toUpperCase()).join('');
 }
 
+function formatContentPath(value: string) {
+  const path = String(value ?? '').trim();
+  if (!path) return '';
+  return path.replace(/^\/admin/, '') || '/';
+}
+
 export const activityLogDefaultSorting = [{ id: 'date', desc: true }];
 
-type ActivityLogColumnsOptions = {
-  onDelete: (id: string) => void;
-};
-
-export function getActivityLogColumns({
-  onDelete
-}: ActivityLogColumnsOptions): ColumnDef<ActivityLogItem>[] {
+export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
   return [
     {
       accessorKey: 'event',
@@ -65,6 +66,7 @@ export function getActivityLogColumns({
         [
           row.activity,
           row.module,
+          row.contentPath,
           row.userName,
           row.userEmail,
           row.targetLabel,
@@ -76,9 +78,12 @@ export function getActivityLogColumns({
         <DataTableColumnHeader column={column} title='Activity' />
       ),
       cell: ({ row }) => (
-        <div className='min-w-[14rem]'>
-          <p>{row.original.activity}</p>
-        </div>
+        <TruncatedTooltipCell
+          text={row.original.activity}
+          widthClassName='block w-[9rem] truncate sm:w-[12rem] lg:w-[16rem]'
+          tooltipClassName='max-w-[24rem] break-words'
+          minLength={18}
+        />
       ),
       meta: {
         label: 'Activity',
@@ -89,9 +94,24 @@ export function getActivityLogColumns({
     {
       accessorKey: 'module',
       header: 'Module',
-      cell: ({ cell }) => (
-        <span className='text-muted-foreground text-sm font-medium'>
-          {String(cell.getValue<string>() ?? '-')}
+      cell: ({ row }) => (
+        <span className='text-muted-foreground text-sm'>
+          {row.original.module || '-'}
+        </span>
+      )
+    },
+    {
+      accessorKey: 'targetLabel',
+      header: 'Target',
+      cell: ({ row }) => <span>{row.original.targetLabel || '-'}</span>
+    },
+    {
+      id: 'content',
+      accessorFn: (row) => formatContentPath(row.contentPath),
+      header: 'Content',
+      cell: ({ row }) => (
+        <span className='text-muted-foreground text-sm break-all'>
+          {formatContentPath(row.original.contentPath) || '-'}
         </span>
       )
     },
@@ -102,8 +122,8 @@ export function getActivityLogColumns({
         const item = row.original;
 
         return (
-          <div className='flex min-w-[14rem] items-center gap-3'>
-            <Avatar className='h-9 w-9'>
+          <div className='flex min-w-[10rem] items-center gap-2 sm:min-w-[13rem] sm:gap-3'>
+            <Avatar className='h-8 w-8 sm:h-9 sm:w-9'>
               <AvatarImage
                 src={resolveApiAssetUrl(item.userAvatar)}
                 alt={item.userName}
@@ -113,7 +133,7 @@ export function getActivityLogColumns({
 
             <div className='space-y-0.5'>
               <p className='font-medium'>{item.userName}</p>
-              <p className='text-muted-foreground text-xs'>
+              <p className='text-muted-foreground hidden text-xs sm:block'>
                 {item.userEmail || '-'}
               </p>
             </div>
@@ -127,17 +147,15 @@ export function getActivityLogColumns({
         <DataTableColumnHeader column={column} title='Date' />
       ),
       cell: ({ row }) => (
-        <div className='min-w-[8rem]'>
-          <RelativeTime value={row.original.date} />
+        <div className='min-w-[7rem] text-sm'>
+          <RelativeTime value={row.original.date} className='text-sm' />
         </div>
       )
     },
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }) => (
-        <ActivityLogCellAction item={row.original} onDelete={onDelete} />
-      )
+      cell: ({ row }) => <ActivityLogCellAction item={row.original} />
     }
   ];
 }
