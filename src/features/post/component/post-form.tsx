@@ -93,12 +93,16 @@ export default function PostForm({
     }));
   }, [pagesData, language]);
 
-  const { data: sectionsData } = useSection();
-  const sections = useMemo(() => {
-    const raw = (sectionsData?.data ?? sectionsData) as any;
-    if (!Array.isArray(raw)) return [];
+  const selectedPageId = useMemo(() => {
+    const value = String(formData.pageId ?? '').trim();
+    return value || undefined;
+  }, [formData.pageId]);
 
-    return raw.map((section) => ({
+  const { data: sectionsData } = useSection(selectedPageId);
+  const sections = useMemo(() => {
+    if (!Array.isArray(sectionsData)) return [];
+
+    return sectionsData.map((section) => ({
       ...section,
       title: getLocalizedText(section?.title, language) || section?.id
     }));
@@ -441,7 +445,11 @@ export default function PostForm({
               setFormData((prev) => ({ ...prev, sectionId: value }))
             }
             onPageChange={(value) =>
-              setFormData((prev) => ({ ...prev, pageId: value }))
+              setFormData((prev) => ({
+                ...prev,
+                pageId: value,
+                sectionId: ''
+              }))
             }
             expiredDate={formData.expiredDate}
             onExpiredDateChange={(value) =>

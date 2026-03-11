@@ -216,26 +216,18 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='category'>Category</Label>
+          <Label htmlFor='page'>Page</Label>
           <Select
-            value={(categoryId ?? '').toString()}
-            onValueChange={onCategoryChange}
+            value={(pageId ?? '').toString()}
+            onValueChange={onPageChange}
           >
             <SelectTrigger className='mt-1'>
-              <SelectValue placeholder='Select a category' />
+              <SelectValue placeholder='Attach to a page (optional)' />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem
-                  key={String(category.id)}
-                  value={String(category.id)}
-                >
-                  {String(
-                    category.name ??
-                      category.title ??
-                      category.slug ??
-                      category.id
-                  )}
+              {pages.map((page) => (
+                <SelectItem key={String(page.id)} value={String(page.id)}>
+                  {String(page.title ?? page.slug ?? page.id)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -306,18 +298,26 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='page'>Page</Label>
+          <Label htmlFor='category'>Category</Label>
           <Select
-            value={(pageId ?? '').toString()}
-            onValueChange={onPageChange}
+            value={(categoryId ?? '').toString()}
+            onValueChange={onCategoryChange}
           >
             <SelectTrigger className='mt-1'>
-              <SelectValue placeholder='Attach to a page (optional)' />
+              <SelectValue placeholder='Select a category' />
             </SelectTrigger>
             <SelectContent>
-              {pages.map((page) => (
-                <SelectItem key={String(page.id)} value={String(page.id)}>
-                  {String(page.title ?? page.slug ?? page.id)}
+              {categories.map((category) => (
+                <SelectItem
+                  key={String(category.id)}
+                  value={String(category.id)}
+                >
+                  {String(
+                    category.name ??
+                      category.title ??
+                      category.slug ??
+                      category.id
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>
