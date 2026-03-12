@@ -6,6 +6,7 @@ import type { TextBlockData } from '@/features/post/component/block/text-block/t
 import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 import type { AnnualReportsData } from '@/features/post/component/block/annual-reports/annual-reports-form';
 import type { IssuesResponsesData } from '@/features/post/component/block/issues-responses/issues-responses-form';
+import type { WgTemplateData } from '@/features/post/component/block/wg-template/wg-template-form';
 import type {
   DerivedPostFields,
   LocalizedPostDocuments,
@@ -271,6 +272,24 @@ export const isIssuesResponsesContent = (
   return Array.isArray(candidate.items);
 };
 
+export const isWgTemplateContent = (
+  value: unknown
+): value is WgTemplateData => {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as WgTemplateData & {
+    heroBanner?: unknown;
+    textBlock?: unknown;
+    issuesResponses?: unknown;
+  };
+
+  return (
+    isHeroBannerContent(candidate.heroBanner) &&
+    isTextBlockContent(candidate.textBlock) &&
+    isIssuesResponsesContent(candidate.issuesResponses)
+  );
+};
+
 export const getLocalizedContent = (
   content: LocalizedPostContent | undefined,
   language: 'en' | 'km'
@@ -283,6 +302,7 @@ export const getLocalizedContent = (
   if (isWgCoChairsContent(value)) return '';
   if (isAnnualReportsContent(value)) return '';
   if (isIssuesResponsesContent(value)) return '';
+  if (isWgTemplateContent(value)) return '';
   return value as PostContent | string;
 };
 

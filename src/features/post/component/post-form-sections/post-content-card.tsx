@@ -30,6 +30,10 @@ import {
   IssuesResponsesForm,
   type IssuesResponsesData
 } from '@/features/post/component/block/issues-responses/issues-responses-form';
+import {
+  WgTemplateForm,
+  type WgTemplateData
+} from '@/features/post/component/block/wg-template/wg-template-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -45,6 +49,7 @@ type PostContentCardProps = {
   isWgCoChairsSection: boolean;
   isAnnualReportsSection: boolean;
   isIssuesResponsesSection: boolean;
+  isWgTemplateSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
@@ -53,6 +58,7 @@ type PostContentCardProps = {
   wgCoChairsValue: WgCoChairsData;
   annualReportsValue: AnnualReportsData;
   issuesResponsesValue: IssuesResponsesData;
+  wgTemplateValue: WgTemplateData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
@@ -64,6 +70,7 @@ type PostContentCardProps = {
   onWgCoChairsChange: (value: WgCoChairsData) => void;
   onAnnualReportsChange: (value: AnnualReportsData) => void;
   onIssuesResponsesChange: (value: IssuesResponsesData) => void;
+  onWgTemplateChange: (value: WgTemplateData) => void;
 };
 
 export function PostContentCard({
@@ -79,6 +86,7 @@ export function PostContentCard({
   isWgCoChairsSection,
   isAnnualReportsSection,
   isIssuesResponsesSection,
+  isWgTemplateSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
@@ -87,6 +95,7 @@ export function PostContentCard({
   wgCoChairsValue,
   annualReportsValue,
   issuesResponsesValue,
+  wgTemplateValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
@@ -97,7 +106,8 @@ export function PostContentCard({
   onTextBlockChange,
   onWgCoChairsChange,
   onAnnualReportsChange,
-  onIssuesResponsesChange
+  onIssuesResponsesChange,
+  onWgTemplateChange
 }: PostContentCardProps) {
   return (
     <Card>
@@ -230,6 +240,15 @@ export function PostContentCard({
               language={activeLanguage}
               value={issuesResponsesValue}
               onChange={onIssuesResponsesChange}
+            />
+          </div>
+        ) : isWgTemplateSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>WG Template</CardTitle>
+            <WgTemplateForm
+              language={activeLanguage}
+              value={wgTemplateValue}
+              onChange={onWgTemplateChange}
             />
           </div>
         ) : isAddressSection ? (

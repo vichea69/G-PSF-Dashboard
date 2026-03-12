@@ -8,12 +8,14 @@ export const ANNUAL_REPORTS = 'annual_reports' as const;
 export const ISSUES_RESPONSES = 'issues_responses' as const;
 export const ANNOUNCEMENT = 'announcement' as const;
 export const POST_LIST = 'post_list' as const;
+export const WG_TEMPLATE = 'wg_template' as const;
 
 export const blockTypes = [
   'hero_banner',
   'stats',
   POST_LIST,
   ANNOUNCEMENT,
+  WG_TEMPLATE,
   'text_block',
   WORKING_GROUP_CO_CHAIRS,
   ANNUAL_REPORTS,
@@ -24,6 +26,7 @@ export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   stats: 'Stats',
   [POST_LIST]: 'Post List',
   [ANNOUNCEMENT]: 'Announcement',
+  [WG_TEMPLATE]: 'WG Template',
   text_block: 'Text Block',
   [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs',
   [ANNUAL_REPORTS]: 'Annual Reports',

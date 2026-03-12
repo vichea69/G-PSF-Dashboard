@@ -5,6 +5,7 @@ import type { TextBlockData } from '@/features/post/component/block/text-block/t
 import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chairs/wg-co-chairs-form';
 import type { AnnualReportsData } from '@/features/post/component/block/annual-reports/annual-reports-form';
 import type { IssuesResponsesData } from '@/features/post/component/block/issues-responses/issues-responses-form';
+import type { WgTemplateData } from '@/features/post/component/block/wg-template/wg-template-form';
 
 export type LocalizedPostContent = {
   en:
@@ -15,6 +16,7 @@ export type LocalizedPostContent = {
     | WgCoChairsData
     | AnnualReportsData
     | IssuesResponsesData
+    | WgTemplateData
     | string;
   km?:
     | PostContent
@@ -24,6 +26,7 @@ export type LocalizedPostContent = {
     | WgCoChairsData
     | AnnualReportsData
     | IssuesResponsesData
+    | WgTemplateData
     | string;
 };
 

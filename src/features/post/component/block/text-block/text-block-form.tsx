@@ -79,12 +79,14 @@ type TextBlockFormProps = {
   language: 'en' | 'km';
   value?: TextBlockData;
   onChange?: (value: TextBlockData) => void;
+  cardTitle?: string;
 };
 
 export function TextBlockForm({
   language,
   value,
-  onChange
+  onChange,
+  cardTitle = 'Text Items'
 }: TextBlockFormProps) {
   const formData = normalizeTextBlockData(value);
   const isKhmer = language === 'km';
@@ -135,7 +137,7 @@ export function TextBlockForm({
       <CardHeader className='border-b'>
         <CardTitle className='flex items-center gap-2'>
           <FileText className='size-5' />
-          Text Items
+          {cardTitle}
         </CardTitle>
         <CardAction>
           <Button type='button' size='sm' onClick={addItem}>
