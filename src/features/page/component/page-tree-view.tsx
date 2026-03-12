@@ -1,6 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { AlertModal } from '@/components/modal/alert-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,12 +20,15 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { usePermissions } from '@/context/permission-context';
 import { useLanguage, type Language } from '@/context/language-context';
+import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import {
   formatDateTime,
   getLocalizedText,
   type LocalizedText
 } from '@/lib/helpers';
+import { deletePost } from '@/server/action/post/post';
 import {
   ExternalLink,
   CheckCircle2,
@@ -29,7 +36,9 @@ import {
   FileText,
   FolderTree,
   Layers3,
-  Tag
+  Plus,
+  Tag,
+  Trash2
 } from 'lucide-react';
 
 type PageTreeCategory = {
@@ -196,13 +205,62 @@ function OpenLinkBadge({ href, label }: { href: string; label: string }) {
       variant='primary'
       size='md'
       appearance='light'
-      className='shrink-0 gap-1'
+      className='shrink-0'
     >
       <Link href={href} aria-label={label} title={label}>
         <ExternalLink className='h-3 w-3' />
-        Open
       </Link>
     </Badge>
+  );
+}
+
+function DeleteIconBadge({
+  onClick,
+  label
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <Badge
+      asChild
+      variant='destructive'
+      size='md'
+      appearance='light'
+      className='hover:bg-destructive/10 shrink-0 transition-colors'
+    >
+      <button
+        type='button'
+        onClick={onClick}
+        aria-label={label}
+        title={label}
+        className='cursor-pointer'
+      >
+        <Trash2 className='h-3 w-3' />
+      </button>
+    </Badge>
+  );
+}
+
+function AddLinkBadge({ href, label }: { href: string; label: string }) {
+  return (
+    <Button asChild size='sm' className='shrink-0 gap-1'>
+      <Link href={href} aria-label={label} title={label}>
+        <Plus className='h-3 w-3' />
+        Add Section
+      </Link>
+    </Button>
+  );
+}
+
+function AddPostLinkButton({ href, label }: { href: string; label: string }) {
+  return (
+    <Button asChild size='sm' className='shrink-0 gap-1'>
+      <Link href={href} aria-label={label} title={label}>
+        <Plus className='h-3 w-3' />
+        Add Post
+      </Link>
+    </Button>
   );
 }
 
@@ -266,40 +324,93 @@ function CategoryList({ categories }: { categories: PageTreeCategory[] }) {
 }
 
 function PostTreeCard({ post }: { post: PageTreePost }) {
+  const router = useRouter();
+  const { can } = usePermissions();
   const { language } = useLanguage();
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const categoryName = getText(post.category?.name, language, '');
+  const canDeletePost = can(
+    adminRoutePermissions.posts.delete.resource,
+    adminRoutePermissions.posts.delete.action
+  );
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const result = await deletePost(post.id);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete post');
+      }
+
+      toast.success('Post deleted successfully');
+      setOpenDeleteModal(false);
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to delete post');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <Card className='gap-0 py-0 shadow-none'>
-      <CardContent className='p-3'>
-        <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
-          <div className='min-w-0 flex-1 space-y-2'>
-            <LocalizedTextStack value={post.title} language={language} />
+    <>
+      <AlertModal
+        isOpen={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        onConfirm={handleDelete}
+        loading={isDeleting}
+      />
 
-            <div className='flex flex-wrap gap-2'>
-              <StatusBadge status={post.status} />
-              {post.isFeatured ? (
-                <Badge variant='primary' appearance='light'>
-                  Featured
-                </Badge>
+      <Card className='gap-0 py-0 shadow-none'>
+        <CardContent className='p-3'>
+          <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
+            <div className='min-w-0 flex-1 space-y-2'>
+              <LocalizedTextStack value={post.title} language={language} />
+
+              <div className='flex flex-wrap gap-2'>
+                <StatusBadge status={post.status} />
+                {post.isFeatured ? (
+                  <Badge variant='primary' appearance='light'>
+                    Featured
+                  </Badge>
+                ) : null}
+                {categoryName ? (
+                  <Badge variant='info' appearance='light' className='gap-1'>
+                    <Tag className='h-3 w-3' />
+                    {categoryName}
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+
+            <div className='flex items-center gap-2'>
+              {canDeletePost ? (
+                <DeleteIconBadge
+                  onClick={() => setOpenDeleteModal(true)}
+                  label='Delete Post'
+                />
               ) : null}
-              {categoryName ? (
-                <Badge variant='info' appearance='light' className='gap-1'>
-                  <Tag className='h-3 w-3' />
-                  {categoryName}
-                </Badge>
-              ) : null}
+              <OpenLinkBadge
+                href={`/admin/post/${post.id}`}
+                label='Open Post'
+              />
             </div>
           </div>
-
-          <OpenLinkBadge href={`/admin/post/${post.id}`} label='Open Post' />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
-function SectionTreeCard({ section }: { section: PageTreeSection }) {
+function SectionTreeCard({
+  section,
+  pageId
+}: {
+  section: PageTreeSection;
+  pageId: string;
+}) {
   const { language } = useLanguage();
   const categories = toArray<PageTreeCategory>(section.categories);
   const posts = toArray<PageTreePost>(section.posts);
@@ -309,20 +420,23 @@ function SectionTreeCard({ section }: { section: PageTreeSection }) {
       <span className='bg-border absolute top-0 bottom-0 left-2 w-px' />
       <span className='bg-border absolute top-6 left-2 h-px w-4' />
 
-      <Card className='gap-0 overflow-hidden py-0'>
+      <Card className='relative gap-0 overflow-hidden py-0'>
+        <div className='absolute top-4 right-10 z-10 flex items-center gap-2'>
+          <OpenLinkBadge
+            href={`/admin/section/${section.id}`}
+            label='Open Section'
+          />
+          <EnabledBadge enabled={section.enabled} />
+        </div>
+
         <Accordion type='single' collapsible className='w-full'>
           <AccordionItem value={`section-${section.id}`} className='border-b-0'>
-            <AccordionTrigger className='px-4 py-4 hover:no-underline'>
+            <AccordionTrigger className='px-4 py-4 pr-40 hover:no-underline sm:pr-48 [&>svg]:hidden'>
               <div className='min-w-0 flex-1 space-y-2'>
-                <div className='flex items-start justify-between gap-3'>
-                  <div className='flex min-w-0 flex-wrap gap-2'>
-                    <Badge variant='outline'>
-                      {formatBlockType(section.blockType)}
-                    </Badge>
-                  </div>
-                  <div className='shrink-0'>
-                    <EnabledBadge enabled={section.enabled} />
-                  </div>
+                <div className='flex min-w-0 flex-wrap gap-2'>
+                  <Badge variant='outline'>
+                    {formatBlockType(section.blockType)}
+                  </Badge>
                 </div>
 
                 <LocalizedTextStack value={section.title} language={language} />
@@ -330,13 +444,6 @@ function SectionTreeCard({ section }: { section: PageTreeSection }) {
             </AccordionTrigger>
 
             <AccordionContent className='px-4 pb-4'>
-              <div className='mb-4 flex justify-end'>
-                <OpenLinkBadge
-                  href={`/admin/section/${section.id}`}
-                  label='Open Section'
-                />
-              </div>
-
               <div className='grid gap-4 xl:grid-cols-2'>
                 <Card className='bg-muted/20 gap-0 py-0 shadow-none'>
                   <CardContent className='p-3'>
@@ -365,6 +472,10 @@ function SectionTreeCard({ section }: { section: PageTreeSection }) {
                         />
                         Posts
                       </div>
+                      <AddPostLinkButton
+                        href={`/admin/post/new?pageId=${encodeURIComponent(pageId)}&sectionId=${encodeURIComponent(String(section.id))}`}
+                        label='Add Post'
+                      />
                     </div>
 
                     {posts.length === 0 ? (
@@ -502,10 +613,22 @@ export function PageTreeView({
 
       <Card className='gap-4 py-5'>
         <CardHeader className='px-5 pb-0'>
-          <CardTitle className='text-base'>Section Tree</CardTitle>
-          <CardDescription>
-            Sections on this page and the posts/categories connected to them.
-          </CardDescription>
+          <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+            <div className='space-y-1'>
+              <CardTitle className='text-base'>Section Tree</CardTitle>
+              <CardDescription>
+                Sections on this page and the posts/categories connected to
+                them.
+              </CardDescription>
+            </div>
+
+            <div className='flex flex-wrap gap-2'>
+              <AddLinkBadge
+                href={`/admin/section/new?pageId=${encodeURIComponent(editPageId)}`}
+                label='Add Section'
+              />
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent className='px-5'>
@@ -516,7 +639,11 @@ export function PageTreeView({
           ) : (
             <div className='space-y-4'>
               {sections.map((section) => (
-                <SectionTreeCard key={section.id} section={section} />
+                <SectionTreeCard
+                  key={section.id}
+                  section={section}
+                  pageId={editPageId}
+                />
               ))}
             </div>
           )}

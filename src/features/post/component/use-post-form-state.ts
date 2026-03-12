@@ -14,6 +14,8 @@ import type {
 type UsePostFormStateParams = {
   editingPost?: any | null;
   initialActiveLanguage: 'en' | 'km';
+  initialPageId?: number;
+  initialSectionId?: number;
 };
 
 type UsePostFormStateResult = {
@@ -34,7 +36,9 @@ const normalizePostStatus = (value: unknown): 'published' | 'draft' => {
 
 export function usePostFormState({
   editingPost,
-  initialActiveLanguage
+  initialActiveLanguage,
+  initialPageId,
+  initialSectionId
 }: UsePostFormStateParams): UsePostFormStateResult {
   const editingImages: EditingImage[] = useMemo(() => {
     if (!Array.isArray(editingPost?.images)) return [];
@@ -112,8 +116,9 @@ export function usePostFormState({
     status: normalizePostStatus(editingPost?.status),
     content: initialFields.content,
     categoryId: editingPost?.category?.id ?? editingPost?.categoryId,
-    sectionId: editingPost?.section?.id ?? editingPost?.sectionId,
-    pageId: editingPost?.page?.id ?? editingPost?.pageId,
+    sectionId:
+      editingPost?.section?.id ?? editingPost?.sectionId ?? initialSectionId,
+    pageId: editingPost?.page?.id ?? editingPost?.pageId ?? initialPageId,
     newImages: [],
     existingImageIds: editingImages
       .map((image) => image.id)

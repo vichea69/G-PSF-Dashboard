@@ -3,21 +3,110 @@ import { useMemo, useState } from 'react';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { useLanguage } from '@/context/language-context';
 import { usePost } from '@/hooks/use-post';
+import { useCategories } from '@/hooks/use-category';
+import { extractPageRows, usePage } from '@/hooks/use-page';
 import { useDebounce } from '@/hooks/use-debounce';
 import { getLocalizedText } from '@/lib/helpers';
+import {
+  extractSectionRows,
+  useSection
+} from '@/features/section/hook/use-section';
 import { PostTableList } from './post-tables';
 
 export default function PostsListPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPageId, setSelectedPageId] = useState('');
+  const [selectedSectionId, setSelectedSectionId] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedFeatured, setSelectedFeatured] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 350);
+  const { data: pagesData } = usePage();
+  const { data: sectionsData } = useSection(selectedPageId);
+  const { data: categoriesData } = useCategories();
   const { data, isLoading } = usePost({
     page,
     pageSize,
-    q: debouncedSearchQuery
+    q: debouncedSearchQuery,
+    pageId: selectedPageId,
+    sectionId: selectedSectionId,
+    categoryId: selectedCategoryId,
+    isFeatured: selectedFeatured
   });
   const { language } = useLanguage();
+  const pageOptions = useMemo(() => {
+    const rows = extractPageRows(pagesData);
+
+    return rows
+      .map((page) => {
+        const id = String(page?.id ?? '').trim();
+        if (!id) return null;
+
+        return {
+          value: id,
+          label:
+            getLocalizedText(page?.title, language) ||
+            page?.slug ||
+            `Page ${id}`
+        };
+      })
+      .filter(
+        (
+          option
+        ): option is {
+          value: string;
+          label: string;
+        } => Boolean(option?.value)
+      );
+  }, [language, pagesData]);
+  const sectionOptions = useMemo(() => {
+    const rows = extractSectionRows(sectionsData);
+
+    return rows
+      .map((section) => {
+        const id = String(section?.id ?? '').trim();
+        if (!id) return null;
+
+        return {
+          value: id,
+          label:
+            getLocalizedText(section?.title, language) ||
+            section?.blockType ||
+            `Section ${id}`
+        };
+      })
+      .filter(
+        (
+          option
+        ): option is {
+          value: string;
+          label: string;
+        } => Boolean(option?.value)
+      );
+  }, [language, sectionsData]);
+  const categoryOptions = useMemo(() => {
+    const raw = (categoriesData?.data ?? categoriesData ?? []) as any[];
+
+    return raw
+      .map((category) => {
+        const id = String(category?.id ?? '').trim();
+        if (!id) return null;
+
+        return {
+          value: id,
+          label: getLocalizedText(category?.name, language) || `Category ${id}`
+        };
+      })
+      .filter(
+        (
+          option
+        ): option is {
+          value: string;
+          label: string;
+        } => Boolean(option?.value)
+      );
+  }, [categoriesData, language]);
 
   const { list, currentPage, currentPageSize, pageCount } = useMemo(() => {
     const payload = data as any;
@@ -129,6 +218,30 @@ export default function PostsListPage() {
       searchQuery={searchQuery}
       onSearchChange={(value) => {
         setSearchQuery(value);
+        setPage(1);
+      }}
+      pageOptions={pageOptions}
+      selectedPageId={selectedPageId}
+      onPageFilterChange={(value) => {
+        setSelectedPageId(value);
+        setSelectedSectionId('');
+        setPage(1);
+      }}
+      sectionOptions={sectionOptions}
+      selectedSectionId={selectedSectionId}
+      onSectionFilterChange={(value) => {
+        setSelectedSectionId(value);
+        setPage(1);
+      }}
+      categoryOptions={categoryOptions}
+      selectedCategoryId={selectedCategoryId}
+      onCategoryFilterChange={(value) => {
+        setSelectedCategoryId(value);
+        setPage(1);
+      }}
+      selectedFeatured={selectedFeatured}
+      onFeaturedFilterChange={(value) => {
+        setSelectedFeatured(value);
         setPage(1);
       }}
     />

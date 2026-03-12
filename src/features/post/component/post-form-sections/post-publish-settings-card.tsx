@@ -326,7 +326,7 @@ export function PostPublishSettingsCard({
 
         <div className='flex items-center gap-2'>
           <Button variant='outline' onClick={onCancel}>
-            Cancel
+            Back
           </Button>
           <Button onClick={onSubmit}>
             <Save className='mr-2 h-4 w-4' />

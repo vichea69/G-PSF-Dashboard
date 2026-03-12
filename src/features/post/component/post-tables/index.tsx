@@ -2,17 +2,18 @@
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  type ColumnFiltersState,
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  functionalUpdate
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
-import { DataTableViewOptions } from '@/components/ui/table/data-table-view-options';
+import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { useLanguage } from '@/context/language-context';
 import { usePermissions } from '@/context/permission-context';
 import { getPostColumns, type PostRow } from './columns';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
-import { Input } from '@/components/ui/input';
 
 type PostTableListProps = {
   data: PostRow[];
@@ -23,6 +24,17 @@ type PostTableListProps = {
   onPageSizeChange: (pageSize: number) => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  pageOptions: Array<{ value: string; label: string }>;
+  selectedPageId: string;
+  onPageFilterChange: (value: string) => void;
+  sectionOptions: Array<{ value: string; label: string }>;
+  selectedSectionId: string;
+  onSectionFilterChange: (value: string) => void;
+  categoryOptions: Array<{ value: string; label: string }>;
+  selectedCategoryId: string;
+  onCategoryFilterChange: (value: string) => void;
+  selectedFeatured: string;
+  onFeaturedFilterChange: (value: string) => void;
 };
 
 export function PostTableList({
@@ -33,7 +45,18 @@ export function PostTableList({
   onPageChange,
   onPageSizeChange,
   searchQuery,
-  onSearchChange
+  onSearchChange,
+  pageOptions,
+  selectedPageId,
+  onPageFilterChange,
+  sectionOptions,
+  selectedSectionId,
+  onSectionFilterChange,
+  categoryOptions,
+  selectedCategoryId,
+  onCategoryFilterChange,
+  selectedFeatured,
+  onFeaturedFilterChange
 }: PostTableListProps) {
   const router = useRouter();
   // Read the shared permission context once, then hide actions the user should not see.
@@ -43,18 +66,108 @@ export function PostTableList({
     adminRoutePermissions.posts.update.resource,
     adminRoutePermissions.posts.update.action
   );
-  const columns = useMemo(() => getPostColumns(language), [language]);
+  const columns = useMemo(
+    () =>
+      getPostColumns(language, pageOptions, sectionOptions, categoryOptions),
+    [language, pageOptions, sectionOptions, categoryOptions]
+  );
+  const columnFilters = useMemo<ColumnFiltersState>(() => {
+    const filters: ColumnFiltersState = [];
+
+    if (searchQuery.trim()) {
+      filters.push({ id: 'title', value: searchQuery });
+    }
+
+    if (selectedPageId.trim()) {
+      filters.push({ id: 'page', value: [selectedPageId] });
+    }
+
+    if (selectedSectionId.trim()) {
+      filters.push({ id: 'section', value: [selectedSectionId] });
+    }
+
+    if (selectedCategoryId.trim()) {
+      filters.push({ id: 'category', value: [selectedCategoryId] });
+    }
+
+    if (selectedFeatured.trim()) {
+      filters.push({ id: 'featured', value: [selectedFeatured] });
+    }
+
+    return filters;
+  }, [
+    searchQuery,
+    selectedPageId,
+    selectedSectionId,
+    selectedCategoryId,
+    selectedFeatured
+  ]);
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    manualFiltering: true,
     manualPagination: true,
     pageCount,
+    initialState: {
+      columnVisibility: {
+        featured: false
+      }
+    },
     state: {
       pagination: {
         pageIndex: Math.max(0, page - 1),
         pageSize
+      },
+      columnFilters
+    },
+    onColumnFiltersChange: (updater) => {
+      const nextFilters = functionalUpdate(updater, columnFilters);
+      const titleFilter = nextFilters.find((filter) => filter.id === 'title');
+      const pageFilter = nextFilters.find((filter) => filter.id === 'page');
+      const sectionFilter = nextFilters.find(
+        (filter) => filter.id === 'section'
+      );
+      const categoryFilter = nextFilters.find(
+        (filter) => filter.id === 'category'
+      );
+      const featuredFilter = nextFilters.find(
+        (filter) => filter.id === 'featured'
+      );
+      const nextSearchQuery = String(titleFilter?.value ?? '');
+      const nextPageId = Array.isArray(pageFilter?.value)
+        ? String(pageFilter?.value[0] ?? '')
+        : String(pageFilter?.value ?? '');
+      const nextSectionId = Array.isArray(sectionFilter?.value)
+        ? String(sectionFilter?.value[0] ?? '')
+        : String(sectionFilter?.value ?? '');
+      const nextCategoryId = Array.isArray(categoryFilter?.value)
+        ? String(categoryFilter?.value[0] ?? '')
+        : String(categoryFilter?.value ?? '');
+      const nextFeatured = Array.isArray(featuredFilter?.value)
+        ? String(featuredFilter?.value[0] ?? '')
+        : String(featuredFilter?.value ?? '');
+
+      if (nextSearchQuery !== searchQuery) {
+        onSearchChange(nextSearchQuery);
+      }
+
+      if (nextPageId !== selectedPageId) {
+        onPageFilterChange(nextPageId);
+      }
+
+      if (nextSectionId !== selectedSectionId) {
+        onSectionFilterChange(nextSectionId);
+      }
+
+      if (nextCategoryId !== selectedCategoryId) {
+        onCategoryFilterChange(nextCategoryId);
+      }
+
+      if (nextFeatured !== selectedFeatured) {
+        onFeaturedFilterChange(nextFeatured);
       }
     },
     onPaginationChange: (updater) => {
@@ -92,15 +205,7 @@ export function PostTableList({
         }
       }}
     >
-      <div className='flex w-full items-center justify-between gap-2 p-1'>
-        <Input
-          placeholder='Search posts...'
-          value={searchQuery}
-          onChange={(event) => onSearchChange(event.target.value)}
-          className='h-8 w-[12rem] lg:w-[20rem]'
-        />
-        <DataTableViewOptions table={table} />
-      </div>
+      <DataTableToolbar table={table} />
     </DataTable>
   );
 }

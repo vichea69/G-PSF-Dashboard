@@ -10,17 +10,26 @@ import { createPost, getPost, updatePost } from '@/server/action/post/post';
 type PostViewPageProps = {
   postId: string;
   initialPost?: any | null;
+  initialPageId?: number;
+  initialSectionId?: number;
 };
 
 export default function PostViewPage({
   postId: _postId,
-  initialPost
+  initialPost,
+  initialPageId,
+  initialSectionId
 }: PostViewPageProps) {
   const [editingPost, setEditingPost] = useState<any>(initialPost ?? null);
   const [isLoading, setIsLoading] = useState(_postId !== 'new' && !initialPost);
   const router = useRouter();
   const qc = useQueryClient();
   const isEditing = _postId !== 'new';
+
+  const extractSavedPost = (payload: unknown) => {
+    const raw = payload as any;
+    return raw?.data?.post ?? raw?.data ?? raw?.post ?? raw ?? null;
+  };
 
   useEffect(() => {
     if (!isEditing) {
@@ -219,8 +228,21 @@ export default function PostViewPage({
           return;
         }
 
-        toast.success(isEditing ? 'Post updated' : 'Post created');
+        const savedPost = extractSavedPost(result?.data);
+
+        if (isEditing && savedPost) {
+          setEditingPost(savedPost);
+        }
+
         qc.invalidateQueries({ queryKey: ['posts'] });
+
+        if (isEditing) {
+          toast.success('Post update successfully');
+          router.refresh();
+          return;
+        }
+
+        toast.success('Post created successfully');
         router.replace('/admin/post');
       } catch (e: any) {
         const resp = e?.response?.data;
@@ -246,6 +268,11 @@ export default function PostViewPage({
   );
 
   const handleCancel = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
     router.push('/admin/post');
   }, [router]);
 
@@ -260,6 +287,8 @@ export default function PostViewPage({
   return (
     <PostForm
       editingPost={editingPost}
+      initialPageId={initialPageId}
+      initialSectionId={initialSectionId}
       onSave={handleSave}
       onCancel={handleCancel}
     />

@@ -50,12 +50,16 @@ export type { PostFormData } from '@/features/post/component/post-form-types';
 
 type PostFormProps = {
   editingPost?: any | null;
+  initialPageId?: number;
+  initialSectionId?: number;
   onSave: (data: PostFormData) => void | Promise<void>;
   onCancel: () => void;
 };
 
 export default function PostForm({
   editingPost,
+  initialPageId,
+  initialSectionId,
   onSave,
   onCancel
 }: PostFormProps) {
@@ -68,7 +72,9 @@ export default function PostForm({
   const { formData, setFormData, activeLanguage, setActiveLanguage } =
     usePostFormState({
       editingPost,
-      initialActiveLanguage: initialActiveLang
+      initialActiveLanguage: initialActiveLang,
+      initialPageId,
+      initialSectionId
     });
 
   const { data: categoriesData } = useCategories();

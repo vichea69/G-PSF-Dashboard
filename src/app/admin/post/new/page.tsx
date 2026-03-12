@@ -11,7 +11,17 @@ export const metadata = {
   title: 'Dashboard: New Post'
 };
 
-export default function NewPostPage() {
+type PageProps = {
+  searchParams?: Promise<{ pageId?: string; sectionId?: string }>;
+};
+
+export default async function NewPostPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const pageIdValue = String(resolvedSearchParams?.pageId ?? '').trim();
+  const sectionIdValue = String(resolvedSearchParams?.sectionId ?? '').trim();
+  const initialPageId = Number(pageIdValue);
+  const initialSectionId = Number(sectionIdValue);
+
   // Server permission guard keeps hidden UI and direct URLs consistent.
   return (
     <PageContainer scrollable>
@@ -26,7 +36,13 @@ export default function NewPostPage() {
           />
           <Separator />
           <Suspense fallback={<FormCardSkeleton />}>
-            <PostViewPage postId={'new'} />
+            <PostViewPage
+              postId={'new'}
+              initialPageId={Number.isFinite(initialPageId) ? initialPageId : 0}
+              initialSectionId={
+                Number.isFinite(initialSectionId) ? initialSectionId : 0
+              }
+            />
           </Suspense>
         </div>
       </AdminPageGuard>

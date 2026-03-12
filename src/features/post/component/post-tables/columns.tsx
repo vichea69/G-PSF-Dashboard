@@ -9,11 +9,13 @@ import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
+import type { Option } from '@/types/data-table';
 
 export type PostRow = {
   id: number;
   title: string | LocalizedText;
   slug: string;
+  isFeatured?: boolean;
   coverImage?: string;
   documentThumbnail?: string;
   documents?: {
@@ -36,6 +38,8 @@ export type PostRow = {
   sectionId?: number | string;
   page?: { id: number; title?: LocalizedText; slug?: string } | undefined;
 };
+
+const FEATURED_OPTIONS: Option[] = [{ value: 'true', label: 'Featured' }];
 
 const readString = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
@@ -169,7 +173,12 @@ const postStatusBadge = (status: string) => {
   );
 };
 
-export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
+export const getPostColumns = (
+  language: Language,
+  pageOptions: Option[],
+  sectionOptions: Option[],
+  categoryOptions: Option[]
+): ColumnDef<PostRow>[] => [
   {
     id: 'image',
     accessorFn: (row) => getPostImageSrc(row),
@@ -233,7 +242,15 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
         tooltipClassName='max-w-[20rem] break-words'
         minLength={10}
       />
-    )
+    ),
+    enableColumnFilter: true,
+    meta: categoryOptions.length
+      ? {
+          label: 'Category',
+          variant: 'select',
+          options: categoryOptions
+        }
+      : undefined
   },
   {
     id: 'section',
@@ -268,11 +285,13 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
       />
     ),
     enableColumnFilter: true,
-    meta: {
-      label: 'Section',
-      placeholder: 'Search section...',
-      variant: 'text'
-    }
+    meta: sectionOptions.length
+      ? {
+          label: 'Section',
+          variant: 'select',
+          options: sectionOptions
+        }
+      : undefined
   },
   {
     id: 'page',
@@ -286,7 +305,29 @@ export const getPostColumns = (language: Language): ColumnDef<PostRow>[] => [
         tooltipClassName='max-w-[20rem] break-all'
         minLength={12}
       />
-    )
+    ),
+    enableColumnFilter: true,
+    meta: pageOptions.length
+      ? {
+          label: 'Page',
+          variant: 'select',
+          options: pageOptions
+        }
+      : undefined
+  },
+  {
+    id: 'featured',
+    accessorFn: (row) => (row.isFeatured ? 'true' : ''),
+    header: 'Featured',
+    cell: () => null,
+    enableSorting: false,
+    enableHiding: false,
+    enableColumnFilter: true,
+    meta: {
+      label: 'Featured',
+      variant: 'select',
+      options: FEATURED_OPTIONS
+    }
   },
   // {
   //   accessorKey: 'updatedAt',
