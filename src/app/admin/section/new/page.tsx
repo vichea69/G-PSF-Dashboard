@@ -7,7 +7,15 @@ import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 export const metadata = { title: 'Dashboard: New Section' };
 
-export default async function Page() {
+type PageProps = {
+  searchParams?: Promise<{ pageId?: string }>;
+};
+
+export default async function Page({ searchParams }: PageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const pageIdValue = String(resolvedSearchParams?.pageId ?? '').trim();
+  const initialPageId = Number(pageIdValue);
+
   // Server permission guard keeps hidden UI and direct URLs consistent.
   return (
     <PageContainer scrollable={true}>
@@ -21,7 +29,10 @@ export default async function Page() {
             description='Set the section details for your page.'
           />
           <Separator />
-          <SectionForm initialData={null} />
+          <SectionForm
+            initialData={null}
+            initialPageId={Number.isFinite(initialPageId) ? initialPageId : 0}
+          />
         </div>
       </AdminPageGuard>
     </PageContainer>

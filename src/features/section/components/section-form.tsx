@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { createSection, updateSection } from '@/server/action/section/section';
@@ -26,17 +26,26 @@ import { FormActions } from './fields/FormActions';
 import { PostListForm } from '@/features/post/component/block/post-list/post-list-form';
 
 export default function SectionForm({
-  initialData
+  initialData,
+  initialPageId
 }: {
   initialData: Section | null;
+  initialPageId?: number;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const { pages, categoryOptions } = useSectionFormData();
+  const initialValues = useMemo(
+    () => ({
+      ...defaultValues(initialData),
+      pageId: Number(initialData?.pageId ?? initialPageId ?? 0)
+    }),
+    [initialData, initialPageId]
+  );
 
   const form = useForm<SectionFormValues>({
     resolver: zodResolver(formSchema),
-    values: defaultValues(initialData)
+    values: initialValues
   });
   const selectedBlockType = form.watch('blockType') as BlockType;
   const [activeLanguage, setActiveLanguage] = useState<'en' | 'km'>('en');

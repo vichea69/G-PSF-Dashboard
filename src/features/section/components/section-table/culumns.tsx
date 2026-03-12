@@ -7,6 +7,7 @@ import { getLocalizedText, type LocalizedText } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
+import type { Option } from '@/types/data-table';
 import {
   Tooltip,
   TooltipContent,
@@ -44,7 +45,8 @@ const getEnabledBadge = (enabled?: boolean) => {
 };
 
 export const getSectionColumns = (
-  language: Language
+  language: Language,
+  pageOptions: Option[]
 ): ColumnDef<SectionRow>[] => [
   {
     id: 'id',
@@ -80,6 +82,18 @@ export const getSectionColumns = (
   {
     accessorKey: 'pageSlug',
     header: 'Page',
+    filterFn: (row, columnId, filterValue) => {
+      const selectedValue = Array.isArray(filterValue)
+        ? filterValue[0]
+        : filterValue;
+
+      if (!selectedValue) return true;
+
+      return (
+        String(row.getValue(columnId) ?? '').trim() ===
+        String(selectedValue).trim()
+      );
+    },
     cell: ({ cell }) => {
       const value = String(cell.getValue<string>() ?? '').trim();
       if (!value) return <span className='text-muted-foreground'>-</span>;
@@ -102,7 +116,14 @@ export const getSectionColumns = (
           </TooltipContent>
         </Tooltip>
       );
-    }
+    },
+    meta: pageOptions.length
+      ? {
+          label: 'Page',
+          variant: 'select',
+          options: pageOptions
+        }
+      : undefined
   },
   {
     accessorKey: 'blockType',
