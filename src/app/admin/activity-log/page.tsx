@@ -2,7 +2,6 @@ import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import ActivityLogPage from '@/features/activity-log/components/activity-log-page';
-import { mockActivityLogResult } from '@/features/activity-log/mock-activity-log';
 import { getActivityLogs } from '@/server/action/activity-log/activity-log';
 
 export const metadata = {
@@ -10,10 +9,17 @@ export const metadata = {
 };
 
 export default async function Page() {
-  // Fallback mock data keeps the page visible if the new API is not ready yet.
-  const activityLog = await getActivityLogs().catch(
-    () => mockActivityLogResult
-  );
+  const activityLog = await getActivityLogs().catch(() => {
+    return {
+      items: [],
+      meta: {
+        total: 0,
+        page: 1,
+        limit: 100,
+        totalPages: 1
+      }
+    };
+  });
 
   return (
     <PageContainer scrollable>

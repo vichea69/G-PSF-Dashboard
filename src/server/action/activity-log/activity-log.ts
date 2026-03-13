@@ -1,12 +1,12 @@
 'use server';
 import 'server-only';
+import { isAxiosError } from 'axios';
 import { api } from '@/lib/api';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 import type {
   ActivityLogEvent,
   ActivityLogItem,
-  ActivityLogListResult,
-  ActivityLogMeta
+  ActivityLogListResult
 } from '@/features/activity-log/types';
 
 type ActivityLogApiItem = {
@@ -29,6 +29,32 @@ type ActivityLogApiItem = {
   date?: string;
 };
 
+type ActivityLogQueryParams = {
+  page?: number;
+  limit?: number;
+};
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 100;
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const payload = error.response?.data as any;
+    const message = payload?.message ?? payload?.error ?? error.message;
+
+    if (Array.isArray(message)) return message.join(', ');
+    if (typeof message === 'string' && message.trim()) return message;
+
+    return fallback;
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 function normalizeEvent(value: unknown): ActivityLogEvent {
   const kind = String(value ?? '')
     .trim()
@@ -45,19 +71,12 @@ function normalizeModule(value: unknown) {
   return modulePath.startsWith('/') ? modulePath : `/${modulePath}`;
 }
 
-function normalizeMeta(value: any): ActivityLogMeta {
-  const total = Number(value?.total);
-  const page = Number(value?.page);
-  const limit = Number(value?.limit);
-  const totalPages = Number(value?.totalPages);
+function toPositiveNumber(value: unknown, fallback: number) {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
 
-  return {
-    total: Number.isFinite(total) && total >= 0 ? Math.floor(total) : 0,
-    page: Number.isFinite(page) && page > 0 ? Math.floor(page) : 1,
-    limit: Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20,
-    totalPages:
-      Number.isFinite(totalPages) && totalPages > 0 ? Math.floor(totalPages) : 1
-  };
+  return fallback;
 }
 
 function buildAdminPathFromTarget(item: ActivityLogApiItem) {
@@ -118,21 +137,103 @@ function normalizeItem(item: ActivityLogApiItem): ActivityLogItem {
   };
 }
 
-export async function getActivityLogs(): Promise<ActivityLogListResult> {
-  const headers = await getAuthHeaders();
+function normalizeActivityLogList(
+  value: unknown,
+  fallbackPage: number,
+  fallbackLimit: number
+): ActivityLogListResult {
+  if (!value || typeof value !== 'object') {
+    return {
+      items: [],
+      meta: {
+        total: 0,
+        page: fallbackPage,
+        limit: fallbackLimit,
+        totalPages: 1
+      }
+    };
+  }
 
-  const res = await api.get('/activity-logs', {
-    headers,
-    withCredentials: true
-  });
-
-  const payload = res.data?.data ?? {};
-  const items = Array.isArray(payload?.items)
-    ? payload.items.map(normalizeItem)
-    : [];
+  const record = value as Record<string, unknown>;
+  const rawItems = Array.isArray(record.items)
+    ? record.items
+    : Array.isArray(record.data)
+      ? record.data
+      : [];
+  const metaValue =
+    record.meta && typeof record.meta === 'object'
+      ? (record.meta as Record<string, unknown>)
+      : record;
+  const items = rawItems.map((item) =>
+    normalizeItem(item as ActivityLogApiItem)
+  );
+  const total = toPositiveNumber(metaValue?.total, items.length);
+  const page = toPositiveNumber(metaValue?.page, fallbackPage);
+  const limit = toPositiveNumber(metaValue?.limit, fallbackLimit);
+  const totalPages = toPositiveNumber(
+    metaValue?.totalPages,
+    Math.max(1, Math.ceil(total / limit))
+  );
 
   return {
     items,
-    meta: normalizeMeta(payload?.meta)
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages
+    }
+  };
+}
+
+async function getActivityLogsPage(
+  params: ActivityLogQueryParams = {}
+): Promise<ActivityLogListResult> {
+  const headers = await getAuthHeaders();
+  const page = toPositiveNumber(params.page, DEFAULT_PAGE);
+  const limit = toPositiveNumber(params.limit, DEFAULT_LIMIT);
+
+  try {
+    const res = await api.get('/activity-logs', {
+      params: { page, limit },
+      headers,
+      withCredentials: true
+    });
+    const payload = res.data?.data ?? res.data;
+    return normalizeActivityLogList(payload, page, limit);
+  } catch (error: unknown) {
+    throw new Error(getErrorMessage(error, 'Failed to fetch activity logs'));
+  }
+}
+
+export async function getActivityLogs(): Promise<ActivityLogListResult> {
+  const firstPage = await getActivityLogsPage({
+    page: DEFAULT_PAGE,
+    limit: DEFAULT_LIMIT
+  });
+  const totalPages = Math.max(1, firstPage.meta.totalPages);
+
+  if (totalPages <= 1) {
+    return firstPage;
+  }
+
+  const otherPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getActivityLogsPage({
+        page: index + 2,
+        limit: firstPage.meta.limit || DEFAULT_LIMIT
+      })
+    )
+  );
+  const allItems = [firstPage, ...otherPages].flatMap((page) => page.items);
+
+  return {
+    items: allItems,
+    meta: {
+      total: Math.max(firstPage.meta.total, allItems.length),
+      page: DEFAULT_PAGE,
+      limit: allItems.length || firstPage.meta.limit,
+      totalPages: 1
+    }
   };
 }
