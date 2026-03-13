@@ -15,11 +15,13 @@ import {
   deleteMenu as deleteMenuAction,
   deleteMenuItem as deleteMenuItemAction,
   getMenuTreeBySlug as getMenuTreeBySlugAction,
+  updateMenu as updateMenuAction,
   updateMenuItem as updateMenuItemAction
 } from '@/server/action/menu/menu';
 import type { MenuItem } from '@/features/menu/types';
 
 const MENU_TREE_QUERY_KEY = 'menu-tree';
+const MENUS_QUERY_KEY = 'menus';
 
 const extractErrorMessage = (error: unknown, fallback: string) => {
   const detail = (error as any)?.response?.data;
@@ -34,6 +36,13 @@ const extractErrorMessage = (error: unknown, fallback: string) => {
 
 export type CreateMenuRequest = {
   name: string;
+};
+
+type UpdateMenuRequest = {
+  menuId: string;
+  payload: {
+    name: string;
+  };
 };
 
 export type CreateMenuItemRequest = {
@@ -123,6 +132,25 @@ export const useCreateMenu = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
+    }
+  });
+};
+
+export const useUpdateMenu = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ menuId, payload }: UpdateMenuRequest) => {
+      try {
+        return await updateMenuAction(menuId, payload);
+      } catch (error: unknown) {
+        throw new Error(extractErrorMessage(error, 'Failed to update menu'));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
     }
   });
 };
@@ -148,6 +176,7 @@ export const useCreateMenuItem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
     }
   });
 };
@@ -247,6 +276,7 @@ export const useDeleteMenuItem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
     }
   });
 };
@@ -264,6 +294,7 @@ export const useDeleteMenu = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
     }
   });
 };

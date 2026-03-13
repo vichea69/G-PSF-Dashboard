@@ -13,6 +13,10 @@ type CreateMenuPayload = {
   name: string;
 };
 
+type UpdateMenuPayload = {
+  name: string;
+};
+
 type CreateMenuItemPayload = {
   label: MenuLabelPayload;
   url: string;
@@ -63,6 +67,23 @@ export async function createMenu(payload: CreateMenuPayload) {
     return res.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, 'Failed to create menu'));
+  }
+}
+
+export async function updateMenu(
+  menuId: string | number,
+  payload: UpdateMenuPayload
+) {
+  const headers = await getAuthHeaders();
+
+  try {
+    const res = await api.put(`/menus/${menuId}`, payload, {
+      headers,
+      withCredentials: true
+    });
+    return res.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, 'Failed to update menu'));
   }
 }
 

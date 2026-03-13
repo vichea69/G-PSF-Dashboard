@@ -21,6 +21,10 @@ import {
   CreateMenuItemDialog,
   CreateMenuItemPayload
 } from '@/features/menu/components/CreateMenuItemDialog';
+import {
+  RenameMenuDialog,
+  RenameMenuPayload
+} from '@/features/menu/components/RenameMenuDialog';
 import type { MenuItem, MenuGroup } from '@/features/menu/types';
 import { Trash2 } from 'lucide-react';
 import {
@@ -29,6 +33,7 @@ import {
   useCreateMenuItem,
   useDeleteMenu,
   useDeleteMenuItem,
+  useUpdateMenu,
   useUpdateMenuItem,
   toNullableMenuId,
   toCreateMenuItemPayload
@@ -61,6 +66,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
 
   const createMenuMutation = useCreateMenu();
   const createMenuItemMutation = useCreateMenuItem();
+  const updateMenuMutation = useUpdateMenu();
   const updateMenuItemMutation = useUpdateMenuItem();
   const deleteMenuItemMutation = useDeleteMenuItem();
   const deleteMenuMutation = useDeleteMenu();
@@ -144,6 +150,24 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
 
   const requestEditMenuItem = (itemId: string) => {
     setEditingItemId(itemId);
+  };
+
+  const handleRenameMenu = async (payload: RenameMenuPayload) => {
+    if (!menu) return;
+
+    try {
+      await updateMenuMutation.mutateAsync({
+        menuId: menu.id,
+        payload: {
+          name: payload.name.trim()
+        }
+      });
+
+      toast.success('Menu name updated');
+    } catch (error) {
+      toast.error((error as Error)?.message ?? 'Failed to update menu name');
+      throw error;
+    }
   };
 
   const handleSubmitEditMenuItem = (payload: {
@@ -302,6 +326,13 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
             description='Create and manage navigation menus'
           />
           <div className='flex gap-2'>
+            {menu ? (
+              <RenameMenuDialog
+                currentName={menu.name}
+                loading={updateMenuMutation.isPending}
+                onSubmit={handleRenameMenu}
+              />
+            ) : null}
             {menu && (
               <CreateMenuItemDialog
                 selectedMenu={menu}
