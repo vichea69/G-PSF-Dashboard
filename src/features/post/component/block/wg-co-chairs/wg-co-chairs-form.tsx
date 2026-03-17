@@ -1,5 +1,12 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
 import {
   Card,
   CardAction,
@@ -63,6 +70,36 @@ type WgCoChairsFormProps = {
   value?: WgCoChairsData;
   onChange?: (value: WgCoChairsData) => void;
 };
+
+type CoChairSectionProps = {
+  value: string;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+};
+
+function CoChairSection({
+  value,
+  title,
+  subtitle,
+  children
+}: CoChairSectionProps) {
+  return (
+    <AccordionItem value={value} className='overflow-hidden rounded-lg border'>
+      <AccordionTrigger className='px-4 py-3 text-base font-medium hover:no-underline'>
+        <div className='min-w-0 text-left'>
+          <div className='truncate'>{title}</div>
+          {subtitle ? (
+            <div className='text-muted-foreground mt-1 text-sm font-normal'>
+              {subtitle}
+            </div>
+          ) : null}
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className='px-4 pb-4'>{children}</AccordionContent>
+    </AccordionItem>
+  );
+}
 
 export function WgCoChairsForm({
   language,
@@ -181,106 +218,129 @@ export function WgCoChairsForm({
       </CardHeader>
 
       <CardContent className='space-y-4'>
-        {formData.items.map((item, index) => (
-          <div
-            key={index}
-            className='bg-muted/20 space-y-3 rounded-lg border p-4'
-          >
-            <div className='flex items-center justify-between gap-2'>
-              <Label>{`Co-Chair ${index + 1}`}</Label>
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                className='text-destructive hover:bg-destructive/10 hover:text-destructive h-7 w-7'
-                onClick={() => removeItem(index)}
-              >
-                <X className='size-4' />
-              </Button>
-            </div>
+        {formData.items.length > 0 ? (
+          <Accordion type='multiple' className='space-y-4'>
+            {formData.items.map((item, index) => {
+              const localizedName = (
+                isKhmer ? item.name.km : item.name.en
+              ).trim();
+              const fallbackName = (
+                isKhmer ? item.name.en : item.name.km
+              ).trim();
+              const title =
+                localizedName || fallbackName || `Co-Chair ${index + 1}`;
 
-            <div className='space-y-2'>
-              <div className='flex items-center justify-between gap-2'>
-                <Label htmlFor={`wg-co-chair-profile-${index}`}>
-                  Profile URL
-                </Label>
-                <div className='flex items-center gap-2'>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    onClick={() => setPickerIndex(index)}
-                  >
-                    Choose from Media
-                  </Button>
-                  {item.profileUrl ? (
-                    <Button
-                      type='button'
-                      variant='ghost'
-                      size='sm'
-                      onClick={() => updateProfileUrl(index, '')}
-                    >
-                      Clear
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-              <Input
-                id={`wg-co-chair-profile-${index}`}
-                value={item.profileUrl}
-                onChange={(event) =>
-                  updateProfileUrl(index, event.target.value)
-                }
-                placeholder='https://example.com/profile'
-              />
-              {item.profileUrl ? (
-                <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
-                  <Image
-                    src={
-                      resolveApiAssetUrl(item.profileUrl) || '/placeholder.svg'
-                    }
-                    alt={`Co-chair ${index + 1} profile`}
-                    fill
-                    unoptimized
-                    className='object-cover'
-                  />
-                </div>
-              ) : null}
-            </div>
+              return (
+                <CoChairSection
+                  key={index}
+                  value={`co-chair-${index}`}
+                  title={title}
+                  subtitle={`Co-Chair ${index + 1}`}
+                >
+                  <div className='space-y-3'>
+                    <div className='flex items-center justify-end'>
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='icon'
+                        className='text-destructive hover:bg-destructive/10 hover:text-destructive h-7 w-7'
+                        onClick={() => removeItem(index)}
+                      >
+                        <X className='size-4' />
+                      </Button>
+                    </div>
 
-            <div className='space-y-2'>
-              <Label htmlFor={`wg-co-chair-name-${index}`}>
-                {isKhmer ? 'Name (Khmer)' : 'Name (English)'}
-              </Label>
-              <Input
-                id={`wg-co-chair-name-${index}`}
-                value={isKhmer ? item.name.km : item.name.en}
-                onChange={(event) =>
-                  updateField(index, 'name', event.target.value)
-                }
-                placeholder={isKhmer ? 'បញ្ចូលឈ្មោះ' : 'Enter name'}
-              />
-            </div>
+                    <div className='space-y-2'>
+                      <div className='flex items-center justify-between gap-2'>
+                        <Label htmlFor={`wg-co-chair-profile-${index}`}>
+                          Profile URL
+                        </Label>
+                        <div className='flex items-center gap-2'>
+                          <Button
+                            type='button'
+                            variant='outline'
+                            size='sm'
+                            onClick={() => setPickerIndex(index)}
+                          >
+                            Choose from Media
+                          </Button>
+                          {item.profileUrl ? (
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => updateProfileUrl(index, '')}
+                            >
+                              Clear
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                      <Input
+                        id={`wg-co-chair-profile-${index}`}
+                        value={item.profileUrl}
+                        onChange={(event) =>
+                          updateProfileUrl(index, event.target.value)
+                        }
+                        placeholder='https://example.com/profile'
+                      />
+                      {item.profileUrl ? (
+                        <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
+                          <Image
+                            src={
+                              resolveApiAssetUrl(item.profileUrl) ||
+                              '/placeholder.svg'
+                            }
+                            alt={`Co-chair ${index + 1} profile`}
+                            fill
+                            unoptimized
+                            className='object-cover'
+                          />
+                        </div>
+                      ) : null}
+                    </div>
 
-            <div className='space-y-2'>
-              <Label htmlFor={`wg-co-chair-description-${index}`}>
-                {isKhmer ? 'Description (Khmer)' : 'Description (English)'}
-              </Label>
-              <Textarea
-                id={`wg-co-chair-description-${index}`}
-                value={isKhmer ? item.description.km : item.description.en}
-                onChange={(event) =>
-                  updateField(index, 'description', event.target.value)
-                }
-                placeholder={
-                  isKhmer ? 'បញ្ចូលពិពណ៌នា' : 'Enter short description'
-                }
-                rows={4}
-                className='resize-none'
-              />
-            </div>
-          </div>
-        ))}
+                    <div className='space-y-2'>
+                      <Label htmlFor={`wg-co-chair-name-${index}`}>
+                        {isKhmer ? 'Name (Khmer)' : 'Name (English)'}
+                      </Label>
+                      <Input
+                        id={`wg-co-chair-name-${index}`}
+                        value={isKhmer ? item.name.km : item.name.en}
+                        onChange={(event) =>
+                          updateField(index, 'name', event.target.value)
+                        }
+                        placeholder={isKhmer ? 'បញ្ចូលឈ្មោះ' : 'Enter name'}
+                      />
+                    </div>
+
+                    <div className='space-y-2'>
+                      <Label htmlFor={`wg-co-chair-description-${index}`}>
+                        {isKhmer
+                          ? 'Description (Khmer)'
+                          : 'Description (English)'}
+                      </Label>
+                      <Textarea
+                        id={`wg-co-chair-description-${index}`}
+                        value={
+                          isKhmer ? item.description.km : item.description.en
+                        }
+                        onChange={(event) =>
+                          updateField(index, 'description', event.target.value)
+                        }
+                        placeholder={
+                          isKhmer ? 'បញ្ចូលពិពណ៌នា' : 'Enter short description'
+                        }
+                        rows={4}
+                        className='resize-none'
+                      />
+                    </div>
+                  </div>
+                </CoChairSection>
+              );
+            })}
+          </Accordion>
+        ) : null}
 
         {formData.items.length === 0 && (
           <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
