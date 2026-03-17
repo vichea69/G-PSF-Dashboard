@@ -7,6 +7,7 @@ import { getAuthHeaders } from '@/server/action/userAuth/user';
 type CategoryInput = {
   name: LocalizedText;
   description?: LocalizedText;
+  pageIds?: number[];
 };
 
 //create category using api with server action
