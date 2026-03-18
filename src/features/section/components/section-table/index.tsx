@@ -9,26 +9,27 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { useLanguage } from '@/context/language-context';
+import { useTranslate } from '@/hooks/use-translate';
 import { getLocalizedText } from '@/lib/helpers';
 import { extractPageRows, usePage } from '@/hooks/use-page';
 import { getSectionColumns, type SectionRow } from './culumns';
 
 export function SectionTableList({ data }: { data: SectionRow[] }) {
-  const { language } = useLanguage();
+  const { language, t } = useTranslate();
   const { data: pagesData } = usePage();
-  const tableData = useMemo(() => data.slice(), [data]);
   const pageOptions = useMemo(() => {
     const pages = extractPageRows(pagesData);
 
     return pages
       .map((page) => {
-        const slug = String(page?.slug ?? '').trim();
-        if (!slug) return null;
+        const pageId = Number(page?.id);
+        if (!Number.isFinite(pageId) || pageId <= 0) return null;
 
         return {
-          value: slug,
-          label: getLocalizedText(page?.title, language) || `/${slug}`
+          value: String(pageId),
+          label:
+            getLocalizedText(page?.title, language) ||
+            String(page?.slug ?? `Page ${pageId}`)
         };
       })
       .filter(
@@ -41,9 +42,35 @@ export function SectionTableList({ data }: { data: SectionRow[] }) {
       );
   }, [language, pagesData]);
 
+  const pageLabelById = useMemo(() => {
+    return new Map(pageOptions.map((option) => [option.value, option.label]));
+  }, [pageOptions]);
+
+  const tableData = useMemo(() => {
+    // Normalize the page relation once so the table can display and filter reliably.
+    return data.map((row) => {
+      const nestedPage = (row as any)?.page;
+      const rawPageId = row.pageId ?? nestedPage?.id ?? null;
+      const pageId =
+        rawPageId === null || rawPageId === undefined
+          ? ''
+          : String(rawPageId).trim();
+      const pageLabel =
+        getLocalizedText(nestedPage?.title ?? '', language) ||
+        pageLabelById.get(pageId) ||
+        String(row.pageSlug ?? nestedPage?.slug ?? '').trim();
+
+      return {
+        ...row,
+        pageLabel,
+        pageFilterValue: pageId
+      };
+    });
+  }, [data, language, pageLabelById]);
+
   const columns = useMemo(
-    () => getSectionColumns(language, pageOptions),
-    [language, pageOptions]
+    () => getSectionColumns(language, pageOptions, t),
+    [language, pageOptions, t]
   );
   const table = useReactTable({
     data: tableData,

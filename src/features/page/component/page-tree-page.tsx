@@ -1,6 +1,6 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getPageTree } from '@/server/action/page/page';
-import { PageTreeView, type PageTreeData } from './page-tree-view';
+import PageTreeScreen from './page-tree-screen';
+import { type PageTreeData } from './page-tree-view';
 
 function extractPageTreeData(payload: unknown): PageTreeData {
   const raw = payload as any;
@@ -17,7 +17,7 @@ function getErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return 'Failed to load page tree.';
+  return '';
 }
 
 export default async function PageTreePage({ pageId }: { pageId: string }) {
@@ -25,13 +25,10 @@ export default async function PageTreePage({ pageId }: { pageId: string }) {
     const response = await getPageTree(pageId);
     const data = extractPageTreeData(response);
 
-    return <PageTreeView pageId={pageId} data={data} />;
+    return <PageTreeScreen pageId={pageId} data={data} />;
   } catch (error) {
     return (
-      <Alert variant='destructive' appearance='light'>
-        <AlertTitle>Unable to load page tree</AlertTitle>
-        <AlertDescription>{getErrorMessage(error)}</AlertDescription>
-      </Alert>
+      <PageTreeScreen pageId={pageId} errorMessage={getErrorMessage(error)} />
     );
   }
 }

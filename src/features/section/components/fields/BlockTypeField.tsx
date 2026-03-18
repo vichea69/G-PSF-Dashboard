@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { useTranslate } from '@/hooks/use-translate';
 import type { Control } from 'react-hook-form';
 
 import {
@@ -25,17 +26,19 @@ type Props = {
 };
 
 export function BlockTypeField({ control }: Props) {
+  const { t } = useTranslate();
+
   return (
     <FormField
       control={control}
       name='blockType'
       render={({ field }) => (
         <FormItem className='flex-1'>
-          <FormLabel>Block Type</FormLabel>
+          <FormLabel>{t('section.form.blockType')}</FormLabel>
           <Select value={field.value} onValueChange={field.onChange}>
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder='Select block type' />
+                <SelectValue placeholder={t('section.form.selectBlockType')} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>

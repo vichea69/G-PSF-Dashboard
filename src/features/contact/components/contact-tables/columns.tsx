@@ -18,7 +18,9 @@ export type ContactRow = {
   createdAt?: string;
 };
 
-const contactStatusBadge = (isRead: boolean) => (
+type TranslateFn = (key: string) => string;
+
+const contactStatusBadge = (isRead: boolean, t: TranslateFn) => (
   <Badge
     variant={isRead ? 'success' : 'warning'}
     appearance='outline'
@@ -29,81 +31,99 @@ const contactStatusBadge = (isRead: boolean) => (
     ) : (
       <IconCircleX className='h-3 w-3' />
     )}{' '}
-    {isRead ? 'Read' : 'Unread'}
+    {isRead ? t('contact.status.read') : t('contact.status.unread')}
   </Badge>
 );
 
-export const contactColumns: ColumnDef<ContactRow>[] = [
-  {
-    id: 'name',
-    accessorKey: 'name',
-    header: ({ column }: { column: Column<ContactRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Name' />
-    ),
-    cell: ({ cell }) => (
-      <span className='font-medium'>{cell.getValue<string>()}</span>
-    ),
-    enableColumnFilter: true,
-    meta: {
-      label: 'Name',
-      placeholder: 'Search name...',
-      variant: 'text'
-    }
-  },
-  {
-    id: 'email',
-    accessorKey: 'email',
-    header: ({ column }: { column: Column<ContactRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Email' />
-    ),
-    enableColumnFilter: false
-  },
-  {
-    id: 'organisationName',
-    accessorKey: 'organisationName',
-    header: 'Organisation',
-    cell: ({ cell }) => cell.getValue<string>() || '-',
-    enableColumnFilter: false
-  },
-  {
-    id: 'subject',
-    accessorKey: 'subject',
-    header: ({ column }: { column: Column<ContactRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Subject' />
-    ),
-    cell: ({ cell }) => (
-      <span className='block max-w-[24rem] truncate'>
-        {cell.getValue<string>()}
-      </span>
-    ),
-    enableColumnFilter: false
-  },
-  {
-    id: 'isRead',
-    accessorFn: (row) => row.isRead,
-    header: ({ column }: { column: Column<ContactRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Status' />
-    ),
-    cell: ({ row }) => contactStatusBadge(Boolean(row.original.isRead)),
-    enableColumnFilter: false
-  },
-  {
-    id: 'createdAt',
-    accessorKey: 'createdAt',
-    header: ({ column }: { column: Column<ContactRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Received' />
-    ),
-    cell: ({ cell }) => {
-      const value = cell.getValue<string>();
-      return value ? <RelativeTime value={value} /> : '-';
+export function getContactColumns(t: TranslateFn): ColumnDef<ContactRow>[] {
+  // Build the translated columns in one place so the table stays easy to read.
+  return [
+    {
+      id: 'name',
+      accessorKey: 'name',
+      header: ({ column }: { column: Column<ContactRow, unknown> }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('contact.columns.name')}
+        />
+      ),
+      cell: ({ cell }) => (
+        <span className='font-medium'>{cell.getValue<string>()}</span>
+      ),
+      enableColumnFilter: true,
+      meta: {
+        label: t('contact.filters.nameLabel'),
+        placeholder: t('contact.filters.searchName'),
+        variant: 'text'
+      }
     },
-    enableColumnFilter: false
-  },
-  {
-    id: 'actions',
-    header: 'Actions',
-    enableSorting: false,
-    enableColumnFilter: false,
-    cell: ({ row }) => <CellAction id={String(row.original.id)} />
-  }
-];
+    {
+      id: 'email',
+      accessorKey: 'email',
+      header: ({ column }: { column: Column<ContactRow, unknown> }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('contact.columns.email')}
+        />
+      ),
+      enableColumnFilter: false
+    },
+    {
+      id: 'organisationName',
+      accessorKey: 'organisationName',
+      header: t('contact.columns.organisation'),
+      cell: ({ cell }) => cell.getValue<string>() || '-',
+      enableColumnFilter: false
+    },
+    {
+      id: 'subject',
+      accessorKey: 'subject',
+      header: ({ column }: { column: Column<ContactRow, unknown> }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('contact.columns.subject')}
+        />
+      ),
+      cell: ({ cell }) => (
+        <span className='block max-w-[24rem] truncate'>
+          {cell.getValue<string>()}
+        </span>
+      ),
+      enableColumnFilter: false
+    },
+    {
+      id: 'isRead',
+      accessorFn: (row) => row.isRead,
+      header: ({ column }: { column: Column<ContactRow, unknown> }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('contact.columns.status')}
+        />
+      ),
+      cell: ({ row }) => contactStatusBadge(Boolean(row.original.isRead), t),
+      enableColumnFilter: false
+    },
+    {
+      id: 'createdAt',
+      accessorKey: 'createdAt',
+      header: ({ column }: { column: Column<ContactRow, unknown> }) => (
+        <DataTableColumnHeader
+          column={column}
+          title={t('contact.columns.received')}
+        />
+      ),
+      cell: ({ cell }) => {
+        const value = cell.getValue<string>();
+        return value ? <RelativeTime value={value} /> : '-';
+      },
+      enableColumnFilter: false
+    },
+    {
+      id: 'actions',
+      header: t('contact.columns.actions'),
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: ({ row }) => <CellAction id={String(row.original.id)} />
+    }
+  ];
+}

@@ -2,9 +2,7 @@ import FormCardSkeleton from '@/components/form-card-skeleton';
 import PageContainer from '@/components/layout/page-container';
 import { Suspense } from 'react';
 import { AdminPageGuard } from '@/components/permissions/admin-page-guard';
-import { Heading } from '@/components/ui/heading';
-import { Separator } from '@/components/ui/separator';
-import EditLogo from '@/features/logo/components/edit/page';
+import LogoEditorScreen from '@/features/logo/components/logo-editor-screen';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 export const metadata = {
@@ -25,16 +23,9 @@ export default async function EditLogoPage(props: PageProps) {
         resource={adminRoutePermissions.logo.update.resource}
         action={adminRoutePermissions.logo.update.action}
       >
-        <div className='flex-1 space-y-4'>
-          <Heading
-            title='Edit Logo'
-            description='Update the company name, description, or logo as needed.'
-          />
-          <Separator />
-          <Suspense fallback={<FormCardSkeleton />}>
-            <EditLogo logoId={logoId} />
-          </Suspense>
-        </div>
+        <Suspense fallback={<FormCardSkeleton />}>
+          <LogoEditorScreen mode='edit' logoId={logoId} />
+        </Suspense>
       </AdminPageGuard>
     </PageContainer>
   );

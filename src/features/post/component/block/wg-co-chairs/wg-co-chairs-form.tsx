@@ -26,6 +26,7 @@ import { resolveApiAssetUrl } from '@/lib/asset-url';
 import Image from 'next/image';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 import { handleImageUpload } from '@/lib/tiptap-utils';
 
 export interface WgCoChairsData {
@@ -106,6 +107,7 @@ export function WgCoChairsForm({
   value,
   onChange
 }: WgCoChairsFormProps) {
+  const { t } = useTranslate();
   const [pickerIndex, setPickerIndex] = useState<number | null>(null);
   const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
   const qc = useQueryClient();
@@ -194,9 +196,11 @@ export function WgCoChairsForm({
 
       updateProfileUrl(targetIndex, uploadedUrl);
       await qc.invalidateQueries({ queryKey: ['media'], exact: false });
-      toast.success('Profile uploaded successfully');
+      toast.success(t('post.blocks.wgCoChairs.profileUploaded'));
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to upload profile');
+      toast.error(
+        error?.message || t('post.blocks.wgCoChairs.profileUploadFailed')
+      );
     } finally {
       setUploadingFromDevice(false);
     }
@@ -207,12 +211,12 @@ export function WgCoChairsForm({
       <CardHeader className='border-b'>
         <CardTitle className='flex items-center gap-2'>
           <Users className='size-5' />
-          Working Group Co-Chairs
+          {t('post.blocks.wgCoChairs.title')}
         </CardTitle>
         <CardAction>
           <Button type='button' size='sm' onClick={addItem}>
             <Plus className='mr-1 size-4' />
-            Add Co-Chair
+            {t('post.blocks.wgCoChairs.addItem')}
           </Button>
         </CardAction>
       </CardHeader>
@@ -228,14 +232,16 @@ export function WgCoChairsForm({
                 isKhmer ? item.name.en : item.name.km
               ).trim();
               const title =
-                localizedName || fallbackName || `Co-Chair ${index + 1}`;
+                localizedName ||
+                fallbackName ||
+                `${t('post.blocks.wgCoChairs.item')} ${index + 1}`;
 
               return (
                 <CoChairSection
                   key={index}
                   value={`co-chair-${index}`}
                   title={title}
-                  subtitle={`Co-Chair ${index + 1}`}
+                  subtitle={`${t('post.blocks.wgCoChairs.item')} ${index + 1}`}
                 >
                   <div className='space-y-3'>
                     <div className='flex items-center justify-end'>
@@ -253,7 +259,7 @@ export function WgCoChairsForm({
                     <div className='space-y-2'>
                       <div className='flex items-center justify-between gap-2'>
                         <Label htmlFor={`wg-co-chair-profile-${index}`}>
-                          Profile URL
+                          {t('post.blocks.wgCoChairs.profileUrl')}
                         </Label>
                         <div className='flex items-center gap-2'>
                           <Button
@@ -262,7 +268,7 @@ export function WgCoChairsForm({
                             size='sm'
                             onClick={() => setPickerIndex(index)}
                           >
-                            Choose from Media
+                            {t('post.blocks.wgCoChairs.chooseFromMedia')}
                           </Button>
                           {item.profileUrl ? (
                             <Button
@@ -271,7 +277,7 @@ export function WgCoChairsForm({
                               size='sm'
                               onClick={() => updateProfileUrl(index, '')}
                             >
-                              Clear
+                              {t('post.blocks.wgCoChairs.clear')}
                             </Button>
                           ) : null}
                         </div>
@@ -282,7 +288,9 @@ export function WgCoChairsForm({
                         onChange={(event) =>
                           updateProfileUrl(index, event.target.value)
                         }
-                        placeholder='https://example.com/profile'
+                        placeholder={t(
+                          'post.blocks.wgCoChairs.profilePlaceholder'
+                        )}
                       />
                       {item.profileUrl ? (
                         <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
@@ -302,7 +310,9 @@ export function WgCoChairsForm({
 
                     <div className='space-y-2'>
                       <Label htmlFor={`wg-co-chair-name-${index}`}>
-                        {isKhmer ? 'Name (Khmer)' : 'Name (English)'}
+                        {isKhmer
+                          ? t('post.blocks.wgCoChairs.nameKhmer')
+                          : t('post.blocks.wgCoChairs.nameEnglish')}
                       </Label>
                       <Input
                         id={`wg-co-chair-name-${index}`}
@@ -310,15 +320,19 @@ export function WgCoChairsForm({
                         onChange={(event) =>
                           updateField(index, 'name', event.target.value)
                         }
-                        placeholder={isKhmer ? 'បញ្ចូលឈ្មោះ' : 'Enter name'}
+                        placeholder={
+                          isKhmer
+                            ? t('post.blocks.wgCoChairs.enterNameKhmer')
+                            : t('post.blocks.wgCoChairs.enterNameEnglish')
+                        }
                       />
                     </div>
 
                     <div className='space-y-2'>
                       <Label htmlFor={`wg-co-chair-description-${index}`}>
                         {isKhmer
-                          ? 'Description (Khmer)'
-                          : 'Description (English)'}
+                          ? t('post.blocks.wgCoChairs.descriptionKhmer')
+                          : t('post.blocks.wgCoChairs.descriptionEnglish')}
                       </Label>
                       <Textarea
                         id={`wg-co-chair-description-${index}`}
@@ -329,7 +343,11 @@ export function WgCoChairsForm({
                           updateField(index, 'description', event.target.value)
                         }
                         placeholder={
-                          isKhmer ? 'បញ្ចូលពិពណ៌នា' : 'Enter short description'
+                          isKhmer
+                            ? t('post.blocks.wgCoChairs.enterDescriptionKhmer')
+                            : t(
+                                'post.blocks.wgCoChairs.enterDescriptionEnglish'
+                              )
                         }
                         rows={4}
                         className='resize-none'
@@ -345,7 +363,7 @@ export function WgCoChairsForm({
         {formData.items.length === 0 && (
           <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
             <Users className='mb-2 size-8' />
-            <p>No co-chairs added. Click Add Co-Chair to start.</p>
+            <p>{t('post.blocks.wgCoChairs.noItems')}</p>
           </div>
         )}
       </CardContent>
@@ -356,8 +374,8 @@ export function WgCoChairsForm({
         onSelect={handleSelectProfileFromMedia}
         onUploadFromDevice={handleUploadProfileFromDevice}
         loading={uploadingFromDevice}
-        title='Select profile media'
-        description='Choose an image from Media Manager.'
+        title={t('post.blocks.wgCoChairs.selectProfileMedia')}
+        description={t('post.blocks.wgCoChairs.selectProfileMediaDescription')}
         types={['image']}
         accept='image/*'
         allowUploadFromDevice

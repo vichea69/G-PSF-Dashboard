@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deletePage } from '@/server/action/page/page';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface CellActionProps {
   data: { id: string | number } & Record<string, any>;
@@ -49,6 +50,7 @@ export function CellAction({ data }: CellActionProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canReadPage = can(
@@ -72,7 +74,7 @@ export function CellAction({ data }: CellActionProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pages'] });
       router.refresh();
-      toast.success('Page deleted successfully');
+      toast.success(t('page.toast.deleted'));
     }
   });
 
@@ -86,7 +88,7 @@ export function CellAction({ data }: CellActionProps) {
         e?.response?.data?.message ||
         e?.response?.data?.error ||
         e?.message ||
-        'Delete failed';
+        t('page.toast.deleteFailed');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -96,7 +98,7 @@ export function CellAction({ data }: CellActionProps) {
   const handleViewTree = () => {
     const pageId = resolvePageId(data);
     if (!pageId) {
-      toast.error('Page id is missing');
+      toast.error(t('page.toast.idMissing'));
       return;
     }
 
@@ -120,15 +122,16 @@ export function CellAction({ data }: CellActionProps) {
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
+              <span className='sr-only'>{t('page.actions.openMenu')}</span>
               <IconDotsVertical className='h-4 w-4' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('page.actions.menuLabel')}</DropdownMenuLabel>
             {canReadPage ? (
               <DropdownMenuItem onClick={handleViewTree}>
-                <GitBranch className='mr-2 h-4 w-4' /> View Tree
+                <GitBranch className='mr-2 h-4 w-4' />{' '}
+                {t('page.actions.viewTree')}
               </DropdownMenuItem>
             ) : null}
             {canUpdatePage ? (
@@ -136,18 +139,19 @@ export function CellAction({ data }: CellActionProps) {
                 onClick={() => {
                   const pageId = resolvePageId(data);
                   if (!pageId) {
-                    toast.error('Page id is missing');
+                    toast.error(t('page.toast.idMissing'));
                     return;
                   }
                   router.push(`/admin/page/${encodeURIComponent(pageId)}`);
                 }}
               >
-                <IconEdit className='mr-2 h-4 w-4' /> Update
+                <IconEdit className='mr-2 h-4 w-4' /> {t('page.actions.update')}
               </DropdownMenuItem>
             ) : null}
             {canDeletePage ? (
               <DropdownMenuItem onClick={() => setOpen(true)}>
-                <IconTrash className='mr-2 h-4 w-4' /> Delete
+                <IconTrash className='mr-2 h-4 w-4' />{' '}
+                {t('page.actions.delete')}
               </DropdownMenuItem>
             ) : null}
           </DropdownMenuContent>

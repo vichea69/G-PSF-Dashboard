@@ -13,12 +13,18 @@ import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 
 export type WorkingGroupRow = WorkingGroupItem;
 
-const getStatusBadge = (status?: string) => {
+type TranslateFn = (key: string) => string;
+
+const getStatusBadge = (status: string | undefined, t: TranslateFn) => {
   const normalized = status?.toLowerCase?.() ?? 'draft';
   const isPublished = normalized === 'published';
   const isDraft = normalized === 'draft';
 
-  const label = isPublished ? 'Published' : isDraft ? 'Draft' : 'Unknown';
+  const label = isPublished
+    ? t('workingGroup.status.published')
+    : isDraft
+      ? t('workingGroup.status.draft')
+      : t('workingGroup.status.unknown');
   const variant = isPublished
     ? ('success' as const)
     : isDraft
@@ -38,7 +44,8 @@ const getStatusBadge = (status?: string) => {
 };
 
 export const getWorkingGroupColumns = (
-  language: Language
+  language: Language,
+  t: TranslateFn
 ): ColumnDef<WorkingGroupRow>[] => [
   // {
   //   id: 'id',
@@ -50,7 +57,7 @@ export const getWorkingGroupColumns = (
   {
     id: 'iconUrl',
     accessorKey: 'iconUrl',
-    header: 'Icon',
+    header: t('workingGroup.columns.icon'),
     cell: ({ row }) => {
       const src = (row.original.iconUrl ?? '').trim();
       if (!src) {
@@ -62,7 +69,10 @@ export const getWorkingGroupColumns = (
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
-            alt={getLocalizedText(row.original.title ?? '', language) || 'icon'}
+            alt={
+              getLocalizedText(row.original.title ?? '', language) ||
+              t('workingGroup.columns.icon')
+            }
             className='h-full w-full object-cover'
           />
         </div>
@@ -73,7 +83,10 @@ export const getWorkingGroupColumns = (
     id: 'title',
     accessorFn: (row) => getLocalizedText(row.title ?? '', language) ?? '',
     header: ({ column }: { column: Column<WorkingGroupRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+      <DataTableColumnHeader
+        column={column}
+        title={t('workingGroup.columns.title')}
+      />
     ),
     cell: ({ cell }) => (
       <TruncatedTooltipCell
@@ -84,8 +97,8 @@ export const getWorkingGroupColumns = (
       />
     ),
     meta: {
-      label: 'Title',
-      placeholder: 'Search title...',
+      label: t('workingGroup.filters.titleLabel'),
+      placeholder: t('workingGroup.filters.searchTitle'),
       variant: 'text'
     }
   },
@@ -93,7 +106,7 @@ export const getWorkingGroupColumns = (
     id: 'page',
     accessorFn: (row) =>
       getLocalizedText(row.page?.title ?? '', language) ?? row.page?.slug ?? '',
-    header: 'Page',
+    header: t('workingGroup.columns.page'),
     cell: ({ cell }) => (
       <TruncatedTooltipCell
         text={String(cell.getValue() ?? '')}
@@ -105,20 +118,21 @@ export const getWorkingGroupColumns = (
   },
   {
     accessorKey: 'status',
-    header: 'Status',
-    cell: ({ cell }) => getStatusBadge(cell.getValue<string>())
+    header: t('workingGroup.columns.status'),
+    cell: ({ cell }) => getStatusBadge(cell.getValue<string>(), t)
   },
   {
     accessorKey: 'orderIndex',
-    header: 'Order'
+    header: t('workingGroup.columns.order')
   },
   {
     accessorKey: 'updatedAt',
-    header: 'Updated',
+    header: t('workingGroup.columns.updated'),
     cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} />
   },
   {
     id: 'actions',
+    header: t('workingGroup.columns.actions'),
     cell: ({ row }) => <CellAction data={row.original} />
   }
 ];

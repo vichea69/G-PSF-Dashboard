@@ -10,6 +10,7 @@ import { type Language } from '@/context/language-context';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 import type { Option } from '@/types/data-table';
+type TranslateFn = (key: string) => string;
 
 export type PostRow = {
   id: number;
@@ -38,8 +39,6 @@ export type PostRow = {
   sectionId?: number | string;
   page?: { id: number; title?: LocalizedText; slug?: string } | undefined;
 };
-
-const FEATURED_OPTIONS: Option[] = [{ value: 'true', label: 'Featured' }];
 
 const readString = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
@@ -154,7 +153,7 @@ function getPostImageSrc(row: PostRow): string {
   return resolveApiAssetUrl(raw);
 }
 
-const postStatusBadge = (status: string) => {
+const postStatusBadge = (status: string, t: TranslateFn) => {
   const normalized = status?.toLowerCase?.() ?? '';
   const isPublished = normalized === 'published';
   return (
@@ -168,7 +167,7 @@ const postStatusBadge = (status: string) => {
       ) : (
         <IconCircleX className='h-3 w-3' />
       )}{' '}
-      {isPublished ? 'Published' : 'Draft'}
+      {isPublished ? t('post.status.published') : t('post.status.draft')}
     </Badge>
   );
 };
@@ -177,12 +176,13 @@ export const getPostColumns = (
   language: Language,
   pageOptions: Option[],
   sectionOptions: Option[],
-  categoryOptions: Option[]
+  categoryOptions: Option[],
+  t: TranslateFn
 ): ColumnDef<PostRow>[] => [
   {
     id: 'image',
     accessorFn: (row) => getPostImageSrc(row),
-    header: 'IMAGE',
+    header: t('post.columns.image'),
     cell: ({ row }) => {
       const original = row.original as PostRow;
       const images = Array.isArray(original?.images) ? original.images : [];
@@ -212,7 +212,7 @@ export const getPostColumns = (
     id: 'title',
     accessorFn: (row) => getLocalizedText(row.title ?? '', language) ?? '',
     header: ({ column }: { column: Column<PostRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+      <DataTableColumnHeader column={column} title={t('post.columns.title')} />
     ),
     cell: ({ cell }) => (
       <TruncatedTooltipCell
@@ -223,18 +223,22 @@ export const getPostColumns = (
       />
     ),
     enableColumnFilter: true,
-    meta: { label: 'Title', placeholder: 'Search title...', variant: 'text' }
+    meta: {
+      label: t('post.filters.titleLabel'),
+      placeholder: t('post.filters.searchTitle'),
+      variant: 'text'
+    }
   },
   {
     accessorKey: 'status',
-    header: 'Status',
-    cell: ({ cell }) => postStatusBadge(cell.getValue<string>())
+    header: t('post.columns.status'),
+    cell: ({ cell }) => postStatusBadge(cell.getValue<string>(), t)
   },
   {
     id: 'category',
     accessorFn: (row) =>
       getLocalizedText(row.category?.name ?? '', language) ?? '',
-    header: 'Category',
+    header: t('post.columns.category'),
     cell: ({ cell }) => (
       <TruncatedTooltipCell
         text={String(cell.getValue() ?? '')}
@@ -246,7 +250,7 @@ export const getPostColumns = (
     enableColumnFilter: true,
     meta: categoryOptions.length
       ? {
-          label: 'Category',
+          label: t('post.filters.categoryLabel'),
           variant: 'select',
           options: categoryOptions
         }
@@ -275,7 +279,7 @@ export const getPostColumns = (
       }
       return '';
     },
-    header: 'Section',
+    header: t('post.columns.section'),
     cell: ({ cell }) => (
       <TruncatedTooltipCell
         text={String(cell.getValue() ?? '')}
@@ -287,7 +291,7 @@ export const getPostColumns = (
     enableColumnFilter: true,
     meta: sectionOptions.length
       ? {
-          label: 'Section',
+          label: t('post.filters.sectionLabel'),
           variant: 'select',
           options: sectionOptions
         }
@@ -297,7 +301,7 @@ export const getPostColumns = (
     id: 'page',
     accessorFn: (row) =>
       getLocalizedText(row.page?.title ?? '', language) ?? row.page?.slug ?? '',
-    header: 'Page',
+    header: t('post.columns.page'),
     cell: ({ cell }) => (
       <TruncatedTooltipCell
         text={String(cell.getValue() ?? '')}
@@ -309,7 +313,7 @@ export const getPostColumns = (
     enableColumnFilter: true,
     meta: pageOptions.length
       ? {
-          label: 'Page',
+          label: t('post.filters.pageLabel'),
           variant: 'select',
           options: pageOptions
         }
@@ -318,15 +322,16 @@ export const getPostColumns = (
   {
     id: 'featured',
     accessorFn: (row) => (row.isFeatured ? 'true' : ''),
-    header: 'Featured',
+    header: t('post.columns.featured'),
     cell: () => null,
     enableSorting: false,
     enableHiding: false,
     enableColumnFilter: true,
     meta: {
-      label: 'Featured',
+      label: t('post.filters.featuredLabel'),
       variant: 'select',
-      options: FEATURED_OPTIONS
+      // Build the label from the dictionary so the filter popup follows the selected language.
+      options: [{ value: 'true', label: t('post.columns.featured') }]
     }
   },
   // {
@@ -334,7 +339,7 @@ export const getPostColumns = (
   //   header: 'Updated'
   // },
   {
-    header: 'Actions',
+    header: t('post.columns.actions'),
     id: 'actions',
     cell: ({ row }) => <CellAction data={row.original} />
   }

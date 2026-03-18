@@ -3,18 +3,22 @@
 import { useMemo, useState } from 'react';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { useContacts } from '@/features/contact/hook/use-contact';
+import { useTranslate } from '@/hooks/use-translate';
 import type { Contact as ContactEntity } from '@/server/action/contact/types';
 import ContactsTable from './contact-tables';
 import type { ContactRow } from './contact-tables/columns';
 
-const getDisplayName = (contact: ContactEntity) =>
+const getDisplayName = (contact: ContactEntity, unknownLabel: string) =>
   `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim() ||
   contact.email ||
-  'Unknown';
+  unknownLabel;
 
-const mapContactRow = (contact: ContactEntity): ContactRow => ({
+const mapContactRow = (
+  contact: ContactEntity,
+  unknownLabel: string
+): ContactRow => ({
   id: contact.id,
-  name: getDisplayName(contact),
+  name: getDisplayName(contact, unknownLabel),
   email: contact.email ?? '',
   organisationName: contact.organisationName ?? '',
   subject: contact.subject ?? '',
@@ -26,12 +30,15 @@ const mapContactRow = (contact: ContactEntity): ContactRow => ({
 export default function ContactsViewPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const { t } = useTranslate();
   const { data, isLoading } = useContacts({ page, limit: pageSize });
 
   const rows = useMemo(() => {
     const list = data?.items ?? [];
-    return list.map(mapContactRow);
-  }, [data?.items]);
+    return list.map((contact) =>
+      mapContactRow(contact, t('contact.toast.unknown'))
+    );
+  }, [data?.items, t]);
 
   const pageCount = Math.max(1, data?.meta?.totalPages ?? 1);
   const currentPage = data?.meta?.page ?? page;

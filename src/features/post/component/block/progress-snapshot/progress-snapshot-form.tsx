@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslate } from '@/hooks/use-translate';
 import { TrendingUp } from 'lucide-react';
 
 export interface ProgressSnapshotData {
@@ -34,6 +35,7 @@ export function ProgressSnapshotForm({
   value,
   onChange
 }: ProgressSnapshotFormProps) {
+  const { t } = useTranslate();
   const formData = normalizeProgressSnapshotData(value);
 
   return (
@@ -41,12 +43,14 @@ export function ProgressSnapshotForm({
       <CardHeader className='border-b'>
         <CardTitle className='flex items-center gap-2'>
           <TrendingUp className='size-5' />
-          Progress Snapshot
+          {t('post.blocks.progressSnapshot.title')}
         </CardTitle>
       </CardHeader>
 
       <CardContent className='space-y-2'>
-        <Label htmlFor='progress-snapshot'>Progress</Label>
+        <Label htmlFor='progress-snapshot'>
+          {t('post.blocks.progressSnapshot.progress')}
+        </Label>
         <Input
           id='progress-snapshot'
           value={formData.progress}
@@ -55,7 +59,7 @@ export function ProgressSnapshotForm({
               progress: event.target.value
             })
           }
-          placeholder='Enter progress'
+          placeholder={t('post.blocks.progressSnapshot.enterProgress')}
         />
       </CardContent>
     </Card>

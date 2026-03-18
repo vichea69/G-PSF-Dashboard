@@ -1,8 +1,6 @@
 import PageContainer from '@/components/layout/page-container';
 import { AdminPageGuard } from '@/components/permissions/admin-page-guard';
-import { Heading } from '@/components/ui/heading';
-import { Separator } from '@/components/ui/separator';
-import SectionForm from '@/features/section/components/section-form';
+import SectionFormPage from '@/features/section/components/section-form-page';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 export const metadata = { title: 'Dashboard: New Section' };
@@ -23,17 +21,10 @@ export default async function Page({ searchParams }: PageProps) {
         resource={adminRoutePermissions.sections.create.resource}
         action={adminRoutePermissions.sections.create.action}
       >
-        <div className='flex-1 space-y-4'>
-          <Heading
-            title='Create Section'
-            description='Set the section details for your page.'
-          />
-          <Separator />
-          <SectionForm
-            initialData={null}
-            initialPageId={Number.isFinite(initialPageId) ? initialPageId : 0}
-          />
-        </div>
+        <SectionFormPage
+          initialData={null}
+          initialPageId={Number.isFinite(initialPageId) ? initialPageId : 0}
+        />
       </AdminPageGuard>
     </PageContainer>
   );

@@ -31,11 +31,17 @@ export type TestimonialRow = {
   updatedAt?: string;
 };
 
-const getStatusBadge = (status?: string) => {
+type TranslateFn = (key: string) => string;
+
+const getStatusBadge = (status: string | undefined, t: TranslateFn) => {
   const normalized = status?.toLowerCase?.() ?? 'draft';
   const isPublished = normalized === 'published';
   const isDraft = normalized === 'draft';
-  const label = isPublished ? 'Published' : isDraft ? 'Draft' : 'Unknown';
+  const label = isPublished
+    ? t('testimonial.status.published')
+    : isDraft
+      ? t('testimonial.status.draft')
+      : t('testimonial.status.unknown');
   const variant = isPublished
     ? ('success' as const)
     : isDraft
@@ -70,19 +76,20 @@ const getAvatarSrc = (row: TestimonialRow) => {
 };
 
 export const getTestimonialColumns = (
-  language: Language
+  language: Language,
+  t: TranslateFn
 ): ColumnDef<TestimonialRow>[] => [
   {
     id: 'avatar',
     accessorKey: 'avatarUrl',
-    header: 'AVATAR',
+    header: t('testimonial.columns.avatar'),
     cell: ({ row }) => {
       const name = getLocalizedText(row.original.authorName, language);
       const initials = getInitials(name, 2) || 'NA';
       const src = getAvatarSrc(row.original);
       return (
         <Avatar className='h-10 w-10 rounded-lg'>
-          <AvatarImage src={src} alt={name || 'Author'} />
+          <AvatarImage src={src} alt={name || t('testimonial.state.author')} />
           <AvatarFallback className='rounded-lg'>{initials}</AvatarFallback>
         </Avatar>
       );
@@ -92,10 +99,15 @@ export const getTestimonialColumns = (
     id: 'title',
     accessorFn: (row) => getLocalizedText(row.title ?? '', language),
     header: ({ column }: { column: Column<TestimonialRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+      <DataTableColumnHeader
+        column={column}
+        title={t('testimonial.columns.title')}
+      />
     ),
     cell: ({ cell, row }) => {
-      const value = (cell.getValue<string>() ?? '').toString() || 'Untitled';
+      const value =
+        (cell.getValue<string>() ?? '').toString() ||
+        t('testimonial.state.untitled');
       const quote = getLocalizedText(row.original.quote ?? '', language);
       return (
         <div className='space-y-1'>
@@ -104,7 +116,7 @@ export const getTestimonialColumns = (
             widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem] leading-snug font-medium'
             tooltipClassName='max-w-[24rem] break-words'
             minLength={12}
-            fallback='Untitled'
+            fallback={t('testimonial.state.untitled')}
           />
           {quote ? (
             <div className='text-muted-foreground line-clamp-2 max-w-[360px] text-xs'>
@@ -115,8 +127,8 @@ export const getTestimonialColumns = (
       );
     },
     meta: {
-      label: 'Title',
-      placeholder: 'Search title...',
+      label: t('testimonial.filters.titleLabel'),
+      placeholder: t('testimonial.filters.searchTitle'),
       variant: 'text'
     }
   },
@@ -124,7 +136,10 @@ export const getTestimonialColumns = (
     id: 'author',
     accessorFn: (row) => getLocalizedText(row.authorName ?? '', language),
     header: ({ column }: { column: Column<TestimonialRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Author' />
+      <DataTableColumnHeader
+        column={column}
+        title={t('testimonial.columns.author')}
+      />
     ),
     cell: ({ row, cell }) => {
       const name = (cell.getValue<string>() ?? '').toString();
@@ -135,11 +150,11 @@ export const getTestimonialColumns = (
       return (
         <div className='space-y-1'>
           <TruncatedTooltipCell
-            text={name || 'Unknown'}
+            text={name || t('testimonial.state.unknown')}
             widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem] leading-none font-medium'
             tooltipClassName='max-w-[24rem] break-words'
             minLength={12}
-            fallback='Unknown'
+            fallback={t('testimonial.state.unknown')}
           />
           {subtitle ? (
             <div className='text-muted-foreground text-xs'>
@@ -152,7 +167,7 @@ export const getTestimonialColumns = (
   },
   {
     accessorKey: 'rating',
-    header: 'Rating',
+    header: t('testimonial.columns.rating'),
     cell: ({ cell }) => {
       const rating = clampRating(cell.getValue<number>());
       if (!rating) {
@@ -175,27 +190,30 @@ export const getTestimonialColumns = (
               />
             ))}
           </div>
-          <span className='text-muted-foreground text-xs'>{display}/5</span>
+          <span className='text-muted-foreground text-xs'>
+            {display} {t('testimonial.state.outOfFive')}
+          </span>
         </div>
       );
     }
   },
   {
     accessorKey: 'status',
-    header: 'Status',
-    cell: ({ cell }) => getStatusBadge(cell.getValue<string>())
+    header: t('testimonial.columns.status'),
+    cell: ({ cell }) => getStatusBadge(cell.getValue<string>(), t)
   },
   {
     accessorKey: 'orderIndex',
-    header: 'Order'
+    header: t('testimonial.columns.order')
   },
   {
     accessorKey: 'updatedAt',
-    header: 'Updated',
+    header: t('testimonial.columns.updated'),
     cell: ({ cell }) => <RelativeTime value={cell.getValue<string>()} />
   },
   {
     id: 'actions',
+    header: t('testimonial.columns.actions'),
     cell: ({ row }) => <TestimonialCellAction data={row.original} />
   }
 ];

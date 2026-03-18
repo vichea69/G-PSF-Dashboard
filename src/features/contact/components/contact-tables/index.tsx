@@ -11,7 +11,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { contactColumns, type ContactRow } from './columns';
+import { useTranslate } from '@/hooks/use-translate';
+import { getContactColumns, type ContactRow } from './columns';
 
 type ContactsTableProps = {
   data: ContactRow[];
@@ -31,7 +32,8 @@ export default function ContactsTable({
   onPageSizeChange
 }: ContactsTableProps) {
   const router = useRouter();
-  const columns = useMemo(() => contactColumns, []);
+  const { t } = useTranslate();
+  const columns = useMemo(() => getContactColumns(t), [t]);
   const table = useReactTable({
     data,
     columns,

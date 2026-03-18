@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +24,7 @@ import {
 import type { LocalizedText } from '@/lib/helpers';
 import { FileModal } from '@/components/modal/file-modal';
 import type { MediaFile } from '@/features/media/types/media-type';
+import { useTranslate } from '@/hooks/use-translate';
 import { handleImageUpload } from '@/lib/tiptap-utils';
 
 interface TestimonialFormData {
@@ -67,6 +67,7 @@ export function TestimonialForm({
 }: {
   initialData?: TestimonialInitialData;
 }) {
+  const { t } = useTranslate();
   const [formData, setFormData] = useState<TestimonialFormData>({
     title: {
       en: getLocalizedValue(initialData?.title, 'en'),
@@ -104,20 +105,20 @@ export function TestimonialForm({
     mutationFn: (payload: TestimonialFormData) => createTestimonial(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['testimonials'] });
-      toast.success('Testimonial created successfully');
+      toast.success(t('testimonial.toast.created'));
       router.replace('/admin/testimonial');
     }
   });
   const updateMutation = useMutation({
     mutationFn: (payload: TestimonialFormData) => {
       if (!initialData?.id) {
-        throw new Error('Testimonial id is required');
+        throw new Error(t('testimonial.toast.idRequired'));
       }
       return updateTestimonial(initialData.id, payload);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['testimonials'] });
-      toast.success('Testimonial updated successfully');
+      toast.success(t('testimonial.toast.updated'));
       router.replace('/admin/testimonial');
     }
   });
@@ -132,7 +133,7 @@ export function TestimonialForm({
         const message =
           error?.response?.data?.message ||
           error?.message ||
-          'Failed to save testimonial';
+          t('testimonial.toast.saveFailed');
         toast.error(message);
       })
       .finally(() => setSubmitting(false));
@@ -160,7 +161,7 @@ export function TestimonialForm({
   const handleSelectAvatarFromMedia = (file: MediaFile) => {
     const selectedUrl = (file.url ?? file.thumbnail ?? '').trim();
     if (!selectedUrl) {
-      toast.error('Selected media does not have a valid URL');
+      toast.error(t('testimonial.toast.selectedMediaInvalid'));
       return;
     }
 
@@ -177,15 +178,15 @@ export function TestimonialForm({
     try {
       const result = await handleImageUpload(firstFile);
       if (!result?.url) {
-        throw new Error('Upload succeeded but no URL was returned');
+        throw new Error(t('testimonial.toast.uploadMissingUrl'));
       }
 
       setAvatarPreviewError(false);
       setFormData((prev) => ({ ...prev, avatarUrl: result.url }));
       await qc.invalidateQueries({ queryKey: ['media'], exact: false });
-      toast.success('Avatar selected successfully');
+      toast.success(t('testimonial.toast.avatarSelected'));
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to upload avatar');
+      toast.error(error?.message || t('testimonial.toast.uploadFailed'));
     } finally {
       setAvatarUploadLoading(false);
     }
@@ -197,17 +198,21 @@ export function TestimonialForm({
         {/* Language Tabs */}
         <Tabs defaultValue='en' className='w-full'>
           <TabsList>
-            <TabsTrigger value='en'>English</TabsTrigger>
-            <TabsTrigger value='km'>Khmer</TabsTrigger>
+            <TabsTrigger value='en'>
+              {t('testimonial.form.englishTab')}
+            </TabsTrigger>
+            <TabsTrigger value='km'>
+              {t('testimonial.form.khmerTab')}
+            </TabsTrigger>
           </TabsList>
 
           {/* English Tab */}
           <TabsContent value='en' className='mt-6 space-y-6'>
             <div className='space-y-2'>
-              <Label htmlFor='title-en'>Title</Label>
+              <Label htmlFor='title-en'>{t('testimonial.form.title')}</Label>
               <Input
                 id='title-en'
-                placeholder='Member Experience'
+                placeholder={t('testimonial.form.titlePlaceholderEn')}
                 value={formData.title.en}
                 onChange={(e) =>
                   updateLocalizedField('title', 'en', e.target.value)
@@ -216,10 +221,10 @@ export function TestimonialForm({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='quote-en'>Quote</Label>
+              <Label htmlFor='quote-en'>{t('testimonial.form.quote')}</Label>
               <Textarea
                 id='quote-en'
-                placeholder='This program helped our business a lot.'
+                placeholder={t('testimonial.form.quotePlaceholderEn')}
                 rows={4}
                 value={formData.quote.en}
                 onChange={(e) =>
@@ -230,10 +235,12 @@ export function TestimonialForm({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='author-name-en'>Author Name</Label>
+              <Label htmlFor='author-name-en'>
+                {t('testimonial.form.authorName')}
+              </Label>
               <Input
                 id='author-name-en'
-                placeholder='Author Name'
+                placeholder={t('testimonial.form.authorNamePlaceholderEn')}
                 value={formData.authorName.en}
                 onChange={(e) =>
                   updateLocalizedField('authorName', 'en', e.target.value)
@@ -242,10 +249,12 @@ export function TestimonialForm({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='author-role-en'>Author Role</Label>
+              <Label htmlFor='author-role-en'>
+                {t('testimonial.form.authorRole')}
+              </Label>
               <Input
                 id='author-role-en'
-                placeholder='Founder'
+                placeholder={t('testimonial.form.authorRolePlaceholderEn')}
                 value={formData.authorRole.en}
                 onChange={(e) =>
                   updateLocalizedField('authorRole', 'en', e.target.value)
@@ -257,10 +266,10 @@ export function TestimonialForm({
           {/* Khmer Tab */}
           <TabsContent value='km' className='mt-6 space-y-6'>
             <div className='space-y-2'>
-              <Label htmlFor='title-km'>Title</Label>
+              <Label htmlFor='title-km'>{t('testimonial.form.title')}</Label>
               <Input
                 id='title-km'
-                placeholder='បទពិសោធន៍សមាជិក'
+                placeholder={t('testimonial.form.titlePlaceholderKm')}
                 value={formData.title.km}
                 onChange={(e) =>
                   updateLocalizedField('title', 'km', e.target.value)
@@ -269,10 +278,10 @@ export function TestimonialForm({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='quote-km'>Quote</Label>
+              <Label htmlFor='quote-km'>{t('testimonial.form.quote')}</Label>
               <Textarea
                 id='quote-km'
-                placeholder='កម្មវិធីនេះបានជួយអាជីវកម្មរបស់យើងច្រើន។'
+                placeholder={t('testimonial.form.quotePlaceholderKm')}
                 rows={4}
                 value={formData.quote.km}
                 onChange={(e) =>
@@ -283,10 +292,12 @@ export function TestimonialForm({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='author-name-km'>Author Name</Label>
+              <Label htmlFor='author-name-km'>
+                {t('testimonial.form.authorName')}
+              </Label>
               <Input
                 id='author-name-km'
-                placeholder='សុភា'
+                placeholder={t('testimonial.form.authorNamePlaceholderKm')}
                 value={formData.authorName.km}
                 onChange={(e) =>
                   updateLocalizedField('authorName', 'km', e.target.value)
@@ -295,10 +306,12 @@ export function TestimonialForm({
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='author-role-km'>Author Role</Label>
+              <Label htmlFor='author-role-km'>
+                {t('testimonial.form.authorRole')}
+              </Label>
               <Input
                 id='author-role-km'
-                placeholder='ស្ថាបនិក'
+                placeholder={t('testimonial.form.authorRolePlaceholderKm')}
                 value={formData.authorRole.km}
                 onChange={(e) =>
                   updateLocalizedField('authorRole', 'km', e.target.value)
@@ -310,7 +323,9 @@ export function TestimonialForm({
 
         {/* Common Fields (outside tabs) */}
         <div className='border-border space-y-6 border-t pt-6'>
-          <h3 className='text-sm font-medium'>Author & Settings</h3>
+          <h3 className='text-sm font-medium'>
+            {t('testimonial.form.authorSettings')}
+          </h3>
 
           {/* Avatar */}
           <div className='flex items-start gap-4'>
@@ -322,7 +337,7 @@ export function TestimonialForm({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={avatarPreviewUrl}
-                    alt='Avatar preview'
+                    alt={t('testimonial.form.avatarPreviewAlt')}
                     className='h-16 w-16 rounded-full object-cover'
                     onError={() => setAvatarPreviewError(true)}
                   />
@@ -334,19 +349,21 @@ export function TestimonialForm({
             <div className='flex-1 space-y-3'>
               <div className='space-y-2'>
                 <div className='flex items-center justify-between gap-2'>
-                  <Label htmlFor='avatar-url'>Avatar URL</Label>
+                  <Label htmlFor='avatar-url'>
+                    {t('testimonial.form.avatarUrl')}
+                  </Label>
                   <Button
                     type='button'
                     variant='outline'
                     size='sm'
                     onClick={() => setAvatarPickerOpen(true)}
                   >
-                    Select from Media
+                    {t('testimonial.form.selectFromMedia')}
                   </Button>
                 </div>
                 <Input
                   id='avatar-url'
-                  placeholder='https://example.com/avatar.jpg'
+                  placeholder={t('testimonial.form.avatarPlaceholder')}
                   value={formData.avatarUrl}
                   onChange={(e) => {
                     setAvatarPreviewError(false);
@@ -359,10 +376,10 @@ export function TestimonialForm({
 
           {/* Company */}
           <div className='space-y-2'>
-            <Label htmlFor='company'>Company</Label>
+            <Label htmlFor='company'>{t('testimonial.form.company')}</Label>
             <Input
               id='company'
-              placeholder='ABC Co.'
+              placeholder={t('testimonial.form.companyPlaceholder')}
               value={formData.company}
               onChange={(e) => updateField('company', e.target.value)}
             />
@@ -370,7 +387,7 @@ export function TestimonialForm({
 
           {/* Rating */}
           <div className='space-y-2'>
-            <Label>Rating</Label>
+            <Label>{t('testimonial.form.rating')}</Label>
             <div className='flex items-center gap-1'>
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -391,7 +408,7 @@ export function TestimonialForm({
                 </button>
               ))}
               <span className='text-muted-foreground ml-3 text-sm'>
-                {formData.rating} out of 5
+                {formData.rating} {t('testimonial.state.outOfFive')}
               </span>
             </div>
           </div>
@@ -399,32 +416,36 @@ export function TestimonialForm({
           {/* Status & Order */}
           <div className='grid gap-6 md:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='status'>Status</Label>
+              <Label htmlFor='status'>{t('testimonial.form.status')}</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => updateField('status', value)}
               >
                 <SelectTrigger id='status'>
-                  <SelectValue placeholder='Select status' />
+                  <SelectValue
+                    placeholder={t('testimonial.form.selectStatus')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='published'>
                     <span className='flex items-center gap-2'>
                       <span className='h-2 w-2 rounded-full bg-emerald-500' />
-                      Published
+                      {t('testimonial.status.published')}
                     </span>
                   </SelectItem>
                   <SelectItem value='draft'>
                     <span className='flex items-center gap-2'>
                       <span className='bg-muted-foreground h-2 w-2 rounded-full' />
-                      Draft
+                      {t('testimonial.status.draft')}
                     </span>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className='space-y-2'>
-              <Label htmlFor='order-index'>Order Index</Label>
+              <Label htmlFor='order-index'>
+                {t('testimonial.form.orderIndex')}
+              </Label>
               <Input
                 id='order-index'
                 type='number'
@@ -448,10 +469,12 @@ export function TestimonialForm({
             variant='outline'
             onClick={() => router.push('/admin/testimonial')}
           >
-            Cancel
+            {t('testimonial.form.cancel')}
           </Button>
           <Button variant='primary' type='submit' disabled={submitting}>
-            {initialData?.id ? 'Save Changes' : 'Save'}
+            {initialData?.id
+              ? t('testimonial.form.saveChanges')
+              : t('testimonial.form.save')}
           </Button>
         </div>
       </form>
@@ -462,8 +485,8 @@ export function TestimonialForm({
         onSelect={handleSelectAvatarFromMedia}
         onUploadFromDevice={handleUploadAvatarFromDevice}
         loading={avatarUploadLoading}
-        title='Select avatar image'
-        description='Upload a new image or pick from Media Manager.'
+        title={t('testimonial.form.selectAvatarImage')}
+        description={t('testimonial.form.mediaDescription')}
         types={['image']}
         accept='image/*'
       />

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageForm, type PageFormData } from './page-form';
+import { useTranslate } from '@/hooks/use-translate';
 import {
   createPage,
   getPageById,
@@ -55,6 +56,7 @@ function resolveEntityId(entity?: PageEntity | null) {
 export default function PageViewPage({ pageId }: { pageId: string }) {
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
 
   const normalizedPageId = useMemo(() => String(pageId ?? '').trim(), [pageId]);
   const isNew = useMemo(() => normalizedPageId === 'new', [normalizedPageId]);
@@ -76,7 +78,7 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
     }
 
     if (!normalizedPageId) {
-      toast.error('Page id is required');
+      toast.error(t('page.toast.idRequired'));
       router.replace('/admin/page');
       return;
     }
@@ -91,7 +93,7 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
         const data = (res as any)?.data ?? res;
 
         if (!data) {
-          toast.error('Page not found');
+          toast.error(t('page.toast.notFound'));
           router.replace('/admin/page');
           return;
         }
@@ -105,11 +107,11 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
         if (cancelled) return;
         const status = e?.response?.status;
         if (status === 401) {
-          toast.error('Your session expired. Please sign in again.');
+          toast.error(t('page.toast.sessionExpired'));
         } else if (status === 404) {
-          toast.error('Page not found');
+          toast.error(t('page.toast.notFound'));
         } else {
-          toast.error(getErrorMessage(e, 'Failed to load page'));
+          toast.error(getErrorMessage(e, t('page.toast.loadFailed')));
         }
         router.replace('/admin/page');
       } finally {
@@ -120,7 +122,7 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [isNew, normalizedPageId, router]);
+  }, [isNew, normalizedPageId, router, t]);
 
   const handleSave = useCallback(
     async (formData: PageFormData) => {
@@ -138,14 +140,14 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
 
         if (isNew) {
           await createPage(payload);
-          toast.success('Page created');
+          toast.success(t('page.toast.created'));
         } else {
           const targetPageId = resolvedPageId || normalizedPageId;
           if (!targetPageId) {
-            throw new Error('Page id is required');
+            throw new Error(t('page.toast.idRequired'));
           }
           await updatePage(targetPageId, payload);
-          toast.success('Page updated');
+          toast.success(t('page.toast.updated'));
         }
 
         qc.invalidateQueries({ queryKey: ['pages'] });
@@ -154,13 +156,13 @@ export default function PageViewPage({ pageId }: { pageId: string }) {
         }); // optional
         router.replace('/admin/page');
       } catch (e: any) {
-        const message = getErrorMessage(e, 'Save failed');
+        const message = getErrorMessage(e, t('page.toast.saveFailed'));
         // eslint-disable-next-line no-console
         console.error('[PageView] SAVE error', e);
         toast.error(message);
       }
     },
-    [isNew, normalizedPageId, qc, resolvedPageId, router]
+    [isNew, normalizedPageId, qc, resolvedPageId, router, t]
   );
 
   const handleCancel = useCallback(() => {

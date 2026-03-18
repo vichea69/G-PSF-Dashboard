@@ -24,6 +24,7 @@ import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 import { handleImageUpload } from '@/lib/tiptap-utils';
 import Image from 'next/image';
 
@@ -159,6 +160,7 @@ export function AnnualReportsForm({
   value,
   onChange
 }: AnnualReportsFormProps) {
+  const { t } = useTranslate();
   const [pickerIndex, setPickerIndex] = useState<number | null>(null);
   const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
   const qc = useQueryClient();
@@ -289,9 +291,11 @@ export function AnnualReportsForm({
         (result?.metadata?.thumbnail ?? '').trim()
       );
       await qc.invalidateQueries({ queryKey: ['media'], exact: false });
-      toast.success('Document file uploaded successfully');
+      toast.success(t('post.blocks.annualReports.documentUploaded'));
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to upload document file');
+      toast.error(
+        error?.message || t('post.blocks.annualReports.documentUploadFailed')
+      );
     } finally {
       setUploadingFromDevice(false);
     }
@@ -300,11 +304,11 @@ export function AnnualReportsForm({
   return (
     <Card>
       <CardHeader className='border-b'>
-        <CardTitle>Annual Reports</CardTitle>
+        <CardTitle>{t('post.blocks.annualReports.title')}</CardTitle>
         <CardAction>
           <Button type='button' size='sm' onClick={addItem}>
             <Plus className='mr-1 size-4' />
-            Add Report
+            {t('post.blocks.annualReports.addItem')}
           </Button>
         </CardAction>
       </CardHeader>
@@ -321,9 +325,9 @@ export function AnnualReportsForm({
               const reportTitle =
                 (isKhmer ? item.name.km : item.name.en).trim() ||
                 item.year.trim() ||
-                `Report ${index + 1}`;
+                `${t('post.blocks.annualReports.item')} ${index + 1}`;
               const reportSubtitle = item.year.trim()
-                ? `Year ${item.year.trim()}`
+                ? `${t('post.blocks.annualReports.yearPrefix')} ${item.year.trim()}`
                 : undefined;
 
               return (
@@ -335,7 +339,7 @@ export function AnnualReportsForm({
                 >
                   <div className='space-y-4'>
                     <div className='flex items-center justify-between gap-2'>
-                      <Label>{`Report ${index + 1}`}</Label>
+                      <Label>{`${t('post.blocks.annualReports.item')} ${index + 1}`}</Label>
                       <Button
                         type='button'
                         variant='ghost'
@@ -350,7 +354,7 @@ export function AnnualReportsForm({
                     <div className='space-y-2'>
                       <div className='flex items-center justify-between gap-2'>
                         <Label htmlFor={`annual-report-file-${index}`}>
-                          Document File
+                          {t('post.blocks.annualReports.documentFile')}
                         </Label>
                         <div className='flex items-center gap-2'>
                           <Button
@@ -359,7 +363,7 @@ export function AnnualReportsForm({
                             size='sm'
                             onClick={() => setPickerIndex(index)}
                           >
-                            Select from Media
+                            {t('post.blocks.annualReports.selectFromMedia')}
                           </Button>
                           {item.documentFile ? (
                             <Button
@@ -368,7 +372,7 @@ export function AnnualReportsForm({
                               size='sm'
                               onClick={() => updateDocumentFile(index, '', '')}
                             >
-                              Clear
+                              {t('post.blocks.annualReports.clear')}
                             </Button>
                           ) : null}
                         </div>
@@ -378,7 +382,7 @@ export function AnnualReportsForm({
                           <p className='flex items-center gap-2 text-sm font-medium'>
                             <FileText className='h-4 w-4' />
                             {getFileNameFromUrl(item.documentFile) ||
-                              'Selected file'}
+                              t('post.blocks.annualReports.selectedFile')}
                           </p>
                           {resolveApiAssetUrl(item.documentThumbnail) ? (
                             <div className='relative h-40 w-full max-w-xs overflow-hidden rounded border'>
@@ -395,7 +399,9 @@ export function AnnualReportsForm({
                             </div>
                           ) : (
                             <div className='text-muted-foreground bg-muted/40 rounded border p-3 text-sm'>
-                              Preview not available
+                              {t(
+                                'post.blocks.annualReports.previewNotAvailable'
+                              )}
                             </div>
                           )}
                           <Button
@@ -409,20 +415,20 @@ export function AnnualReportsForm({
                               target='_blank'
                               rel='noreferrer'
                             >
-                              Open document
+                              {t('post.blocks.annualReports.openDocument')}
                             </a>
                           </Button>
                         </div>
                       ) : (
                         <div className='text-muted-foreground rounded-md border border-dashed p-3 text-sm'>
-                          No document selected (optional)
+                          {t('post.blocks.annualReports.noDocumentSelected')}
                         </div>
                       )}
                     </div>
 
                     <div className='space-y-2'>
                       <Label htmlFor={`annual-report-year-${index}`}>
-                        Year
+                        {t('post.blocks.annualReports.yearLabel')}
                       </Label>
                       <Input
                         id={`annual-report-year-${index}`}
@@ -438,7 +444,9 @@ export function AnnualReportsForm({
 
                     <div className='space-y-2'>
                       <Label htmlFor={`annual-report-name-${index}`}>
-                        {isKhmer ? 'Name (Khmer)' : 'Name (English)'}
+                        {isKhmer
+                          ? t('post.blocks.annualReports.nameKhmer')
+                          : t('post.blocks.annualReports.nameEnglish')}
                       </Label>
                       <Input
                         id={`annual-report-name-${index}`}
@@ -447,14 +455,18 @@ export function AnnualReportsForm({
                           updateName(index, event.target.value)
                         }
                         placeholder={
-                          isKhmer ? 'បញ្ចូលឈ្មោះរបាយការណ៍' : 'Enter report name'
+                          isKhmer
+                            ? t('post.blocks.annualReports.enterNameKhmer')
+                            : t('post.blocks.annualReports.enterNameEnglish')
                         }
                       />
                     </div>
 
                     <div className='space-y-3'>
                       <div className='flex items-center justify-between gap-2'>
-                        <Label>Key Points</Label>
+                        <Label>
+                          {t('post.blocks.annualReports.keyPoints')}
+                        </Label>
                         <Button
                           type='button'
                           variant='outline'
@@ -462,7 +474,7 @@ export function AnnualReportsForm({
                           onClick={() => addKeyPoint(index)}
                         >
                           <Plus className='mr-1 size-4' />
-                          Add Key Point
+                          {t('post.blocks.annualReports.addKeyPoint')}
                         </Button>
                       </div>
 
@@ -475,8 +487,12 @@ export function AnnualReportsForm({
                             <Label
                               htmlFor={`annual-report-key-point-${index}-${keyPointIndex}`}
                             >
-                              {`Key Point ${keyPointIndex + 1} ${
-                                isKhmer ? '(Khmer)' : '(English)'
+                              {`${t('post.blocks.annualReports.keyPoint')} ${
+                                keyPointIndex + 1
+                              } ${
+                                isKhmer
+                                  ? `(${t('post.contentCard.khmerTab')})`
+                                  : `(${t('post.contentCard.englishTab')})`
                               }`}
                             </Label>
                             <Button
@@ -503,8 +519,8 @@ export function AnnualReportsForm({
                             }
                             placeholder={
                               isKhmer
-                                ? `បញ្ចូលចំណុចសំខាន់ទី ${keyPointIndex + 1}`
-                                : `Enter key point ${keyPointIndex + 1}`
+                                ? `${t('post.blocks.annualReports.enterKeyPoint')} ${keyPointIndex + 1}`
+                                : `${t('post.blocks.annualReports.enterKeyPoint')} ${keyPointIndex + 1}`
                             }
                           />
                         </div>
@@ -512,7 +528,7 @@ export function AnnualReportsForm({
 
                       {item.keyPoints.length === 0 ? (
                         <div className='text-muted-foreground rounded-md border border-dashed p-3 text-sm'>
-                          No key points yet. Click Add Key Point.
+                          {t('post.blocks.annualReports.noKeyPoints')}
                         </div>
                       ) : null}
                     </div>
@@ -524,7 +540,7 @@ export function AnnualReportsForm({
         ) : null}
         {formData.items.length === 0 ? (
           <div className='text-muted-foreground rounded-lg border border-dashed py-8 text-center'>
-            No annual report added. Click Add Report to start.
+            {t('post.blocks.annualReports.noItems')}
           </div>
         ) : null}
       </CardContent>
@@ -535,8 +551,10 @@ export function AnnualReportsForm({
         onSelect={handleSelectFileFromMedia}
         onUploadFromDevice={handleUploadFileFromDevice}
         loading={uploadingFromDevice}
-        title='Select document file'
-        description='Choose a file from Media Manager.'
+        title={t('post.blocks.annualReports.selectDocumentMedia')}
+        description={t(
+          'post.blocks.annualReports.selectDocumentMediaDescription'
+        )}
         types={['pdf', 'document']}
         accept='*/*'
         allowUploadFromDevice

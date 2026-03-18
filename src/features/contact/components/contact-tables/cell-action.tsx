@@ -16,10 +16,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { useTranslate } from '@/hooks/use-translate';
 import { useDeleteContact } from '@/features/contact/hook/use-contact';
 
 export default function CellAction({ id }: { id: string }) {
   const deleteContactMutation = useDeleteContact();
+  const { t } = useTranslate();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -27,13 +29,13 @@ export default function CellAction({ id }: { id: string }) {
     try {
       setLoading(true);
       await deleteContactMutation.mutateAsync(id);
-      toast.success('Contact deleted');
+      toast.success(t('contact.toast.deleted'));
       setOpen(false);
     } catch (error: any) {
       const message =
         error?.message ||
         error?.response?.data?.message ||
-        'Failed to delete contact';
+        t('contact.toast.deleteFailed');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -53,11 +55,11 @@ export default function CellAction({ id }: { id: string }) {
           <Button
             variant='ghost'
             className='h-8 w-8 p-0'
-            aria-label='Actions'
+            aria-label={t('contact.actions.menuLabel')}
             data-row-action
             onClick={(event) => event.stopPropagation()}
           >
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('contact.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
@@ -68,7 +70,9 @@ export default function CellAction({ id }: { id: string }) {
             sideOffset={8}
             className='z-[9999] w-44'
           >
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {t('contact.actions.menuLabel')}
+            </DropdownMenuLabel>
             <DropdownMenuItem asChild className='cursor-pointer rounded-lg'>
               <Link
                 href={`/admin/contact/${id}`}
@@ -76,7 +80,7 @@ export default function CellAction({ id }: { id: string }) {
                 data-row-action
               >
                 <IconEye className='h-4 w-4' />
-                View
+                {t('contact.actions.view')}
               </Link>
             </DropdownMenuItem>
 
@@ -92,7 +96,7 @@ export default function CellAction({ id }: { id: string }) {
               data-row-action
             >
               <IconTrash className='mr-2 h-4 w-4' />
-              Delete
+              {t('contact.actions.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenuPortal>

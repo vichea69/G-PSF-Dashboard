@@ -15,6 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { useTranslate } from '@/hooks/use-translate';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { deleteWorkingGroup } from '@/server/action/working-group/working-group';
 import type { WorkingGroupRow } from './columns';
@@ -28,6 +29,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateWorkingGroup = can(
@@ -55,7 +57,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       });
 
       await deleteWorkingGroup(data.id);
-      toast.success('Working group deleted successfully');
+      toast.success(t('workingGroup.toast.deleted'));
       setOpen(false);
       qc.invalidateQueries({ queryKey: ['working-groups'], exact: false });
       router.refresh();
@@ -63,7 +65,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       const message =
         error?.response?.data?.message ||
         error?.message ||
-        'Delete failed please try again';
+        t('workingGroup.toast.deleteFailed');
       toast.error(message);
       qc.invalidateQueries({ queryKey: ['working-groups'], exact: false });
     } finally {
@@ -91,12 +93,16 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             data-row-action
             onClick={(event) => event.stopPropagation()}
           >
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>
+              {t('workingGroup.actions.openMenu')}
+            </span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {t('workingGroup.actions.menuLabel')}
+          </DropdownMenuLabel>
           {canUpdateWorkingGroup ? (
             <DropdownMenuItem
               onClick={(event) => {
@@ -104,7 +110,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 router.push(`/admin/working-group/${data.id}`);
               }}
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Edit
+              <IconEdit className='mr-2 h-4 w-4' />{' '}
+              {t('workingGroup.actions.edit')}
             </DropdownMenuItem>
           ) : null}
           {canDeleteWorkingGroup ? (
@@ -114,7 +121,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 setOpen(true);
               }}
             >
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
+              <IconTrash className='mr-2 h-4 w-4' />{' '}
+              {t('workingGroup.actions.delete')}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

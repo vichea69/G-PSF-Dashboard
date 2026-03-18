@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { PostRow } from './columns';
 import { toast } from 'sonner';
 import { deletePost } from '@/server/action/post/post';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface CellActionProps {
   data: PostRow;
@@ -27,6 +28,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdatePost = can(
@@ -60,9 +62,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
       const result = await deletePost(data.id);
       if (!result.success) {
-        throw new Error(result.error || 'Delete failed please try again');
+        throw new Error(result.error || t('post.toast.deleteFailed'));
       }
-      toast.success('Post deleted successfully');
+      toast.success(t('post.toast.deleted'));
       setOpen(false);
       router.replace('/admin/post');
       // Keep data fresh in background
@@ -71,7 +73,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       const msg =
         e?.response?.data?.message ||
         e?.message ||
-        'Delete failed please try again';
+        t('post.toast.deleteFailed');
       toast.error(msg);
       // Refetch to rollback if needed
       qc.invalidateQueries({ queryKey: ['posts'], exact: false });
@@ -95,12 +97,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             className='h-8 w-8 p-0'
             onClick={(event) => event.stopPropagation()}
           >
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('post.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('post.actions.menuLabel')}</DropdownMenuLabel>
           {canUpdatePost ? (
             <DropdownMenuItem
               onClick={(event) => {
@@ -108,7 +110,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 router.push(`/admin/post/${data.id}`);
               }}
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Edit
+              <IconEdit className='mr-2 h-4 w-4' /> {t('post.actions.update')}
             </DropdownMenuItem>
           ) : null}
           {canDeletePost ? (
@@ -118,7 +120,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 setOpen(true);
               }}
             >
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
+              <IconTrash className='mr-2 h-4 w-4' /> {t('post.actions.delete')}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

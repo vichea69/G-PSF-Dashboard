@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { PageForm, type PageFormData } from './page-form';
+import { useTranslate } from '@/hooks/use-translate';
 import { createPage, type PageInput } from '@/server/action/page/page';
 
 const getErrorMessage = (e: any, fallback = 'Something went wrong') => {
@@ -23,6 +24,7 @@ const getErrorMessage = (e: any, fallback = 'Something went wrong') => {
 export default function PageCreatePage() {
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
 
   const handleSave = useCallback(
     async (formData: PageFormData) => {
@@ -36,14 +38,14 @@ export default function PageCreatePage() {
         };
 
         await createPage(payload);
-        toast.success('Page created');
+        toast.success(t('page.toast.created'));
         qc.invalidateQueries({ queryKey: ['pages'] });
         router.replace('/admin/page');
       } catch (error: any) {
-        toast.error(getErrorMessage(error, 'Failed to create page'));
+        toast.error(getErrorMessage(error, t('page.toast.createFailed')));
       }
     },
-    [qc, router]
+    [qc, router, t]
   );
 
   const handleCancel = useCallback(() => {

@@ -13,6 +13,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useLanguage } from '@/context/language-context';
+import { useTranslate } from '@/hooks/use-translate';
 import { getLocalizedText } from '@/lib/helpers';
 import type { Control } from 'react-hook-form';
 
@@ -25,6 +26,7 @@ type Props = {
 
 export function PageSelectField({ control, pages }: Props) {
   const { language } = useLanguage();
+  const { t } = useTranslate();
 
   return (
     <FormField
@@ -32,14 +34,14 @@ export function PageSelectField({ control, pages }: Props) {
       name='pageId'
       render={({ field }) => (
         <FormItem className='flex-1'>
-          <FormLabel>Page</FormLabel>
+          <FormLabel>{t('section.form.page')}</FormLabel>
           <Select
             value={field.value ? String(field.value) : ''}
             onValueChange={(value) => field.onChange(Number(value))}
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder='Select page' />
+                <SelectValue placeholder={t('section.form.selectPage')} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
@@ -57,7 +59,7 @@ export function PageSelectField({ control, pages }: Props) {
                 })
               ) : (
                 <SelectItem value='0' disabled>
-                  No pages available
+                  {t('section.form.noPagesAvailable')}
                 </SelectItem>
               )}
             </SelectContent>

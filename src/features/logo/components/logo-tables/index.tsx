@@ -10,11 +10,13 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { logoColumns } from './columns';
+import { useTranslate } from '@/hooks/use-translate';
+import { getLogoColumns } from './columns';
 import { LogoType } from '@/features/logo/type/logo-type';
 
 export function LogoTableList({ data }: { data: LogoType[] }) {
-  const columns = useMemo(() => logoColumns, []);
+  const { t } = useTranslate();
+  const columns = useMemo(() => getLogoColumns(t), [t]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -34,7 +36,7 @@ export function LogoTableList({ data }: { data: LogoType[] }) {
   return (
     <DataTable table={table}>
       <div className='flex items-center justify-between'>
-        <DataTableToolbar table={table}></DataTableToolbar>
+        <DataTableToolbar table={table} />
       </div>
     </DataTable>
   );

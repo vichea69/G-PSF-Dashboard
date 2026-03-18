@@ -3,8 +3,9 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslate } from '@/hooks/use-translate';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { createSection, updateSection } from '@/server/action/section/section';
@@ -33,6 +34,7 @@ export default function SectionForm({
   initialPageId?: number;
 }) {
   const router = useRouter();
+  const { t } = useTranslate();
   const [submitting, setSubmitting] = useState(false);
   const { pages, categoryOptions } = useSectionFormData();
   const initialValues = useMemo(
@@ -45,8 +47,14 @@ export default function SectionForm({
 
   const form = useForm<SectionFormValues>({
     resolver: zodResolver(formSchema),
-    values: initialValues
+    defaultValues: initialValues
   });
+
+  useEffect(() => {
+    // Reset only when the source data changes, so rerenders do not wipe user input.
+    form.reset(initialValues);
+  }, [form, initialValues]);
+
   const selectedBlockType = form.watch('blockType') as BlockType;
   const [activeLanguage, setActiveLanguage] = useState<'en' | 'km'>('en');
 
@@ -55,7 +63,7 @@ export default function SectionForm({
     mutationFn: (values: SectionPayload) => createSection(values),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sections'] });
-      toast.success('Section created successfully');
+      toast.success(t('section.toast.created'));
       router.replace('/admin/section');
     }
   });
@@ -68,7 +76,7 @@ export default function SectionForm({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sections'] });
-      toast.success('Section updated successfully');
+      toast.success(t('section.toast.updated'));
       router.replace('/admin/section');
     }
   });

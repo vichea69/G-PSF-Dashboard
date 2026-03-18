@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/card';
 import { usePermissions } from '@/context/permission-context';
 import { useLanguage, type Language } from '@/context/language-context';
+import { useTranslate } from '@/hooks/use-translate';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import {
   formatDateTime,
@@ -124,6 +125,7 @@ function formatOptionalDate(value?: string | null) {
 }
 
 function StatusBadge({ status }: { status?: string }) {
+  const { t } = useTranslate();
   const normalized = String(status ?? '').toLowerCase();
   const isPublished = normalized === 'published';
 
@@ -138,12 +140,13 @@ function StatusBadge({ status }: { status?: string }) {
       ) : (
         <CircleDashed className='h-3 w-3' />
       )}
-      {isPublished ? 'Published' : 'Draft'}
+      {isPublished ? t('page.status.published') : t('page.status.draft')}
     </Badge>
   );
 }
 
 function EnabledBadge({ enabled }: { enabled?: boolean }) {
+  const { t } = useTranslate();
   const isEnabled = Boolean(enabled);
 
   return (
@@ -157,7 +160,7 @@ function EnabledBadge({ enabled }: { enabled?: boolean }) {
       ) : (
         <CircleDashed className='h-3 w-3' />
       )}
-      {isEnabled ? 'Enabled' : 'Disabled'}
+      {isEnabled ? t('page.tree.enabled') : t('page.tree.disabled')}
     </Badge>
   );
 }
@@ -243,22 +246,24 @@ function DeleteIconBadge({
 }
 
 function AddLinkBadge({ href, label }: { href: string; label: string }) {
+  const { t } = useTranslate();
   return (
     <Button asChild size='sm' className='shrink-0 gap-1'>
       <Link href={href} aria-label={label} title={label}>
         <Plus className='h-3 w-3' />
-        Add Section
+        {t('page.tree.addSection')}
       </Link>
     </Button>
   );
 }
 
 function AddPostLinkButton({ href, label }: { href: string; label: string }) {
+  const { t } = useTranslate();
   return (
     <Button asChild size='sm' className='shrink-0 gap-1'>
       <Link href={href} aria-label={label} title={label}>
         <Plus className='h-3 w-3' />
-        Add Post
+        {t('page.tree.addPost')}
       </Link>
     </Button>
   );
@@ -290,10 +295,13 @@ function SummaryCard({
 
 function CategoryList({ categories }: { categories: PageTreeCategory[] }) {
   const { language } = useLanguage();
+  const { t } = useTranslate();
 
   if (categories.length === 0) {
     return (
-      <p className='text-muted-foreground text-sm'>No categories linked.</p>
+      <p className='text-muted-foreground text-sm'>
+        {t('page.tree.noCategoriesLinked')}
+      </p>
     );
   }
 
@@ -313,7 +321,7 @@ function CategoryList({ categories }: { categories: PageTreeCategory[] }) {
               </div>
               <OpenLinkBadge
                 href={`/admin/category/${category.id}`}
-                label='Open Category'
+                label={t('page.tree.openCategory')}
               />
             </div>
           </CardContent>
@@ -327,6 +335,7 @@ function PostTreeCard({ post }: { post: PageTreePost }) {
   const router = useRouter();
   const { can } = usePermissions();
   const { language } = useLanguage();
+  const { t } = useTranslate();
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const categoryName = getText(post.category?.name, language, '');
@@ -341,14 +350,14 @@ function PostTreeCard({ post }: { post: PageTreePost }) {
       const result = await deletePost(post.id);
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to delete post');
+        throw new Error(result.error || t('page.tree.postDeleteFailed'));
       }
 
-      toast.success('Post deleted successfully');
+      toast.success(t('page.tree.postDeleted'));
       setOpenDeleteModal(false);
       router.refresh();
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to delete post');
+      toast.error(error?.message || t('page.tree.postDeleteFailed'));
     } finally {
       setIsDeleting(false);
     }
@@ -373,7 +382,7 @@ function PostTreeCard({ post }: { post: PageTreePost }) {
                 <StatusBadge status={post.status} />
                 {post.isFeatured ? (
                   <Badge variant='primary' appearance='light'>
-                    Featured
+                    {t('page.tree.featured')}
                   </Badge>
                 ) : null}
                 {categoryName ? (
@@ -389,12 +398,12 @@ function PostTreeCard({ post }: { post: PageTreePost }) {
               {canDeletePost ? (
                 <DeleteIconBadge
                   onClick={() => setOpenDeleteModal(true)}
-                  label='Delete Post'
+                  label={t('page.tree.deletePost')}
                 />
               ) : null}
               <OpenLinkBadge
                 href={`/admin/post/${post.id}`}
-                label='Open Post'
+                label={t('page.tree.openPost')}
               />
             </div>
           </div>
@@ -412,6 +421,7 @@ function SectionTreeCard({
   pageId: string;
 }) {
   const { language } = useLanguage();
+  const { t } = useTranslate();
   const categories = toArray<PageTreeCategory>(section.categories);
   const posts = toArray<PageTreePost>(section.posts);
 
@@ -424,7 +434,7 @@ function SectionTreeCard({
         <div className='absolute top-4 right-10 z-10 flex items-center gap-2'>
           <OpenLinkBadge
             href={`/admin/section/${section.id}`}
-            label='Open Section'
+            label={t('page.tree.openSection')}
           />
           <EnabledBadge enabled={section.enabled} />
         </div>
@@ -454,7 +464,7 @@ function SectionTreeCard({
                           variant='warning'
                           className='h-7 w-7 rounded-md'
                         />
-                        Categories
+                        {t('page.tree.categories')}
                       </div>
                     </div>
                     <CategoryList categories={categories} />
@@ -470,17 +480,17 @@ function SectionTreeCard({
                           variant='success'
                           className='h-7 w-7 rounded-md'
                         />
-                        Posts
+                        {t('page.tree.posts')}
                       </div>
                       <AddPostLinkButton
                         href={`/admin/post/new?pageId=${encodeURIComponent(pageId)}&sectionId=${encodeURIComponent(String(section.id))}`}
-                        label='Add Post'
+                        label={t('page.tree.addPost')}
                       />
                     </div>
 
                     {posts.length === 0 ? (
                       <p className='text-muted-foreground text-sm'>
-                        No posts linked.
+                        {t('page.tree.noPostsLinked')}
                       </p>
                     ) : (
                       <div className='space-y-3'>
@@ -508,6 +518,7 @@ export function PageTreeView({
   data: PageTreeData;
 }) {
   const { language } = useLanguage();
+  const { t } = useTranslate();
   const page = data.page ?? {};
   const categories = toArray<PageTreeCategory>(data.categories);
   const sections = toArray<PageTreeSection>(data.sections).sort((a, b) => {
@@ -540,12 +551,12 @@ export function PageTreeView({
                 className='w-fit gap-1'
               >
                 <FolderTree className='h-3 w-3' />
-                Page Tree
+                {t('page.tree.badge')}
               </Badge>
 
               <div className='space-y-1'>
                 <CardTitle className='text-2xl'>
-                  {getText(page.title, language, 'Untitled page')}
+                  {getText(page.title, language, t('page.tree.untitledPage'))}
                 </CardTitle>
               </div>
             </div>
@@ -557,7 +568,7 @@ export function PageTreeView({
               className='h-8 shrink-0'
             >
               <Link href={`/admin/page/${encodeURIComponent(editPageId)}`}>
-                Edit Page
+                {t('page.tree.editPage')}
               </Link>
             </Button>
           </div>
@@ -566,24 +577,32 @@ export function PageTreeView({
         <CardContent className='grid gap-4 px-5 sm:px-6 lg:grid-cols-2'>
           <div className='space-y-2 text-sm'>
             <div className='flex items-center gap-2'>
-              <span className='text-muted-foreground min-w-20'>Slug</span>
+              <span className='text-muted-foreground min-w-20'>
+                {t('page.tree.slug')}
+              </span>
               <code className='bg-muted rounded px-2 py-1 text-xs'>
                 /{page.slug || '-'}
               </code>
             </div>
             <div className='flex items-center gap-2'>
-              <span className='text-muted-foreground min-w-20'>Status</span>
+              <span className='text-muted-foreground min-w-20'>
+                {t('page.tree.statusLabel')}
+              </span>
               <StatusBadge status={page.status} />
             </div>
           </div>
 
           <div className='space-y-2 text-sm'>
             <div className='flex items-center gap-2'>
-              <span className='text-muted-foreground min-w-24'>Published</span>
+              <span className='text-muted-foreground min-w-24'>
+                {t('page.tree.publishedLabel')}
+              </span>
               <span>{formatOptionalDate(page.publishedAt)}</span>
             </div>
             <div className='flex items-center gap-2'>
-              <span className='text-muted-foreground min-w-24'>Updated</span>
+              <span className='text-muted-foreground min-w-24'>
+                {t('page.tree.updatedLabel')}
+              </span>
               <span>{formatOptionalDate(page.updatedAt)}</span>
             </div>
           </div>
@@ -592,19 +611,19 @@ export function PageTreeView({
 
       <div className='grid gap-4 sm:grid-cols-3'>
         <SummaryCard
-          title='Sections'
+          title={t('page.tree.sections')}
           value={counts.sections}
           icon={Layers3}
           iconVariant='primary'
         />
         <SummaryCard
-          title='Posts'
+          title={t('page.tree.posts')}
           value={counts.posts}
           icon={FileText}
           iconVariant='success'
         />
         <SummaryCard
-          title='Categories'
+          title={t('page.tree.categories')}
           value={counts.categories}
           icon={Tag}
           iconVariant='warning'
@@ -615,17 +634,18 @@ export function PageTreeView({
         <CardHeader className='px-5 pb-0'>
           <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
             <div className='space-y-1'>
-              <CardTitle className='text-base'>Section Tree</CardTitle>
+              <CardTitle className='text-base'>
+                {t('page.tree.sectionTreeTitle')}
+              </CardTitle>
               <CardDescription>
-                Sections on this page and the posts/categories connected to
-                them.
+                {t('page.tree.sectionTreeDescription')}
               </CardDescription>
             </div>
 
             <div className='flex flex-wrap gap-2'>
               <AddLinkBadge
                 href={`/admin/section/new?pageId=${encodeURIComponent(editPageId)}`}
-                label='Add Section'
+                label={t('page.tree.addSection')}
               />
             </div>
           </div>
@@ -634,7 +654,7 @@ export function PageTreeView({
         <CardContent className='px-5'>
           {sections.length === 0 ? (
             <p className='text-muted-foreground text-sm'>
-              No sections linked to this page.
+              {t('page.tree.noSectionsLinked')}
             </p>
           ) : (
             <div className='space-y-4'>

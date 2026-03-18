@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslate } from '@/hooks/use-translate';
 import { PostContentEditor } from '@/features/post/component/post-content-editor';
 import type { PostContent } from '@/server/action/post/types';
 import { FileText, Plus, X } from 'lucide-react';
@@ -121,11 +122,13 @@ export function TextBlockForm({
   language,
   value,
   onChange,
-  cardTitle = 'Text Items',
+  cardTitle,
   descriptionInput = 'textarea'
 }: TextBlockFormProps) {
+  const { t } = useTranslate();
   const formData = normalizeTextBlockData(value);
   const isKhmer = language === 'km';
+  const resolvedCardTitle = cardTitle || t('post.blocks.textBlock.title');
 
   const addItem = () => {
     onChange?.({
@@ -189,12 +192,12 @@ export function TextBlockForm({
       <CardHeader className='px-0 pb-0'>
         <CardTitle className='flex items-center gap-2'>
           <FileText className='size-5' />
-          {cardTitle}
+          {resolvedCardTitle}
         </CardTitle>
         <CardAction>
           <Button type='button' size='sm' onClick={addItem}>
             <Plus className='mr-1 size-4' />
-            Add Text
+            {t('post.blocks.textBlock.addItem')}
           </Button>
         </CardAction>
       </CardHeader>
@@ -206,7 +209,7 @@ export function TextBlockForm({
             className='bg-muted/15 ring-border/40 space-y-4 rounded-2xl p-5 ring-1'
           >
             <div className='flex items-center justify-between gap-2'>
-              <p className='text-foreground text-sm font-semibold'>{`Text ${index + 1}`}</p>
+              <p className='text-foreground text-sm font-semibold'>{`${t('post.blocks.textBlock.item')} ${index + 1}`}</p>
               <Button
                 type='button'
                 variant='ghost'
@@ -220,21 +223,27 @@ export function TextBlockForm({
 
             <div className='space-y-2'>
               <Label htmlFor={`text-block-title-${index}`}>
-                {isKhmer ? 'Title (Khmer)' : 'Title (English)'}
+                {isKhmer
+                  ? t('post.blocks.textBlock.titleKhmer')
+                  : t('post.blocks.textBlock.titleEnglish')}
               </Label>
               <Input
                 id={`text-block-title-${index}`}
                 value={isKhmer ? item.title.km : item.title.en}
                 onChange={(event) => updateTitle(index, event.target.value)}
                 placeholder={
-                  isKhmer ? 'Enter title in Khmer' : 'Enter title in English'
+                  isKhmer
+                    ? t('post.blocks.textBlock.enterTitleKhmer')
+                    : t('post.blocks.textBlock.enterTitleEnglish')
                 }
               />
             </div>
 
             <div className='space-y-2'>
               <Label htmlFor={`text-block-description-${index}`}>
-                {isKhmer ? 'Description (Khmer)' : 'Description (English)'}
+                {isKhmer
+                  ? t('post.blocks.textBlock.descriptionKhmer')
+                  : t('post.blocks.textBlock.descriptionEnglish')}
               </Label>
               {descriptionInput === 'tiptap' ? (
                 <PostContentEditor
@@ -243,8 +252,8 @@ export function TextBlockForm({
                   onChange={(nextValue) => updateDescription(index, nextValue)}
                   placeholder={
                     isKhmer
-                      ? 'Enter description in Khmer'
-                      : 'Enter description in English'
+                      ? t('post.blocks.textBlock.enterDescriptionKhmer')
+                      : t('post.blocks.textBlock.enterDescriptionEnglish')
                   }
                   mode='text'
                   className='border-border/60 bg-background rounded-xl shadow-none'
@@ -266,8 +275,8 @@ export function TextBlockForm({
                   }
                   placeholder={
                     isKhmer
-                      ? 'Enter description in Khmer'
-                      : 'Enter description in English'
+                      ? t('post.blocks.textBlock.enterDescriptionKhmer')
+                      : t('post.blocks.textBlock.enterDescriptionEnglish')
                   }
                   rows={4}
                   className='resize-none'
@@ -280,7 +289,7 @@ export function TextBlockForm({
         {formData.items.length === 0 && (
           <div className='text-muted-foreground bg-muted/10 border-border/60 flex flex-col items-center justify-center rounded-2xl border border-dashed py-10'>
             <FileText className='mb-2 size-8' />
-            <p>No text added. Click Add Text to start.</p>
+            <p>{t('post.blocks.textBlock.noItems')}</p>
           </div>
         )}
       </CardContent>

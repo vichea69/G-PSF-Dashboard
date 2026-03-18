@@ -13,6 +13,7 @@ import {
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { useLanguage } from '@/context/language-context';
+import { useTranslate } from '@/hooks/use-translate';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { getTestimonialColumns, type TestimonialRow } from './culumns';
 
@@ -21,11 +22,15 @@ export function TestimonialTableList({ data }: { data: TestimonialRow[] }) {
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const { language } = useLanguage();
+  const { t } = useTranslate();
   const canUpdateTestimonial = can(
     adminRoutePermissions.testimonials.update.resource,
     adminRoutePermissions.testimonials.update.action
   );
-  const columns = useMemo(() => getTestimonialColumns(language), [language]);
+  const columns = useMemo(
+    () => getTestimonialColumns(language, t),
+    [language, t]
+  );
   const table = useReactTable({
     data,
     columns,

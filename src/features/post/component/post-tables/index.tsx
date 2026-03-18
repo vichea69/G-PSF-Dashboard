@@ -10,8 +10,8 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { useLanguage } from '@/context/language-context';
 import { usePermissions } from '@/context/permission-context';
+import { useTranslate } from '@/hooks/use-translate';
 import { getPostColumns, type PostRow } from './columns';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
@@ -61,15 +61,15 @@ export function PostTableList({
   const router = useRouter();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
-  const { language } = useLanguage();
+  const { language, t } = useTranslate();
   const canUpdatePost = can(
     adminRoutePermissions.posts.update.resource,
     adminRoutePermissions.posts.update.action
   );
   const columns = useMemo(
     () =>
-      getPostColumns(language, pageOptions, sectionOptions, categoryOptions),
-    [language, pageOptions, sectionOptions, categoryOptions]
+      getPostColumns(language, pageOptions, sectionOptions, categoryOptions, t),
+    [language, pageOptions, sectionOptions, categoryOptions, t]
   );
   const columnFilters = useMemo<ColumnFiltersState>(() => {
     const filters: ColumnFiltersState = [];

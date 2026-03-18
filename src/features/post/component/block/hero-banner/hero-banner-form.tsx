@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Card,
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { FileModal } from '@/components/modal/file-modal';
+import { useTranslate } from '@/hooks/use-translate';
 import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { ImageIcon, Link2, Plus, X } from 'lucide-react';
@@ -95,6 +97,7 @@ const normalizeBannerData = (value?: HeroBannerData): HeroBannerData => {
 };
 
 export function BannerForm({ language, value, onChange }: BannerFormProps) {
+  const { t } = useTranslate();
   const [formData, setFormData] = useState<HeroBannerData>(() =>
     normalizeBannerData(value)
   );
@@ -224,7 +227,9 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
         <CardContent className='space-y-4'>
           <div className='grid gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
-              <Label htmlFor='title'>Head line</Label>
+              <Label htmlFor='title'>
+                {t('post.blocks.heroBanner.headline')}
+              </Label>
               <Input
                 id='title'
                 value={isKhmer ? formData.title.km : formData.title.en}
@@ -232,12 +237,16 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                   updateField(`title.${language}`, e.target.value)
                 }
                 placeholder={
-                  isKhmer ? 'Enter title in Khmer' : 'Enter title in English'
+                  isKhmer
+                    ? t('post.blocks.heroBanner.enterTitleKhmer')
+                    : t('post.blocks.heroBanner.enterTitleEnglish')
                 }
               />
             </div>
             <div className='space-y-2'>
-              <Label htmlFor='subtitle'>Sub head line</Label>
+              <Label htmlFor='subtitle'>
+                {t('post.blocks.heroBanner.subHeadline')}
+              </Label>
               <Input
                 id='subtitle'
                 value={isKhmer ? formData.subtitle.km : formData.subtitle.en}
@@ -246,13 +255,15 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                 }
                 placeholder={
                   isKhmer
-                    ? 'Enter subtitle in Khmer'
-                    : 'Enter subtitle in English'
+                    ? t('post.blocks.heroBanner.enterSubtitleKhmer')
+                    : t('post.blocks.heroBanner.enterSubtitleEnglish')
                 }
               />
             </div>
             <div className='space-y-2 md:col-span-2'>
-              <Label htmlFor='description'>Description</Label>
+              <Label htmlFor='description'>
+                {t('post.blocks.heroBanner.description')}
+              </Label>
               <Textarea
                 id='description'
                 value={
@@ -263,8 +274,8 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                 }
                 placeholder={
                   isKhmer
-                    ? 'Enter description in Khmer'
-                    : 'Enter description in English'
+                    ? t('post.blocks.heroBanner.enterDescriptionKhmer')
+                    : t('post.blocks.heroBanner.enterDescriptionEnglish')
                 }
                 rows={4}
                 className='resize-none'
@@ -280,13 +291,13 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
           <CardTitle className='flex items-center justify-between'>
             <span className='flex items-center gap-2'>
               <ImageIcon className='size-5' />
-              Background Images
+              {t('post.blocks.heroBanner.backgroundImages')}
             </span>
           </CardTitle>
           <CardAction>
             <Button type='button' size='sm' onClick={addImage}>
               <Plus className='mr-1 size-4' />
-              Add Image
+              {t('post.blocks.heroBanner.addImage')}
             </Button>
           </CardAction>
         </CardHeader>
@@ -302,7 +313,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                 <div className='flex items-center justify-between gap-2'>
                   <Label
                     htmlFor={`backgroundImage-${index}`}
-                  >{`Image URL ${index + 1}`}</Label>
+                  >{`${t('post.blocks.heroBanner.imageUrl')} ${index + 1}`}</Label>
                   <div className='flex items-center gap-2'>
                     <Button
                       type='button'
@@ -310,7 +321,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                       size='sm'
                       onClick={() => setImagePickerIndex(index)}
                     >
-                      Choose from Media
+                      {t('post.blocks.heroBanner.chooseFromMedia')}
                     </Button>
                     {formData.backgroundImages.length > 1 && (
                       <Button
@@ -334,14 +345,12 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                   />
                   {image ? (
                     <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
-                      <img
+                      <Image
                         src={previewUrl || '/placeholder.svg'}
                         alt={`Banner preview ${index + 1}`}
-                        className='size-full object-cover'
-                        onError={(e) => {
-                          e.currentTarget.src = '/placeholder.svg';
-                          e.currentTarget.alt = 'Image not found';
-                        }}
+                        fill
+                        unoptimized
+                        className='object-cover'
                       />
                     </div>
                   ) : null}
@@ -352,7 +361,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
           {formData.backgroundImages.length === 0 && (
             <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
               <ImageIcon className='mb-2 size-8' />
-              <p>No images added. Click Add Image to start.</p>
+              <p>{t('post.blocks.heroBanner.noImagesAdded')}</p>
             </div>
           )}
         </CardContent>
@@ -363,15 +372,15 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
         <CardHeader className='border-b'>
           <CardTitle className='flex items-center gap-2'>
             <Link2 className='size-5' />
-            CTA Buttons
+            {t('post.blocks.heroBanner.ctaButtons')}
           </CardTitle>
           <CardDescription>
-            Manage the buttons displayed on the banner.
+            {t('post.blocks.heroBanner.ctaDescription')}
           </CardDescription>
           <CardAction>
             <Button type='button' size='sm' onClick={addCta}>
               <Plus className='mr-1 size-4' />
-              Add Button
+              {t('post.blocks.heroBanner.addButton')}
             </Button>
           </CardAction>
         </CardHeader>
@@ -382,7 +391,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
               className='bg-muted/20 space-y-3 rounded-lg border p-4'
             >
               <div className='flex items-center justify-between gap-2'>
-                <Label>{`Button ${index + 1}`}</Label>
+                <Label>{`${t('post.blocks.heroBanner.button')} ${index + 1}`}</Label>
                 <Button
                   type='button'
                   variant='ghost'
@@ -397,8 +406,8 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                 <div className='space-y-2'>
                   <Label htmlFor={`cta-label-${index}`}>
                     {isKhmer
-                      ? 'Button Label (Khmer)'
-                      : 'Button Label (English)'}
+                      ? t('post.blocks.heroBanner.buttonLabelKhmer')
+                      : t('post.blocks.heroBanner.buttonLabelEnglish')}
                   </Label>
                   <Input
                     id={`cta-label-${index}`}
@@ -408,13 +417,15 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                     }
                     placeholder={
                       isKhmer
-                        ? 'Enter button label in Khmer'
-                        : 'Enter button label in English'
+                        ? t('post.blocks.heroBanner.enterButtonLabelKhmer')
+                        : t('post.blocks.heroBanner.enterButtonLabelEnglish')
                     }
                   />
                 </div>
                 <div className='space-y-2'>
-                  <Label htmlFor={`cta-href-${index}`}>Link URL</Label>
+                  <Label htmlFor={`cta-href-${index}`}>
+                    {t('post.blocks.heroBanner.linkUrl')}
+                  </Label>
                   <Input
                     id={`cta-href-${index}`}
                     value={cta.href}
@@ -428,7 +439,7 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
           {formData.ctas.length === 0 && (
             <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
               <Link2 className='mb-2 size-8' />
-              <p>No buttons added. Click Add Button to start.</p>
+              <p>{t('post.blocks.heroBanner.noButtons')}</p>
             </div>
           )}
         </CardContent>
@@ -438,8 +449,10 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
         isOpen={imagePickerIndex !== null}
         onClose={() => setImagePickerIndex(null)}
         onSelect={handleSelectBackgroundFromMedia}
-        title='Select background image'
-        description='Choose an image from Media Manager.'
+        title={t('post.blocks.heroBanner.selectBackgroundImage')}
+        description={t(
+          'post.blocks.heroBanner.selectBackgroundImageDescription'
+        )}
         types={['image']}
         accept='image/*'
         allowUploadFromDevice={false}

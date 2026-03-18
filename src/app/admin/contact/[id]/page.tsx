@@ -1,7 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import { Heading } from '@/components/ui/heading';
-import { Separator } from '@/components/ui/separator';
-import ContactForm from '@/features/contact/components/contact-form';
+import ContactViewScreen from '@/features/contact/components/contact-view-screen';
 import { getContactById } from '@/server/action/contact/contact';
 
 export const metadata = { title: 'Dashboard: View Contact' };
@@ -16,14 +14,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <PageContainer scrollable>
-      <div className='flex-1 space-y-4'>
-        <Heading
-          title='View Message'
-          description='Review the contact message.'
-        />
-        <Separator />
-        <ContactForm initialData={contact} />
-      </div>
+      <ContactViewScreen initialData={contact} />
     </PageContainer>
   );
 }

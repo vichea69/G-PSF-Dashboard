@@ -4,6 +4,7 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { CellAction } from './cell-action';
 import { type Language } from '@/context/language-context';
+import { type useTranslate } from '@/hooks/use-translate';
 import { RelativeTime } from '@/components/ui/relative-time';
 import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 import { type LocalizedText } from '@/lib/helpers';
@@ -79,11 +80,17 @@ export type PageRow = {
   };
 };
 
-const getStatusBadge = (status: string) => {
+type TranslateFn = ReturnType<typeof useTranslate>['t'];
+
+const getStatusBadge = (status: string, t: TranslateFn) => {
   const normalized = status?.toLowerCase?.() ?? '';
   const isPublished = normalized === 'published';
   const isDraft = normalized === 'draft';
-  const label = isPublished ? 'Published' : isDraft ? 'Draft' : 'Unknown';
+  const label = isPublished
+    ? t('page.status.published')
+    : isDraft
+      ? t('page.status.draft')
+      : t('page.status.unknown');
   const variant = isPublished
     ? ('success' as const)
     : isDraft
@@ -101,7 +108,11 @@ const getStatusBadge = (status: string) => {
     </Badge>
   );
 };
-export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
+// Build the page table columns from the selected language and translation helper.
+export const getPageColumns = (
+  language: Language,
+  t: TranslateFn
+): ColumnDef<PageRow>[] => {
   const localePriority = createLocalePriority(language);
 
   return [
@@ -124,7 +135,10 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
       id: 'name',
       accessorFn: (row) => resolveLocalizedValue(row.title, localePriority),
       header: ({ column }: { column: Column<PageRow, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Page Title' />
+        <DataTableColumnHeader
+          column={column}
+          title={t('page.columns.title')}
+        />
       ),
       cell: ({ row }) => {
         const value = resolveLocalizedValue(
@@ -141,14 +155,14 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
         );
       },
       meta: {
-        label: 'Name',
-        placeholder: 'Search name...',
+        label: t('page.filters.nameLabel'),
+        placeholder: t('page.filters.searchName'),
         variant: 'text'
       }
     },
     {
       accessorKey: 'slug',
-      header: 'URL',
+      header: t('page.columns.url'),
       cell: ({ cell }) => {
         const slug = toDisplayText(cell.getValue<unknown>(), localePriority);
         const fullUrl = slug ? `/${slug}` : '';
@@ -164,16 +178,19 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: t('page.columns.status'),
       cell: ({ cell }) => {
         const status = toDisplayText(cell.getValue<unknown>(), localePriority);
-        return getStatusBadge(status);
+        return getStatusBadge(status, t);
       }
     },
     {
       accessorKey: 'sectionCount',
       header: ({ column }: { column: Column<PageRow, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Section' />
+        <DataTableColumnHeader
+          column={column}
+          title={t('page.columns.section')}
+        />
       ),
       cell: ({ cell }) => {
         const value = toDisplayText(cell.getValue<unknown>(), localePriority);
@@ -182,7 +199,7 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
     },
     {
       accessorKey: 'publishedAt',
-      header: 'Published At',
+      header: t('page.columns.publishedAt'),
       cell: ({ cell }) => {
         const rawValue = cell.getValue<unknown>();
         const isSupportedDateValue =
@@ -193,7 +210,7 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
         if (!isSupportedDateValue) {
           return (
             <span className='text-muted-foreground italic'>
-              Not yet publish
+              {t('page.status.notYetPublished')}
             </span>
           );
         }
@@ -204,7 +221,7 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
     {
       id: 'author',
       accessorFn: (row) => row.authorId?.displayName ?? '',
-      header: 'Created By',
+      header: t('page.columns.createdBy'),
       cell: ({ cell }) => {
         const raw = toDisplayText(cell.getValue<unknown>(), localePriority);
         if (!raw) {
@@ -233,7 +250,7 @@ export const getPageColumns = (language: Language): ColumnDef<PageRow>[] => {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('page.columns.actions'),
       cell: ({ row }) => <CellAction data={row.original as any} />
     }
   ];

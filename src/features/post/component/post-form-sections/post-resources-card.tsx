@@ -6,6 +6,7 @@ import { FileText, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { FileModal } from '@/components/modal/file-modal';
+import { useTranslate } from '@/hooks/use-translate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -46,6 +47,12 @@ type DocumentPreviewProps = {
   thumbnailUrl: string;
   onChoose: () => void;
   onClear: () => void;
+  chooseLabel: string;
+  clearLabel: string;
+  selectedDocumentLabel: string;
+  previewNotAvailableLabel: string;
+  openDocumentLabel: string;
+  noDocumentSelectedLabel: string;
 };
 
 const getFileNameFromUrl = (value: string) => {
@@ -95,7 +102,13 @@ function DocumentPreview({
   documentUrl,
   thumbnailUrl,
   onChoose,
-  onClear
+  onClear,
+  chooseLabel,
+  clearLabel,
+  selectedDocumentLabel,
+  previewNotAvailableLabel,
+  openDocumentLabel,
+  noDocumentSelectedLabel
 }: DocumentPreviewProps) {
   const documentPreviewUrl = useMemo(
     () => resolveApiAssetUrl(documentUrl),
@@ -116,11 +129,11 @@ function DocumentPreview({
         <Label>{label}</Label>
         <div className='flex items-center gap-2'>
           <Button type='button' variant='outline' size='sm' onClick={onChoose}>
-            Choose file
+            {chooseLabel}
           </Button>
           {documentUrl ? (
             <Button type='button' variant='ghost' size='sm' onClick={onClear}>
-              Clear
+              {clearLabel}
             </Button>
           ) : null}
         </div>
@@ -130,7 +143,7 @@ function DocumentPreview({
         <div className='space-y-2 rounded-md border p-3'>
           <p className='flex items-center gap-2 text-sm font-medium'>
             <FileText className='h-4 w-4' />
-            {documentName || 'Selected document'}
+            {documentName || selectedDocumentLabel}
           </p>
           {thumbnailPreviewUrl ? (
             <div className='relative h-40 w-full max-w-xs overflow-hidden rounded border'>
@@ -144,18 +157,18 @@ function DocumentPreview({
             </div>
           ) : (
             <div className='text-muted-foreground bg-muted/40 rounded border p-3 text-sm'>
-              Preview not available
+              {previewNotAvailableLabel}
             </div>
           )}
           <Button asChild variant='outline' size='sm' className='w-fit'>
             <a href={documentPreviewUrl} target='_blank' rel='noreferrer'>
-              Open document
+              {openDocumentLabel}
             </a>
           </Button>
         </div>
       ) : (
         <div className='text-muted-foreground rounded-md border border-dashed p-3 text-sm'>
-          No document selected (optional)
+          {noDocumentSelectedLabel}
         </div>
       )}
     </div>
@@ -178,6 +191,7 @@ export function PostResourcesCard({
   const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
   const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
   const qc = useQueryClient();
+  const { t } = useTranslate();
 
   const coverPreviewUrl = useMemo(
     () => resolveApiAssetUrl(coverImage),
@@ -271,16 +285,18 @@ export function PostResourcesCard({
       }
 
       await qc.invalidateQueries({ queryKey: ['media'], exact: false });
-      toast.success('File uploaded successfully');
+      toast.success(t('post.resources.uploadedSuccess'));
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to upload file');
+      toast.error(error?.message || t('post.resources.uploadFailed'));
     } finally {
       setUploadingFromDevice(false);
     }
   };
 
   const activeDocumentLabel =
-    activeLanguage === 'en' ? 'Document file (EN)' : 'Document file (KM)';
+    activeLanguage === 'en'
+      ? t('post.resources.documentFileEn')
+      : t('post.resources.documentFileKm');
   const pickerLabel = activeLanguage === 'en' ? 'EN' : 'KM';
 
   return (
@@ -288,7 +304,7 @@ export function PostResourcesCard({
       <CardContent className='space-y-4'>
         <div className='space-y-2'>
           <div className='flex items-center justify-between gap-2'>
-            <Label>Cover Image</Label>
+            <Label>{t('post.resources.coverImage')}</Label>
             <div className='flex items-center gap-2'>
               <Button
                 type='button'
@@ -296,7 +312,7 @@ export function PostResourcesCard({
                 size='sm'
                 onClick={() => setPickerTarget('coverImage')}
               >
-                Choose file
+                {t('post.resources.chooseFile')}
               </Button>
               {coverImage ? (
                 <Button
@@ -305,7 +321,7 @@ export function PostResourcesCard({
                   size='sm'
                   onClick={() => onCoverImageChange('')}
                 >
-                  Clear
+                  {t('post.resources.clear')}
                 </Button>
               ) : null}
             </div>
@@ -314,7 +330,7 @@ export function PostResourcesCard({
             <div className='overflow-hidden rounded-md border'>
               <div className='bg-muted flex items-center gap-2 border-b px-3 py-2 text-xs font-medium'>
                 <ImageIcon className='h-3.5 w-3.5' />
-                {coverImageName || 'Cover image selected'}
+                {coverImageName || t('post.resources.coverImageSelected')}
               </div>
               <div className='relative h-40 w-full max-w-xs'>
                 <Image
@@ -328,7 +344,7 @@ export function PostResourcesCard({
             </div>
           ) : (
             <div className='text-muted-foreground rounded-md border border-dashed p-3 text-sm'>
-              No cover image selected
+              {t('post.resources.noCoverImageSelected')}
             </div>
           )}
         </div>
@@ -345,16 +361,22 @@ export function PostResourcesCard({
                 thumbnailUrl: ''
               })
             }
+            chooseLabel={t('post.resources.chooseFile')}
+            clearLabel={t('post.resources.clear')}
+            selectedDocumentLabel={t('post.resources.selectedDocument')}
+            previewNotAvailableLabel={t('post.resources.previewNotAvailable')}
+            openDocumentLabel={t('post.resources.openDocument')}
+            noDocumentSelectedLabel={t('post.resources.noDocumentSelected')}
           />
         </div>
 
         <div>
-          <Label htmlFor='external-link'>Link</Label>
+          <Label htmlFor='external-link'>{t('post.resources.link')}</Label>
           <Input
             id='external-link'
             value={link}
             onChange={(event) => onLinkChange(event.target.value)}
-            placeholder='https://example.com (optional)'
+            placeholder={t('post.resources.linkPlaceholder')}
             className='mt-1'
           />
         </div>
@@ -368,10 +390,10 @@ export function PostResourcesCard({
         loading={uploadingFromDevice}
         title={
           pickerTarget === 'coverImage'
-            ? 'Select cover image'
-            : `Select document (${pickerLabel})`
+            ? t('post.resources.selectCoverImage')
+            : `${t('post.resources.selectDocument')} (${pickerLabel})`
         }
-        description='Choose a file from Media Manager.'
+        description={t('post.resources.chooseFromMediaDescription')}
         types={pickerTarget === 'coverImage' ? ['image'] : ['pdf', 'document']}
         accept={pickerTarget === 'coverImage' ? 'image/*' : '*/*'}
         allowUploadFromDevice

@@ -14,8 +14,9 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslate } from '@/hooks/use-translate';
 import { type LocalizedText } from '@/lib/helpers';
-import { ArrowLeft, Save, Eye, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, HelpCircle } from 'lucide-react';
 
 type Locale = 'en' | 'km';
 type LocalizedFormField = Record<Locale, string>;
@@ -90,6 +91,7 @@ const generateSlug = (value: string) =>
     .replace(/(^-|-$)/g, '');
 
 export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
+  const { t } = useTranslate();
   const [formData, setFormData] = useState<PageFormData>(() =>
     createInitialFormData(editingPage)
   );
@@ -148,17 +150,21 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                 onValueChange={(value) => setActiveLocale(value as Locale)}
               >
                 <TabsList>
-                  <TabsTrigger value='en'>English</TabsTrigger>
-                  <TabsTrigger value='km'>Khmer</TabsTrigger>
+                  <TabsTrigger value='en'>
+                    {t('page.form.englishTab')}
+                  </TabsTrigger>
+                  <TabsTrigger value='km'>
+                    {t('page.form.khmerTab')}
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value='en'>
                   <div>
-                    <Label htmlFor='title-en'>Page Title</Label>
+                    <Label htmlFor='title-en'>{t('page.form.pageTitle')}</Label>
                     <Input
                       id='title-en'
                       value={formData.title.en}
                       onChange={(e) => handleTitleChange('en', e.target.value)}
-                      placeholder='Enter a clear, descriptive title'
+                      placeholder={t('page.form.enterTitle')}
                       className='mt-1'
                     />
                   </div>
@@ -170,14 +176,16 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                       </p>
                     </div> */}
                     <div>
-                      <Label htmlFor='metaTitle-en'>Meta Title</Label>
+                      <Label htmlFor='metaTitle-en'>
+                        {t('page.form.metaTitle')}
+                      </Label>
                       <Input
                         id='metaTitle-en'
                         value={formData.metaTitle.en}
                         onChange={(e) =>
                           handleSeoChange('metaTitle', 'en', e.target.value)
                         }
-                        placeholder='Enter meta title'
+                        placeholder={t('page.form.enterMetaTitle')}
                         className='mt-1'
                       />
                       <p className='text-muted-foreground mt-1 text-xs'>
@@ -186,7 +194,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                     </div>
                     <div>
                       <Label htmlFor='metaDescription-en'>
-                        Meta Description
+                        {t('page.form.metaDescription')}
                       </Label>
                       <Textarea
                         id='metaDescription-en'
@@ -198,7 +206,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                             e.target.value
                           )
                         }
-                        placeholder='Enter meta description'
+                        placeholder={t('page.form.enterMetaDescription')}
                         rows={3}
                         className='mt-1'
                       />
@@ -210,12 +218,14 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                 </TabsContent>
                 <TabsContent value='km'>
                   <div>
-                    <Label htmlFor='title-km'>Khmer Title</Label>
+                    <Label htmlFor='title-km'>
+                      {t('page.form.khmerTitle')}
+                    </Label>
                     <Input
                       id='title-km'
                       value={formData.title.km}
                       onChange={(e) => handleTitleChange('km', e.target.value)}
-                      placeholder='ឈ្មោះទំព័រ'
+                      placeholder={t('page.form.enterKhmerTitle')}
                       className='mt-1'
                     />
                   </div>
@@ -227,14 +237,16 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                       </p>
                     </div> */}
                     <div>
-                      <Label htmlFor='metaTitle-km'>Meta Title</Label>
+                      <Label htmlFor='metaTitle-km'>
+                        {t('page.form.metaTitle')}
+                      </Label>
                       <Input
                         id='metaTitle-km'
                         value={formData.metaTitle.km}
                         onChange={(e) =>
                           handleSeoChange('metaTitle', 'km', e.target.value)
                         }
-                        placeholder='បញ្ចូលចំណងជើង'
+                        placeholder={t('page.form.enterKhmerMetaTitle')}
                         className='mt-1'
                       />
                       <p className='text-muted-foreground mt-1 text-xs'>
@@ -243,7 +255,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                     </div>
                     <div>
                       <Label htmlFor='metaDescription-km'>
-                        Meta Description
+                        {t('page.form.metaDescription')}
                       </Label>
                       <Textarea
                         id='metaDescription-km'
@@ -255,7 +267,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                             e.target.value
                           )
                         }
-                        placeholder='បញ្ចូលពិពណ៌នា'
+                        placeholder={t('page.form.enterKhmerMetaDescription')}
                         rows={3}
                         className='mt-1'
                       />
@@ -269,7 +281,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
 
               <div>
                 <Label htmlFor='slug' className='flex items-center gap-2'>
-                  URL Slug
+                  {t('page.form.urlSlug')}
                   <HelpCircle className='text-muted-foreground h-3 w-3' />
                 </Label>
                 <div className='mt-1 flex items-center'>
@@ -280,7 +292,7 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                     id='slug'
                     value={formData.slug}
                     readOnly
-                    placeholder='auto-generated from title'
+                    placeholder={t('page.form.slugAutoGenerated')}
                     className='rounded-l-none'
                   />
                 </div>
@@ -292,11 +304,13 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
         <div className='space-y-6'>
           <Card>
             <CardHeader>
-              <CardTitle className='text-sm'>Publish Settings</CardTitle>
+              <CardTitle className='text-sm'>
+                {t('page.form.publishSettings')}
+              </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div>
-                <Label htmlFor='status'>Status</Label>
+                <Label htmlFor='status'>{t('page.form.status')}</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) =>
@@ -313,13 +327,13 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
                     <SelectItem value='draft'>
                       <div className='flex items-center gap-2'>
                         <div className='h-2 w-2 rounded-full bg-amber-500'></div>
-                        Draft
+                        {t('page.status.draft')}
                       </div>
                     </SelectItem>
                     <SelectItem value='published'>
                       <div className='flex items-center gap-2'>
                         <div className='h-2 w-2 rounded-full bg-green-500'></div>
-                        Published
+                        {t('page.status.published')}
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -333,11 +347,13 @@ export function PageForm({ editingPage, onSave, onCancel }: PageFormProps) {
               <div className='space-y-3'>
                 <Button onClick={handleSubmit} className='w-full'>
                   <Save />
-                  {editingPage ? 'Update Page' : 'Create Page'}
+                  {editingPage
+                    ? t('page.form.updateSubmit')
+                    : t('page.form.createSubmit')}
                 </Button>
                 <Button variant='outline' onClick={onCancel} className='w-full'>
                   <ArrowLeft />
-                  Cancel
+                  {t('page.form.cancel')}
                 </Button>
               </div>
             </CardContent>

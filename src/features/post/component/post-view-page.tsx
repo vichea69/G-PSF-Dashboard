@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 import PostForm, { type PostFormData } from './post-form';
 import { createPost, getPost, updatePost } from '@/server/action/post/post';
 
@@ -24,6 +25,7 @@ export default function PostViewPage({
   const [isLoading, setIsLoading] = useState(_postId !== 'new' && !initialPost);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   const isEditing = _postId !== 'new';
 
   const extractSavedPost = (payload: unknown) => {
@@ -51,7 +53,7 @@ export default function PostViewPage({
         setEditingPost(result.data ?? null);
       } else {
         setEditingPost(null);
-        toast.error(result.error ?? 'Failed to load post');
+        toast.error(result.error ?? t('post.toast.loadFailed'));
       }
       setIsLoading(false);
     })();
@@ -59,7 +61,7 @@ export default function PostViewPage({
     return () => {
       cancelled = true;
     };
-  }, [_postId, initialPost, isEditing]);
+  }, [_postId, initialPost, isEditing, t]);
 
   const handleSave = useCallback(
     async (formData: PostFormData) => {
@@ -72,7 +74,7 @@ export default function PostViewPage({
         const titleEn = (formData.titleEn || '').trim();
         const titleKm = (formData.titleKm || '').trim();
         if (!titleEn && !titleKm) {
-          toast.error('Please enter title in English or Khmer');
+          toast.error(t('post.toast.titleRequired'));
           return;
         }
         const titleJson = {
@@ -224,7 +226,7 @@ export default function PostViewPage({
           : await createPost(body);
 
         if (result?.success === false) {
-          toast.error(result.error ?? 'Save failed');
+          toast.error(result.error ?? t('post.toast.saveFailed'));
           return;
         }
 
@@ -237,12 +239,12 @@ export default function PostViewPage({
         qc.invalidateQueries({ queryKey: ['posts'] });
 
         if (isEditing) {
-          toast.success('Post update successfully');
+          toast.success(t('post.toast.updated'));
           router.refresh();
           return;
         }
 
-        toast.success('Post created successfully');
+        toast.success(t('post.toast.created'));
         router.replace('/admin/post');
       } catch (e: any) {
         const resp = e?.response?.data;
@@ -251,7 +253,7 @@ export default function PostViewPage({
           resp?.error ||
           (typeof resp === 'string' ? resp : null) ||
           e?.message ||
-          'Save failed';
+          t('post.toast.saveFailed');
         // eslint-disable-next-line no-console
         console.error('[PostView] SAVE error', {
           status: e?.response?.status,
@@ -264,7 +266,7 @@ export default function PostViewPage({
         toast.error(message);
       }
     },
-    [_postId, isEditing, qc, router]
+    [_postId, isEditing, qc, router, t]
   );
 
   const handleCancel = useCallback(() => {
@@ -279,7 +281,7 @@ export default function PostViewPage({
   if (isEditing && isLoading) {
     return (
       <div className='text-muted-foreground rounded-md border border-dashed p-6 text-sm'>
-        Loading post...
+        {t('post.toast.loading')}
       </div>
     );
   }

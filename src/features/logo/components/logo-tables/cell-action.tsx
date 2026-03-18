@@ -16,6 +16,7 @@ import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { LogoType } from '@/features/logo/type/logo-type';
+import { useTranslate } from '@/hooks/use-translate';
 import { deleteLogo } from '@/server/action/logo/logo';
 
 interface CellActionProps {
@@ -27,6 +28,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateLogo = can(
@@ -65,13 +67,16 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
       const result = await deleteLogo(String(data.id));
       if (!result.success) {
-        throw new Error(result.error ?? 'Delete failed');
+        throw new Error(result.error ?? t('logo.validation.deleteFailed'));
       }
-      toast.success('Logo deleted successfully');
+      toast.success(t('logo.toast.deleted'));
       setOpen(false);
       qc.invalidateQueries({ queryKey: ['logo'], exact: false });
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || 'Delete failed';
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        t('logo.validation.deleteFailed');
       toast.error(msg);
       qc.invalidateQueries({ queryKey: ['logo'], exact: false });
     } finally {
@@ -90,22 +95,22 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('logo.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('logo.actions.menuLabel')}</DropdownMenuLabel>
           {canUpdateLogo ? (
             <DropdownMenuItem
               onClick={() => router.push(`/admin/logo/${data.id}/edit`)}
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Edit
+              <IconEdit className='mr-2 h-4 w-4' /> {t('logo.actions.edit')}
             </DropdownMenuItem>
           ) : null}
           {canDeleteLogo ? (
             <DropdownMenuItem onClick={() => setOpen(true)}>
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
+              <IconTrash className='mr-2 h-4 w-4' /> {t('logo.actions.delete')}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteSection } from '@/server/action/section/section';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface CellActionProps {
   data: { id: string | number } & Record<string, any>;
@@ -26,6 +27,7 @@ export function CellAction({ data }: CellActionProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateSection = can(
@@ -44,7 +46,7 @@ export function CellAction({ data }: CellActionProps) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sections'] });
       router.refresh();
-      toast.success('Section deleted successfully');
+      toast.success(t('section.toast.deleted'));
     }
   });
 
@@ -54,7 +56,7 @@ export function CellAction({ data }: CellActionProps) {
       await deleteMutation.mutateAsync();
       setOpen(false);
     } catch (e: any) {
-      toast.error(e?.message || 'Delete failed');
+      toast.error(e?.message || t('section.toast.deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -75,12 +77,14 @@ export function CellAction({ data }: CellActionProps) {
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('section.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {t('section.actions.menuLabel')}
+          </DropdownMenuLabel>
           {canUpdateSection ? (
             <DropdownMenuItem
               onClick={() =>
@@ -91,12 +95,14 @@ export function CellAction({ data }: CellActionProps) {
                 )
               }
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Update
+              <IconEdit className='mr-2 h-4 w-4' />{' '}
+              {t('section.actions.update')}
             </DropdownMenuItem>
           ) : null}
           {canDeleteSection ? (
             <DropdownMenuItem onClick={() => setOpen(true)}>
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
+              <IconTrash className='mr-2 h-4 w-4' />{' '}
+              {t('section.actions.delete')}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

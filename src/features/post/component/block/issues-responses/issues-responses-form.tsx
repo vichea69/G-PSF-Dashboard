@@ -25,6 +25,7 @@ import {
   Plus,
   X
 } from 'lucide-react';
+import { useTranslate } from '@/hooks/use-translate';
 
 type LocalizedTextValue = {
   en: string;
@@ -43,15 +44,6 @@ type IssueResponseItem = {
 export interface IssuesResponsesData {
   items: IssueResponseItem[];
 }
-
-const STATUS_OPTIONS: Array<{
-  value: IssueResponseStatus;
-  label: string;
-}> = [
-  { value: 'resolved', label: 'Resolved' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'pending', label: 'Pending' }
-];
 
 const createEmptyItem = (): IssueResponseItem => ({
   title: { en: '', km: '' },
@@ -75,10 +67,13 @@ const normalizeStatus = (value: unknown): IssueResponseStatus => {
   return 'pending';
 };
 
-const getStatusMeta = (status: IssueResponseStatus) => {
+const getStatusMeta = (
+  status: IssueResponseStatus,
+  t: (key: string) => string
+) => {
   if (status === 'resolved') {
     return {
-      label: 'Resolved',
+      label: t('post.blocks.issuesResponses.resolved'),
       variant: 'success' as const,
       Icon: CheckCircle2
     };
@@ -86,21 +81,24 @@ const getStatusMeta = (status: IssueResponseStatus) => {
 
   if (status === 'in_progress') {
     return {
-      label: 'In Progress',
+      label: t('post.blocks.issuesResponses.inProgress'),
       variant: 'info' as const,
       Icon: Loader2
     };
   }
 
   return {
-    label: 'Pending',
+    label: t('post.blocks.issuesResponses.pending'),
     variant: 'warning' as const,
     Icon: Clock3
   };
 };
 
-const renderStatusBadge = (status: IssueResponseStatus) => {
-  const meta = getStatusMeta(status);
+const renderStatusBadge = (
+  status: IssueResponseStatus,
+  t: (key: string) => string
+) => {
+  const meta = getStatusMeta(status, t);
   const Icon = meta.Icon;
 
   return (
@@ -150,8 +148,14 @@ export function IssuesResponsesForm({
   value,
   onChange
 }: IssuesResponsesFormProps) {
+  const { t } = useTranslate();
   const isKhmer = language === 'km';
   const formData = normalizeIssuesResponsesData(value);
+  const statusOptions: Array<{ value: IssueResponseStatus }> = [
+    { value: 'resolved' },
+    { value: 'in_progress' },
+    { value: 'pending' }
+  ];
 
   const updateItem = (
     index: number,
@@ -184,12 +188,12 @@ export function IssuesResponsesForm({
       <CardHeader className='border-b'>
         <CardTitle className='flex items-center gap-2'>
           <MessageSquare className='size-5' />
-          Issues & Responses
+          {t('post.blocks.issuesResponses.title')}
         </CardTitle>
         <CardAction>
           <Button type='button' size='sm' onClick={addItem}>
             <Plus className='mr-1 size-4' />
-            Add Item
+            {t('post.blocks.issuesResponses.addItem')}
           </Button>
         </CardAction>
       </CardHeader>
@@ -201,7 +205,7 @@ export function IssuesResponsesForm({
             className='bg-muted/20 space-y-4 rounded-lg border p-4'
           >
             <div className='flex items-center justify-between gap-2'>
-              <Label>{`Issue ${index + 1}`}</Label>
+              <Label>{`${t('post.blocks.issuesResponses.item')} ${index + 1}`}</Label>
               <Button
                 type='button'
                 variant='ghost'
@@ -215,7 +219,9 @@ export function IssuesResponsesForm({
 
             <div className='space-y-2'>
               <Label htmlFor={`issues-responses-title-${index}`}>
-                {isKhmer ? 'Title (Khmer)' : 'Title (English)'}
+                {isKhmer
+                  ? t('post.blocks.issuesResponses.titleKhmer')
+                  : t('post.blocks.issuesResponses.titleEnglish')}
               </Label>
               <Input
                 id={`issues-responses-title-${index}`}
@@ -229,12 +235,16 @@ export function IssuesResponsesForm({
                     }
                   }))
                 }
-                placeholder={isKhmer ? 'បញ្ចូលចំណងជើង' : 'Enter issue title'}
+                placeholder={
+                  isKhmer
+                    ? t('post.blocks.issuesResponses.enterTitleKhmer')
+                    : t('post.blocks.issuesResponses.enterTitleEnglish')
+                }
               />
             </div>
 
             <div className='space-y-2'>
-              <Label>Status</Label>
+              <Label>{t('post.blocks.issuesResponses.status')}</Label>
               <Select
                 value={item.status}
                 onValueChange={(nextStatus) =>
@@ -246,17 +256,17 @@ export function IssuesResponsesForm({
               >
                 <SelectTrigger className='w-full min-w-0'>
                   <div className='min-w-0'>
-                    {renderStatusBadge(item.status)}
+                    {renderStatusBadge(item.status, t)}
                   </div>
                 </SelectTrigger>
                 <SelectContent className='w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]'>
-                  {STATUS_OPTIONS.map((option) => (
+                  {statusOptions.map((option) => (
                     <SelectItem
                       key={option.value}
                       value={option.value}
                       className='py-2'
                     >
-                      {renderStatusBadge(option.value)}
+                      {renderStatusBadge(option.value, t)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -265,7 +275,7 @@ export function IssuesResponsesForm({
 
             <div className='space-y-2'>
               <Label htmlFor={`issues-responses-last-update-${index}`}>
-                Last Update
+                {t('post.blocks.issuesResponses.lastUpdate')}
               </Label>
               <Input
                 id={`issues-responses-last-update-${index}`}
@@ -276,12 +286,16 @@ export function IssuesResponsesForm({
                     lastUpdate: event.target.value
                   }))
                 }
-                placeholder='e.g. 04 Mar 2026'
+                placeholder={t(
+                  'post.blocks.issuesResponses.lastUpdatePlaceholder'
+                )}
               />
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor={`issues-responses-link-${index}`}>Link URL</Label>
+              <Label htmlFor={`issues-responses-link-${index}`}>
+                {t('post.blocks.issuesResponses.linkUrl')}
+              </Label>
               <Input
                 id={`issues-responses-link-${index}`}
                 value={item.link}
@@ -299,7 +313,7 @@ export function IssuesResponsesForm({
 
         {formData.items.length === 0 ? (
           <div className='text-muted-foreground rounded-lg border border-dashed py-8 text-center'>
-            No items added. Click Add Item to start.
+            {t('post.blocks.issuesResponses.noItems')}
           </div>
         ) : null}
       </CardContent>

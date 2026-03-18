@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useTranslate } from '@/hooks/use-translate';
 import { Hash, Plus, X } from 'lucide-react';
 
 export interface StatsBlockData {
@@ -49,6 +50,7 @@ type StatsFormProps = {
 };
 
 export function StatsForm({ language, value, onChange }: StatsFormProps) {
+  const { t } = useTranslate();
   const [formData, setFormData] = useState<StatsBlockData>(() =>
     normalizeStatsData(value)
   );
@@ -121,12 +123,12 @@ export function StatsForm({ language, value, onChange }: StatsFormProps) {
         <CardHeader className='border-b'>
           <CardTitle className='flex items-center gap-2'>
             <Hash className='size-5' />
-            Stat Items
+            {t('post.blocks.stats.title')}
           </CardTitle>
           <CardAction>
             <Button type='button' size='sm' onClick={addItem}>
               <Plus className='mr-1 size-4' />
-              Add Stat
+              {t('post.blocks.stats.addItem')}
             </Button>
           </CardAction>
         </CardHeader>
@@ -137,7 +139,7 @@ export function StatsForm({ language, value, onChange }: StatsFormProps) {
               className='bg-muted/20 space-y-3 rounded-lg border p-4'
             >
               <div className='flex items-center justify-between gap-2'>
-                <Label>{`Stat ${index + 1}`}</Label>
+                <Label>{`${t('post.blocks.stats.item')} ${index + 1}`}</Label>
                 <Button
                   type='button'
                   variant='ghost'
@@ -151,7 +153,9 @@ export function StatsForm({ language, value, onChange }: StatsFormProps) {
               <div className='grid gap-4 md:grid-cols-2'>
                 <div className='space-y-2'>
                   <Label htmlFor={`stat-value-${index}`}>
-                    {isKhmer ? 'Value (Khmer)' : 'Value (English)'}
+                    {isKhmer
+                      ? t('post.blocks.stats.valueKhmer')
+                      : t('post.blocks.stats.valueEnglish')}
                   </Label>
                   <Input
                     id={`stat-value-${index}`}
@@ -164,7 +168,9 @@ export function StatsForm({ language, value, onChange }: StatsFormProps) {
                 </div>
                 <div className='space-y-2'>
                   <Label htmlFor={`stat-label-${index}`}>
-                    {isKhmer ? 'Label (Khmer)' : 'Label (English)'}
+                    {isKhmer
+                      ? t('post.blocks.stats.labelKhmer')
+                      : t('post.blocks.stats.labelEnglish')}
                   </Label>
                   <Input
                     id={`stat-label-${index}`}
@@ -181,7 +187,7 @@ export function StatsForm({ language, value, onChange }: StatsFormProps) {
           {formData.items.length === 0 && (
             <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
               <Hash className='mb-2 size-8' />
-              <p>No stats added. Click Add Stat to start.</p>
+              <p>{t('post.blocks.stats.noItems')}</p>
             </div>
           )}
         </CardContent>

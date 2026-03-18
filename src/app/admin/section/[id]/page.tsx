@@ -1,8 +1,6 @@
 import PageContainer from '@/components/layout/page-container';
 import { AdminPageGuard } from '@/components/permissions/admin-page-guard';
-import { Heading } from '@/components/ui/heading';
-import { Separator } from '@/components/ui/separator';
-import SectionForm from '@/features/section/components/section-form';
+import SectionFormPage from '@/features/section/components/section-form-page';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { getSectionById } from '@/server/action/section/section';
 
@@ -29,11 +27,5 @@ async function SectionEditContent({ sectionId }: { sectionId: string }) {
   const payload = await getSectionById(sectionId);
   const section = (payload as any)?.data ?? payload;
 
-  return (
-    <div className='flex-1 space-y-4'>
-      <Heading title='Edit Section' description='Update the section details.' />
-      <Separator />
-      <SectionForm initialData={section} />
-    </div>
-  );
+  return <SectionFormPage initialData={section} />;
 }

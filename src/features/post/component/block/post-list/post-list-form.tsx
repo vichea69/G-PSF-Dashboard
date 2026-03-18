@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { useTranslate } from '@/hooks/use-translate';
 import { cn } from '@/lib/utils';
 
 type CategoryOption = {
@@ -46,12 +47,16 @@ type PostListFormProps = {
 };
 
 export function PostListForm({ control, categoryOptions }: PostListFormProps) {
+  const { t } = useTranslate();
+
   return (
     <div className='space-y-4 rounded-lg border p-4'>
       <div>
-        <h3 className='text-sm font-medium'>Settings</h3>
+        <h3 className='text-sm font-medium'>
+          {t('section.form.settingsTitle')}
+        </h3>
         <p className='text-muted-foreground text-xs'>
-          Configure optional section behavior.
+          {t('section.form.settingsDescription')}
         </p>
       </div>
 
@@ -61,16 +66,20 @@ export function PostListForm({ control, categoryOptions }: PostListFormProps) {
           name='settings.sort'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Sort</FormLabel>
+              <FormLabel>{t('section.form.sort')}</FormLabel>
               <Select value={field.value ?? ''} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder='Select sort' />
+                    <SelectValue placeholder={t('section.form.selectSort')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value='manual'>Manual</SelectItem>
-                  <SelectItem value='latest'>Latest</SelectItem>
+                  <SelectItem value='manual'>
+                    {t('section.form.manual')}
+                  </SelectItem>
+                  <SelectItem value='latest'>
+                    {t('section.form.latest')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -82,7 +91,7 @@ export function PostListForm({ control, categoryOptions }: PostListFormProps) {
           name='settings.limit'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Limit</FormLabel>
+              <FormLabel>{t('section.form.limit')}</FormLabel>
               <FormControl>
                 <Input type='number' placeholder='0' {...field} />
               </FormControl>
@@ -102,7 +111,7 @@ export function PostListForm({ control, categoryOptions }: PostListFormProps) {
 
             return (
               <FormItem>
-                <FormLabel>Categories</FormLabel>
+                <FormLabel>{t('section.form.categories')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -127,13 +136,13 @@ export function PostListForm({ control, categoryOptions }: PostListFormProps) {
                                 variant='secondary'
                                 className='rounded-sm px-1 font-normal'
                               >
-                                {selectedCount - 2}+ more
+                                {selectedCount - 2}+ {t('section.form.more')}
                               </Badge>
                             )}
                           </div>
                         ) : (
                           <span className='text-muted-foreground'>
-                            Select categories
+                            {t('section.form.selectCategories')}
                           </span>
                         )}
                       </Button>
@@ -141,9 +150,13 @@ export function PostListForm({ control, categoryOptions }: PostListFormProps) {
                   </PopoverTrigger>
                   <PopoverContent className='w-[240px] p-0' align='start'>
                     <Command>
-                      <CommandInput placeholder='Search categories...' />
+                      <CommandInput
+                        placeholder={t('section.form.searchCategories')}
+                      />
                       <CommandList>
-                        <CommandEmpty>No categories found.</CommandEmpty>
+                        <CommandEmpty>
+                          {t('section.form.noCategoriesFound')}
+                        </CommandEmpty>
                         <CommandGroup className='max-h-[18.75rem] overflow-x-hidden overflow-y-auto'>
                           {categoryOptions.map((option) => {
                             const isSelected = selectedIds.includes(
@@ -185,7 +198,7 @@ export function PostListForm({ control, categoryOptions }: PostListFormProps) {
                                 onSelect={() => field.onChange([])}
                                 className='justify-center text-center'
                               >
-                                Clear selection
+                                {t('section.form.clearSelection')}
                               </CommandItem>
                             </CommandGroup>
                           </>

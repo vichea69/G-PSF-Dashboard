@@ -3,8 +3,10 @@ import { useLogo } from '@/features/logo/hook/use-logo';
 import { LogoTableList } from './logo-tables';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { LogoType } from '@/features/logo/type/logo-type';
+import { useTranslate } from '@/hooks/use-translate';
 
 export default function LogoListPage() {
+  const { t } = useTranslate();
   const { data, isLoading, isError, error } = useLogo();
 
   if (isLoading) {
@@ -14,7 +16,9 @@ export default function LogoListPage() {
   if (isError) {
     return (
       <div className='text-destructive'>
-        {error instanceof Error ? error.message : 'Failed to load logos'}
+        {error instanceof Error
+          ? error.message
+          : t('logo.validation.loadFailed')}
       </div>
     );
   }

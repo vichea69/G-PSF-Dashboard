@@ -14,10 +14,14 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
+type TranslateFn = (key: string) => string;
 
 export type SectionRow = {
   id: number | string;
+  pageId?: number | string;
   pageSlug?: string;
+  pageLabel?: string;
+  pageFilterValue?: string;
   blockType?: string;
   title?: LocalizedText;
   data?: { headline?: string; subheadline?: string } | null;
@@ -26,7 +30,7 @@ export type SectionRow = {
   updatedAt?: string;
 };
 
-const getEnabledBadge = (enabled?: boolean) => {
+const getEnabledBadge = (enabled: boolean | undefined, t: TranslateFn) => {
   const isEnabled = Boolean(enabled);
   return (
     <Badge
@@ -39,27 +43,32 @@ const getEnabledBadge = (enabled?: boolean) => {
       ) : (
         <IconCircleX className='h-3 w-3' />
       )}{' '}
-      {isEnabled ? 'Enabled' : 'Disabled'}
+      {isEnabled ? t('section.status.enabled') : t('section.status.disabled')}
     </Badge>
   );
 };
 
+// Build the section table columns from the selected language and translation helper.
 export const getSectionColumns = (
   language: Language,
-  pageOptions: Option[]
+  pageOptions: Option[],
+  t: TranslateFn
 ): ColumnDef<SectionRow>[] => [
   {
     id: 'id',
     accessorKey: 'id',
     header: ({ column }: { column: Column<SectionRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='ID' />
+      <DataTableColumnHeader column={column} title={t('section.columns.id')} />
     )
   },
   {
     id: 'title',
     accessorFn: (row) => getLocalizedText(row.title ?? '', language),
     header: ({ column }: { column: Column<SectionRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Section Title' />
+      <DataTableColumnHeader
+        column={column}
+        title={t('section.columns.title')}
+      />
     ),
     cell: ({ cell }) => {
       const value = (cell.getValue<string>() ?? '').toString();
@@ -69,19 +78,20 @@ export const getSectionColumns = (
           widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]'
           tooltipClassName='max-w-[24rem] break-words'
           minLength={12}
-          fallback='Untitled'
+          fallback={t('section.status.untitled')}
         />
       );
     },
     meta: {
-      label: 'Title',
-      placeholder: 'Search title...',
+      label: t('section.filters.titleLabel'),
+      placeholder: t('section.filters.searchTitle'),
       variant: 'text'
-    }
+    },
+    enableColumnFilter: true
   },
   {
-    accessorKey: 'pageSlug',
-    header: 'Page',
+    accessorKey: 'pageLabel',
+    header: t('section.columns.page'),
     filterFn: (row, columnId, filterValue) => {
       const selectedValue = Array.isArray(filterValue)
         ? filterValue[0]
@@ -90,7 +100,7 @@ export const getSectionColumns = (
       if (!selectedValue) return true;
 
       return (
-        String(row.getValue(columnId) ?? '').trim() ===
+        String(row.original.pageFilterValue ?? '').trim() ===
         String(selectedValue).trim()
       );
     },
@@ -117,22 +127,23 @@ export const getSectionColumns = (
         </Tooltip>
       );
     },
-    meta: pageOptions.length
-      ? {
-          label: 'Page',
-          variant: 'select',
-          options: pageOptions
-        }
-      : undefined
+    // Always keep the Page filter visible near the search box.
+    // If options are still loading or empty, the button still shows and can update later.
+    meta: {
+      label: t('section.filters.pageLabel'),
+      variant: 'select',
+      options: pageOptions
+    },
+    enableColumnFilter: true
   },
   {
     accessorKey: 'blockType',
-    header: 'Block Type'
+    header: t('section.columns.blockType')
   },
   {
     accessorKey: 'enabled',
-    header: 'Status',
-    cell: ({ cell }) => getEnabledBadge(cell.getValue<boolean>())
+    header: t('section.columns.status'),
+    cell: ({ cell }) => getEnabledBadge(cell.getValue<boolean>(), t)
   },
   // {
   //   accessorKey: 'orderIndex',
@@ -140,12 +151,12 @@ export const getSectionColumns = (
   // },
   {
     accessorKey: 'updatedAt',
-    header: 'Updated',
+    header: t('section.columns.updatedAt'),
     cell: ({ cell }) => <RelativeTime value={cell.getValue<string>() ?? ''} />
   },
   {
     id: 'actions',
-    header: 'Actions',
+    header: t('section.columns.actions'),
     cell: ({ row }) => <CellAction data={row.original as any} />
   }
 ];

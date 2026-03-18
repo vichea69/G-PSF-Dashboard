@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslate } from '@/hooks/use-translate';
 import type { Control } from 'react-hook-form';
 
 import type { SectionFormValues } from '../section-form.schema';
@@ -23,6 +24,8 @@ export function LocalizedFields({
   activeLanguage,
   onLanguageChange
 }: Props) {
+  const { t } = useTranslate();
+
   return (
     <Tabs
       value={activeLanguage}
@@ -30,8 +33,8 @@ export function LocalizedFields({
       className='space-y-4'
     >
       <TabsList>
-        <TabsTrigger value='en'>English</TabsTrigger>
-        <TabsTrigger value='km'>Khmer</TabsTrigger>
+        <TabsTrigger value='en'>{t('section.form.englishTab')}</TabsTrigger>
+        <TabsTrigger value='km'>{t('section.form.khmerTab')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value='en' className='space-y-4'>
@@ -40,9 +43,12 @@ export function LocalizedFields({
           name='title.en'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>{t('section.form.title')}</FormLabel>
               <FormControl>
-                <Input placeholder='Technology News' {...field} />
+                <Input
+                  placeholder={t('section.form.titlePlaceholder')}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -53,9 +59,13 @@ export function LocalizedFields({
           name='description.en'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('section.form.description')}</FormLabel>
               <FormControl>
-                <Textarea placeholder='Short description' rows={3} {...field} />
+                <Textarea
+                  placeholder={t('section.form.descriptionPlaceholder')}
+                  rows={3}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -69,9 +79,12 @@ export function LocalizedFields({
           name='title.km'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title (Khmer)</FormLabel>
+              <FormLabel>{t('section.form.titleKhmer')}</FormLabel>
               <FormControl>
-                <Input placeholder='ចំណងជើង' {...field} />
+                <Input
+                  placeholder={t('section.form.titleKhmerPlaceholder')}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -82,9 +95,13 @@ export function LocalizedFields({
           name='description.km'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description (Khmer)</FormLabel>
+              <FormLabel>{t('section.form.descriptionKhmer')}</FormLabel>
               <FormControl>
-                <Textarea placeholder='សេចក្ដីពិពណ៌នា' rows={3} {...field} />
+                <Textarea
+                  placeholder={t('section.form.descriptionKhmerPlaceholder')}
+                  rows={3}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

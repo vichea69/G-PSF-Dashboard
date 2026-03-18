@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/context/language-context';
 import type { MediaFile } from '@/features/media/types/media-type';
+import { useTranslate } from '@/hooks/use-translate';
 import { extractPageRows, usePage } from '@/hooks/use-page';
 import { useWorkingGroups } from '@/hooks/use-working-group';
 import { handleImageUpload } from '@/lib/tiptap-utils';
@@ -63,6 +64,7 @@ export default function WorkingGroupForm({
   initialData?: WorkingGroupItem | null;
 }) {
   const isEditing = Boolean(initialData?.id);
+  const { t } = useTranslate();
   const [formData, setFormData] = useState<WorkingGroupFormData>({
     title: {
       en: getLocalizedValue(initialData?.title, 'en'),
@@ -122,20 +124,20 @@ export default function WorkingGroupForm({
     mutationFn: (payload: WorkingGroupInput) => createWorkingGroup(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['working-groups'] });
-      toast.success('Working group created successfully');
+      toast.success(t('workingGroup.toast.created'));
       router.replace('/admin/working-group');
     }
   });
   const updateMutation = useMutation({
     mutationFn: (payload: WorkingGroupInput) => {
       if (!initialData?.id) {
-        throw new Error('Working group id is required');
+        throw new Error(t('workingGroup.toast.idRequired'));
       }
       return updateWorkingGroup(initialData.id, payload);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['working-groups'] });
-      toast.success('Working group updated successfully');
+      toast.success(t('workingGroup.toast.updated'));
       router.replace('/admin/working-group');
     }
   });
@@ -159,7 +161,7 @@ export default function WorkingGroupForm({
   const handleSelectIconFromMedia = (file: MediaFile) => {
     const selectedUrl = (file.url ?? file.thumbnail ?? '').trim();
     if (!selectedUrl) {
-      toast.error('Selected media does not have a valid URL');
+      toast.error(t('workingGroup.toast.selectedMediaInvalid'));
       return;
     }
 
@@ -175,14 +177,14 @@ export default function WorkingGroupForm({
     try {
       const result = await handleImageUpload(firstFile);
       if (!result?.url) {
-        throw new Error('Upload succeeded but no URL was returned');
+        throw new Error(t('workingGroup.toast.uploadMissingUrl'));
       }
       setIconPreviewError(false);
       setFormData((prev) => ({ ...prev, iconUrl: result.url }));
       await qc.invalidateQueries({ queryKey: ['media'], exact: false });
-      toast.success('Icon selected successfully');
+      toast.success(t('workingGroup.toast.iconSelected'));
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to upload icon');
+      toast.error(error?.message || t('workingGroup.toast.uploadFailed'));
     } finally {
       setIconUploadLoading(false);
     }
@@ -192,10 +194,7 @@ export default function WorkingGroupForm({
     const raw = error?.response?.data?.message;
     if (Array.isArray(raw)) return raw.join(', ');
     if (typeof raw === 'string') return raw;
-    return (
-      error?.message ||
-      `Failed to ${isEditing ? 'update' : 'create'} working group`
-    );
+    return error?.message || t('workingGroup.toast.saveFailed');
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -204,7 +203,7 @@ export default function WorkingGroupForm({
     const titleEn = formData.title.en.trim();
     const titleKm = formData.title.km.trim();
     if (!titleEn && !titleKm) {
-      toast.error('Title is required');
+      toast.error(t('workingGroup.toast.titleRequired'));
       return;
     }
 
@@ -255,17 +254,21 @@ export default function WorkingGroupForm({
       <form onSubmit={handleSubmit} className='w-full space-y-8'>
         <Tabs defaultValue='en' className='w-full'>
           <TabsList>
-            <TabsTrigger value='en'>English</TabsTrigger>
-            <TabsTrigger value='km'>Khmer</TabsTrigger>
+            <TabsTrigger value='en'>
+              {t('workingGroup.form.englishTab')}
+            </TabsTrigger>
+            <TabsTrigger value='km'>
+              {t('workingGroup.form.khmerTab')}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value='en' className='mt-6'>
             <div className='flex flex-col gap-6 md:flex-row'>
               <div className='w-full space-y-2 md:flex-1'>
-                <Label htmlFor='title-en'>Title</Label>
+                <Label htmlFor='title-en'>{t('workingGroup.form.title')}</Label>
                 <Textarea
                   id='title-en'
-                  placeholder='Youth Group'
+                  placeholder={t('workingGroup.form.titlePlaceholderEn')}
                   value={formData.title.en}
                   onChange={(e) =>
                     updateLocalizedField('title', 'en', e.target.value)
@@ -274,12 +277,14 @@ export default function WorkingGroupForm({
               </div>
 
               <div className='w-full space-y-2 md:flex-1'>
-                <Label htmlFor='description-en'>Description</Label>
+                <Label htmlFor='description-en'>
+                  {t('workingGroup.form.description')}
+                </Label>
                 <Textarea
                   id='description-en'
                   rows={4}
                   className='resize-none'
-                  placeholder='Focus on outreach'
+                  placeholder={t('workingGroup.form.descriptionPlaceholderEn')}
                   value={formData.description.en}
                   onChange={(e) =>
                     updateLocalizedField('description', 'en', e.target.value)
@@ -292,10 +297,10 @@ export default function WorkingGroupForm({
           <TabsContent value='km' className='mt-6'>
             <div className='flex flex-col gap-6 md:flex-row'>
               <div className='w-full space-y-2 md:flex-1'>
-                <Label htmlFor='title-km'>Title</Label>
+                <Label htmlFor='title-km'>{t('workingGroup.form.title')}</Label>
                 <Textarea
                   id='title-km'
-                  placeholder='ក្រុមយុវជន'
+                  placeholder={t('workingGroup.form.titlePlaceholderKm')}
                   value={formData.title.km}
                   onChange={(e) =>
                     updateLocalizedField('title', 'km', e.target.value)
@@ -304,12 +309,14 @@ export default function WorkingGroupForm({
               </div>
 
               <div className='w-full space-y-2 md:flex-1'>
-                <Label htmlFor='description-km'>Description</Label>
+                <Label htmlFor='description-km'>
+                  {t('workingGroup.form.description')}
+                </Label>
                 <Textarea
                   id='description-km'
                   rows={4}
                   className='resize-none'
-                  placeholder='ក្រុមយុវជន'
+                  placeholder={t('workingGroup.form.descriptionPlaceholderKm')}
                   value={formData.description.km}
                   onChange={(e) =>
                     updateLocalizedField('description', 'km', e.target.value)
@@ -323,19 +330,19 @@ export default function WorkingGroupForm({
         <div className='border-border grid gap-6 border-t pt-6 md:grid-cols-2'>
           <div className='space-y-2'>
             <div className='flex items-center justify-between gap-2'>
-              <Label htmlFor='icon-url'>Icon URL</Label>
+              <Label htmlFor='icon-url'>{t('workingGroup.form.iconUrl')}</Label>
               <Button
                 type='button'
                 variant='outline'
                 size='sm'
                 onClick={() => setIconPickerOpen(true)}
               >
-                Select from Media
+                {t('workingGroup.form.selectFromMedia')}
               </Button>
             </div>
             <Input
               id='icon-url'
-              placeholder='https://example.com/icon.png'
+              placeholder={t('workingGroup.form.iconPlaceholder')}
               value={formData.iconUrl}
               onChange={(e) => {
                 setIconPreviewError(false);
@@ -346,13 +353,13 @@ export default function WorkingGroupForm({
               <div className='bg-muted mt-3 flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border'>
                 {iconPreviewError ? (
                   <span className='text-muted-foreground px-2 text-center text-xs'>
-                    Invalid image URL
+                    {t('workingGroup.form.invalidImageUrl')}
                   </span>
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={iconPreviewUrl}
-                    alt='Icon preview'
+                    alt={t('workingGroup.form.iconPreviewAlt')}
                     className='h-full w-full object-cover'
                     onError={() => setIconPreviewError(true)}
                   />
@@ -362,7 +369,9 @@ export default function WorkingGroupForm({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='order-index'>Order Index</Label>
+            <Label htmlFor='order-index'>
+              {t('workingGroup.form.orderIndex')}
+            </Label>
             <Input
               id='order-index'
               type='number'
@@ -378,7 +387,7 @@ export default function WorkingGroupForm({
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='status'>Status</Label>
+            <Label htmlFor='status'>{t('workingGroup.form.status')}</Label>
             <Select
               value={formData.status}
               onValueChange={(value) =>
@@ -389,17 +398,23 @@ export default function WorkingGroupForm({
               }
             >
               <SelectTrigger id='status'>
-                <SelectValue placeholder='Select status' />
+                <SelectValue
+                  placeholder={t('workingGroup.form.selectStatus')}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='draft'>Draft</SelectItem>
-                <SelectItem value='published'>Published</SelectItem>
+                <SelectItem value='draft'>
+                  {t('workingGroup.status.draft')}
+                </SelectItem>
+                <SelectItem value='published'>
+                  {t('workingGroup.status.published')}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='page'>Page (optional)</Label>
+            <Label htmlFor='page'>{t('workingGroup.form.pageOptional')}</Label>
             <Select
               value={formData.pageId || 'none'}
               onValueChange={(value) =>
@@ -410,10 +425,14 @@ export default function WorkingGroupForm({
               }
             >
               <SelectTrigger id='page'>
-                <SelectValue placeholder='Select page (optional)' />
+                <SelectValue
+                  placeholder={t('workingGroup.form.selectPageOptional')}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='none'>No page</SelectItem>
+                <SelectItem value='none'>
+                  {t('workingGroup.form.noPage')}
+                </SelectItem>
                 {pages.map((page) => (
                   <SelectItem
                     key={page.id}
@@ -421,13 +440,15 @@ export default function WorkingGroupForm({
                     disabled={page.isUsed}
                   >
                     {page.label}
-                    {page.isUsed ? ' (Already linked)' : ''}
+                    {page.isUsed
+                      ? ` (${t('workingGroup.form.alreadyLinked')})`
+                      : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className='text-muted-foreground text-xs'>
-              Each page can be linked to only one working group.
+              {t('workingGroup.form.pageHint')}
             </p>
           </div>
         </div>
@@ -438,10 +459,12 @@ export default function WorkingGroupForm({
             variant='outline'
             onClick={() => router.push('/admin/working-group')}
           >
-            Cancel
+            {t('workingGroup.form.cancel')}
           </Button>
           <Button variant='primary' type='submit' disabled={submitting}>
-            {isEditing ? 'Save Changes' : 'Save'}
+            {isEditing
+              ? t('workingGroup.form.saveChanges')
+              : t('workingGroup.form.save')}
           </Button>
         </div>
       </form>
@@ -452,8 +475,8 @@ export default function WorkingGroupForm({
         onSelect={handleSelectIconFromMedia}
         onUploadFromDevice={handleUploadIconFromDevice}
         loading={iconUploadLoading}
-        title='Select icon image'
-        description='Upload a new image or pick from Media Manager.'
+        title={t('workingGroup.form.selectIconImage')}
+        description={t('workingGroup.form.mediaDescription')}
         types={['image']}
         accept='image/*'
       />

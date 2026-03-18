@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { useTranslate } from '@/hooks/use-translate';
 import { CalendarIcon, Save } from 'lucide-react';
 import { formatDate } from '@/lib/format';
 
@@ -75,6 +76,7 @@ export function PostPublishSettingsCard({
   onCancel,
   onSubmit
 }: PostPublishSettingsCardProps) {
+  const { t } = useTranslate();
   const selectedPublishDate = useMemo(() => {
     if (!publishDate) return undefined;
     const parsed = new Date(`${publishDate}T00:00:00`);
@@ -99,11 +101,13 @@ export function PostPublishSettingsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='text-sm'>Publish Settings</CardTitle>
+        <CardTitle className='text-sm'>
+          {t('post.publishSettings.title')}
+        </CardTitle>
       </CardHeader>
       <CardContent className='space-y-4'>
         <div>
-          <Label htmlFor='status'>Status</Label>
+          <Label htmlFor='status'>{t('post.publishSettings.status')}</Label>
           <Select
             value={normalizedStatus}
             onValueChange={(value) =>
@@ -114,15 +118,21 @@ export function PostPublishSettingsCard({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='draft'>Draft</SelectItem>
-              <SelectItem value='published'>Published</SelectItem>
+              <SelectItem value='draft'>
+                {t('post.publishSettings.draft')}
+              </SelectItem>
+              <SelectItem value='published'>
+                {t('post.publishSettings.published')}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {normalizedStatus === 'published' ? (
           <div className='space-y-2'>
-            <Label htmlFor='publish-date'>Publish Date</Label>
+            <Label htmlFor='publish-date'>
+              {t('post.publishSettings.publishDate')}
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -134,7 +144,7 @@ export function PostPublishSettingsCard({
                   <CalendarIcon className='mr-2 h-4 w-4' />
                   {selectedPublishDate
                     ? formatDate(selectedPublishDate)
-                    : 'Pick a publish date'}
+                    : t('post.publishSettings.pickPublishDate')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className='w-auto p-0' align='start'>
@@ -156,7 +166,7 @@ export function PostPublishSettingsCard({
                 className='h-7 px-2 text-xs'
                 onClick={() => onPublishDateChange('')}
               >
-                Clear date
+                {t('post.publishSettings.clearDate')}
               </Button>
             ) : null}
           </div>
@@ -164,7 +174,9 @@ export function PostPublishSettingsCard({
 
         {selectedBlockType === 'announcement' && (
           <div className='space-y-2'>
-            <Label htmlFor='expired-date'>Expired Date</Label>
+            <Label htmlFor='expired-date'>
+              {t('post.publishSettings.expiredDate')}
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -176,7 +188,7 @@ export function PostPublishSettingsCard({
                   <CalendarIcon className='mr-2 h-4 w-4' />
                   {selectedExpiredDate
                     ? formatDate(selectedExpiredDate)
-                    : 'Pick an expiry date'}
+                    : t('post.publishSettings.pickExpiryDate')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className='w-auto p-0' align='start'>
@@ -198,7 +210,7 @@ export function PostPublishSettingsCard({
                 className='h-7 px-2 text-xs'
                 onClick={() => onExpiredDateChange('')}
               >
-                Clear date
+                {t('post.publishSettings.clearDate')}
               </Button>
             ) : null}
           </div>
@@ -211,18 +223,20 @@ export function PostPublishSettingsCard({
             onCheckedChange={(checked) => onIsFeaturedChange(Boolean(checked))}
           />
           <Label htmlFor='is-featured' className='cursor-pointer'>
-            Featured
+            {t('post.publishSettings.featured')}
           </Label>
         </div>
 
         <div>
-          <Label htmlFor='page'>Page</Label>
+          <Label htmlFor='page'>{t('post.publishSettings.page')}</Label>
           <Select
             value={(pageId ?? '').toString()}
             onValueChange={onPageChange}
           >
             <SelectTrigger className='mt-1'>
-              <SelectValue placeholder='Attach to a page (optional)' />
+              <SelectValue
+                placeholder={t('post.publishSettings.pagePlaceholder')}
+              />
             </SelectTrigger>
             <SelectContent>
               {pages.map((page) => (
@@ -235,13 +249,15 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='section'>Section</Label>
+          <Label htmlFor='section'>{t('post.publishSettings.section')}</Label>
           <Select
             value={(sectionId ?? '').toString()}
             onValueChange={onSectionChange}
           >
             <SelectTrigger className='mt-1'>
-              <SelectValue placeholder='Attach to a section (optional)' />
+              <SelectValue
+                placeholder={t('post.publishSettings.sectionPlaceholder')}
+              />
             </SelectTrigger>
             <SelectContent>
               {sections.map((section) => (
@@ -255,31 +271,27 @@ export function PostPublishSettingsCard({
           {selectedSection ? (
             <div className='border-muted bg-muted/30 mt-3 space-y-1 rounded-md border p-3 text-xs'>
               <p className='font-medium'>
-                Block type: {selectedBlockType || 'Unknown'}
+                {t('post.publishSettings.blockType')}:{' '}
+                {selectedBlockType || t('post.publishSettings.unknown')}
               </p>
 
               {selectedBlockType === 'hero_banner' && (
                 <p className='text-muted-foreground'>
-                  Hero banner: your post title/description will surface as hero
-                  text. Add strong images in the Media section.
+                  {t('post.publishSettings.heroBannerHelp')}
                 </p>
               )}
 
               {selectedBlockType === 'stats' && (
                 <p className='text-muted-foreground'>
-                  Stats block: add numeric highlights with localized values and
-                  labels.
+                  {t('post.publishSettings.statsHelp')}
                 </p>
               )}
 
               {selectedBlockType === 'post_list' && (
                 <div className='text-muted-foreground space-y-2'>
-                  <p>
-                    Post list: this post will appear according to the
-                    section&apos;s category, sort, and limit settings.
-                  </p>
+                  <p>{t('post.publishSettings.postListHelp')}</p>
                   <p className='text-[11px]'>
-                    Adjust those settings inside the Section editor if needed.
+                    {t('post.publishSettings.postListHelpSecondary')}
                   </p>
                 </div>
               )}
@@ -289,8 +301,7 @@ export function PostPublishSettingsCard({
                   selectedBlockType
                 ) && (
                   <p className='text-muted-foreground'>
-                    Custom layout: this section will render using its block
-                    template.
+                    {t('post.publishSettings.customLayoutHelp')}
                   </p>
                 )}
             </div>
@@ -298,13 +309,15 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='category'>Category</Label>
+          <Label htmlFor='category'>{t('post.publishSettings.category')}</Label>
           <Select
             value={(categoryId ?? '').toString()}
             onValueChange={onCategoryChange}
           >
             <SelectTrigger className='mt-1'>
-              <SelectValue placeholder='Select a category' />
+              <SelectValue
+                placeholder={t('post.publishSettings.categoryPlaceholder')}
+              />
             </SelectTrigger>
             <SelectContent>
               {categories.map((category) => (
@@ -326,11 +339,13 @@ export function PostPublishSettingsCard({
 
         <div className='flex items-center gap-2'>
           <Button variant='outline' onClick={onCancel}>
-            Back
+            {t('post.publishSettings.back')}
           </Button>
           <Button onClick={onSubmit}>
             <Save className='mr-2 h-4 w-4' />
-            {isEditing ? 'Update Post' : 'Create Post'}
+            {isEditing
+              ? t('post.publishSettings.updatePost')
+              : t('post.publishSettings.createPost')}
           </Button>
         </div>
       </CardContent>

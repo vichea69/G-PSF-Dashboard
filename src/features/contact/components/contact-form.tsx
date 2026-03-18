@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useUpdateContact } from '@/features/contact/hook/use-contact';
+import { useTranslate } from '@/hooks/use-translate';
 
 export type ContactFormData = {
   id?: string | number;
@@ -30,6 +31,7 @@ export default function ContactForm({
 }) {
   const router = useRouter();
   const updateContactMutation = useUpdateContact();
+  const { t } = useTranslate();
 
   const [form, setForm] = useState<ContactFormData>(
     initialData ?? {
@@ -71,10 +73,10 @@ export default function ContactForm({
         }
       });
 
-      toast.success('Contact updated');
+      toast.success(t('contact.toast.updated'));
       router.push('/admin/contact');
     } catch (err: any) {
-      toast.error(err?.message || 'Save error');
+      toast.error(err?.message || t('contact.toast.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -86,67 +88,70 @@ export default function ContactForm({
       className='bg-card text-card-foreground space-y-6 rounded-2xl border p-6'
     >
       <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-        <Field label='First Name' htmlFor='firstName'>
+        <Field label={t('contact.form.firstName')} htmlFor='firstName'>
           <Input
             id='firstName'
             variant='lg'
             className='h-12 rounded-xl'
-            placeholder='Ex. Pheak'
+            placeholder={t('contact.form.firstNamePlaceholder')}
             value={form.firstName ?? ''}
             onChange={(e) => set('firstName', e.target.value)}
           />
         </Field>
 
-        <Field label='Last Name' htmlFor='lastName'>
+        <Field label={t('contact.form.lastName')} htmlFor='lastName'>
           <Input
             id='lastName'
             variant='lg'
             className='h-12 rounded-xl'
-            placeholder='Ex. Kdey'
+            placeholder={t('contact.form.lastNamePlaceholder')}
             value={form.lastName ?? ''}
             onChange={(e) => set('lastName', e.target.value)}
           />
         </Field>
 
-        <Field label='Email' required htmlFor='email'>
+        <Field label={t('contact.form.email')} required htmlFor='email'>
           <Input
             id='email'
             type='email'
             variant='lg'
             className='h-12 rounded-xl'
-            placeholder='example@gmail.com'
+            placeholder={t('contact.form.emailPlaceholder')}
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
           />
         </Field>
 
-        <Field label='Organisation Name' htmlFor='organisationName'>
+        <Field
+          label={t('contact.form.organisationName')}
+          htmlFor='organisationName'
+        >
           <Input
             id='organisationName'
             variant='lg'
             className='h-12 rounded-xl'
-            placeholder='Enter Organisation Name'
+            placeholder={t('contact.form.organisationPlaceholder')}
             value={form.organisationName ?? ''}
             onChange={(e) => set('organisationName', e.target.value)}
           />
         </Field>
       </div>
 
-      <Field label='Subject' required htmlFor='subject'>
+      <Field label={t('contact.form.subject')} required htmlFor='subject'>
         <Input
           id='subject'
           variant='lg'
           className='h-12 rounded-xl'
-          placeholder='Enter subject here...'
+          placeholder={t('contact.form.subjectPlaceholder')}
           value={form.subject}
           onChange={(e) => set('subject', e.target.value)}
         />
       </Field>
 
-      <Field label='Your Message' required htmlFor='message'>
+      <Field label={t('contact.form.message')} required htmlFor='message'>
         <Textarea
           id='message'
-          placeholder='Enter here...'
+          placeholder={t('contact.form.messagePlaceholder')}
           value={form.message ?? ''}
           onChange={(e) => set('message', e.target.value)}
           className='min-h-[200px] resize-none rounded-xl'
@@ -164,7 +169,7 @@ export default function ContactForm({
             onCheckedChange={(checked) => set('isRead', checked === true)}
             className='h-4 w-4'
           />
-          Mark as read
+          {t('contact.form.markAsRead')}
         </label>
 
         <Button
@@ -174,10 +179,10 @@ export default function ContactForm({
           appearance='default'
         >
           {loading
-            ? 'Saving...'
+            ? t('contact.form.saving')
             : initialData
-              ? 'Save Changes'
-              : 'Send Message'}
+              ? t('contact.form.saveChanges')
+              : t('contact.form.sendMessage')}
         </Button>
       </div>
     </form>

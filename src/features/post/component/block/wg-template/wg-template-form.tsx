@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useTranslate } from '@/hooks/use-translate';
 import {
   Accordion,
   AccordionContent,
@@ -111,6 +112,7 @@ export function WgTemplateForm({
   value,
   onChange
 }: WgTemplateFormProps) {
+  const { t } = useTranslate();
   const formData = normalizeWgTemplateData(value);
 
   return (
@@ -120,7 +122,10 @@ export function WgTemplateForm({
       defaultValue='hero-banner'
       className='space-y-4'
     >
-      <WgTemplateSection value='hero-banner' title='Hero Banner'>
+      <WgTemplateSection
+        value='hero-banner'
+        title={t('post.blocks.wgTemplate.heroBanner')}
+      >
         <BannerForm
           language={language}
           value={formData.heroBanner}
@@ -133,11 +138,14 @@ export function WgTemplateForm({
         />
       </WgTemplateSection>
 
-      <WgTemplateSection value='mandate-scope' title='Mandate & Scope'>
+      <WgTemplateSection
+        value='mandate-scope'
+        title={t('post.blocks.wgTemplate.mandateScope')}
+      >
         <TextBlockForm
           language={language}
           value={formData.textBlock}
-          cardTitle='Mandate & Scope'
+          cardTitle={t('post.blocks.wgTemplate.mandateScope')}
           descriptionInput='tiptap'
           onChange={(nextTextBlock) =>
             onChange?.({
@@ -148,7 +156,10 @@ export function WgTemplateForm({
         />
       </WgTemplateSection>
 
-      <WgTemplateSection value='progress-snapshot' title='Progress Snapshot'>
+      <WgTemplateSection
+        value='progress-snapshot'
+        title={t('post.blocks.wgTemplate.progressSnapshot')}
+      >
         <ProgressSnapshotForm
           value={formData.progressSnapshot}
           onChange={(nextProgressSnapshot) =>
@@ -160,7 +171,10 @@ export function WgTemplateForm({
         />
       </WgTemplateSection>
 
-      <WgTemplateSection value='issues-responses' title='Issues & Responses'>
+      <WgTemplateSection
+        value='issues-responses'
+        title={t('post.blocks.wgTemplate.issuesResponses')}
+      >
         <IssuesResponsesForm
           language={language}
           value={formData.issuesResponses}
@@ -173,7 +187,10 @@ export function WgTemplateForm({
         />
       </WgTemplateSection>
 
-      <WgTemplateSection value='submission-form' title='Submission Form'>
+      <WgTemplateSection
+        value='submission-form'
+        title={t('post.blocks.wgTemplate.submissionForm')}
+      >
         <SubmissionForm
           language={language}
           value={formData.submissionForm}

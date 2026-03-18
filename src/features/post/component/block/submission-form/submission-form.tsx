@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { FileModal } from '@/components/modal/file-modal';
+import { useTranslate } from '@/hooks/use-translate';
 import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { ImageIcon, Link2, Plus, Send, X } from 'lucide-react';
@@ -80,6 +81,7 @@ export function SubmissionForm({
   value,
   onChange
 }: SubmissionFormProps) {
+  const { t } = useTranslate();
   const [formData, setFormData] = useState<SubmissionFormData>(() =>
     normalizeSubmissionFormData(value)
   );
@@ -207,20 +209,24 @@ export function SubmissionForm({
         <CardHeader className='border-b'>
           <CardTitle className='flex items-center gap-2'>
             <Send className='size-5' />
-            Submission Form
+            {t('post.blocks.submissionForm.title')}
           </CardTitle>
         </CardHeader>
 
         <CardContent className='space-y-2'>
           <Label htmlFor='submission-form-title'>
-            {isKhmer ? 'Title (Khmer)' : 'Title (English)'}
+            {isKhmer
+              ? t('post.blocks.submissionForm.titleKhmer')
+              : t('post.blocks.submissionForm.titleEnglish')}
           </Label>
           <Input
             id='submission-form-title'
             value={isKhmer ? formData.title.km : formData.title.en}
             onChange={(event) => updateTitle(event.target.value)}
             placeholder={
-              isKhmer ? 'Enter title in Khmer' : 'Enter title in English'
+              isKhmer
+                ? t('post.blocks.submissionForm.enterTitleKhmer')
+                : t('post.blocks.submissionForm.enterTitleEnglish')
             }
           />
         </CardContent>
@@ -230,12 +236,12 @@ export function SubmissionForm({
         <CardHeader className='border-b'>
           <CardTitle className='flex items-center gap-2'>
             <ImageIcon className='size-5' />
-            Background Images
+            {t('post.blocks.submissionForm.backgroundImages')}
           </CardTitle>
           <CardAction>
             <Button type='button' size='sm' onClick={addImage}>
               <Plus className='mr-1 size-4' />
-              Add Image
+              {t('post.blocks.submissionForm.addImage')}
             </Button>
           </CardAction>
         </CardHeader>
@@ -251,7 +257,7 @@ export function SubmissionForm({
               >
                 <div className='flex items-center justify-between gap-2'>
                   <Label htmlFor={`submission-background-image-${index}`}>
-                    {`Image URL ${index + 1}`}
+                    {`${t('post.blocks.submissionForm.imageUrl')} ${index + 1}`}
                   </Label>
                   <div className='flex items-center gap-2'>
                     <Button
@@ -260,7 +266,7 @@ export function SubmissionForm({
                       size='sm'
                       onClick={() => setImagePickerIndex(index)}
                     >
-                      Choose from Media
+                      {t('post.blocks.submissionForm.chooseFromMedia')}
                     </Button>
                     {formData.backgroundImages.length > 1 ? (
                       <Button
@@ -303,7 +309,7 @@ export function SubmissionForm({
           {formData.backgroundImages.length === 0 ? (
             <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
               <ImageIcon className='mb-2 size-8' />
-              <p>No images added. Click Add Image to start.</p>
+              <p>{t('post.blocks.submissionForm.noImagesAdded')}</p>
             </div>
           ) : null}
         </CardContent>
@@ -313,13 +319,15 @@ export function SubmissionForm({
         <CardHeader className='border-b'>
           <CardTitle className='flex items-center gap-2'>
             <Link2 className='size-5' />
-            CTA Buttons
+            {t('post.blocks.submissionForm.ctaButtons')}
           </CardTitle>
-          <CardDescription>Manage the buttons for this form.</CardDescription>
+          <CardDescription>
+            {t('post.blocks.submissionForm.ctaDescription')}
+          </CardDescription>
           <CardAction>
             <Button type='button' size='sm' onClick={addCta}>
               <Plus className='mr-1 size-4' />
-              Add Button
+              {t('post.blocks.submissionForm.addButton')}
             </Button>
           </CardAction>
         </CardHeader>
@@ -331,7 +339,7 @@ export function SubmissionForm({
               className='bg-muted/20 space-y-3 rounded-lg border p-4'
             >
               <div className='flex items-center justify-between gap-2'>
-                <Label>{`Button ${index + 1}`}</Label>
+                <Label>{`${t('post.blocks.submissionForm.button')} ${index + 1}`}</Label>
                 <Button
                   type='button'
                   variant='ghost'
@@ -347,8 +355,8 @@ export function SubmissionForm({
                 <div className='space-y-2'>
                   <Label htmlFor={`submission-cta-label-${index}`}>
                     {isKhmer
-                      ? 'Button Label (Khmer)'
-                      : 'Button Label (English)'}
+                      ? t('post.blocks.submissionForm.buttonLabelKhmer')
+                      : t('post.blocks.submissionForm.buttonLabelEnglish')}
                   </Label>
                   <Input
                     id={`submission-cta-label-${index}`}
@@ -358,15 +366,17 @@ export function SubmissionForm({
                     }
                     placeholder={
                       isKhmer
-                        ? 'Enter button label in Khmer'
-                        : 'Enter button label in English'
+                        ? t('post.blocks.submissionForm.enterButtonLabelKhmer')
+                        : t(
+                            'post.blocks.submissionForm.enterButtonLabelEnglish'
+                          )
                     }
                   />
                 </div>
 
                 <div className='space-y-2'>
                   <Label htmlFor={`submission-cta-href-${index}`}>
-                    Link URL
+                    {t('post.blocks.submissionForm.linkUrl')}
                   </Label>
                   <Input
                     id={`submission-cta-href-${index}`}
@@ -384,7 +394,7 @@ export function SubmissionForm({
           {formData.ctas.length === 0 ? (
             <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
               <Link2 className='mb-2 size-8' />
-              <p>No buttons added. Click Add Button to start.</p>
+              <p>{t('post.blocks.submissionForm.noButtons')}</p>
             </div>
           ) : null}
         </CardContent>
@@ -394,8 +404,10 @@ export function SubmissionForm({
         isOpen={imagePickerIndex !== null}
         onClose={() => setImagePickerIndex(null)}
         onSelect={handleSelectBackgroundFromMedia}
-        title='Select background image'
-        description='Choose an image from Media Manager.'
+        title={t('post.blocks.submissionForm.selectBackgroundImage')}
+        description={t(
+          'post.blocks.submissionForm.selectBackgroundImageDescription'
+        )}
         types={['image']}
         accept='image/*'
         allowUploadFromDevice={false}

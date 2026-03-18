@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { TestimonialRow } from './culumns';
+import { useTranslate } from '@/hooks/use-translate';
 import { deleteTestimonial } from '@/server/action/testimonail/testimonail';
 
 interface CellActionProps {
@@ -27,6 +28,7 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateTestimonial = can(
@@ -58,7 +60,7 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
       });
 
       await deleteTestimonial(data.id);
-      toast.success('Testimonial deleted successfully');
+      toast.success(t('testimonial.toast.deleted'));
       setOpen(false);
       qc.invalidateQueries({ queryKey: ['testimonials'], exact: false });
       router.refresh();
@@ -66,7 +68,7 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
       const message =
         e?.response?.data?.message ||
         e?.message ||
-        'Delete failed please try again';
+        t('testimonial.toast.deleteFailed');
       toast.error(message);
       qc.invalidateQueries({ queryKey: ['testimonials'], exact: false });
     } finally {
@@ -90,12 +92,14 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
             data-row-action
             onClick={(event) => event.stopPropagation()}
           >
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('testimonial.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {t('testimonial.actions.menuLabel')}
+          </DropdownMenuLabel>
           {canUpdateTestimonial ? (
             <DropdownMenuItem
               onClick={(event) => {
@@ -103,7 +107,8 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
                 router.push(`/admin/testimonial/${data.id}`);
               }}
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Edit
+              <IconEdit className='mr-2 h-4 w-4' />{' '}
+              {t('testimonial.actions.edit')}
             </DropdownMenuItem>
           ) : null}
           {canDeleteTestimonial ? (
@@ -113,7 +118,8 @@ export const TestimonialCellAction: React.FC<CellActionProps> = ({ data }) => {
                 setOpen(true);
               }}
             >
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
+              <IconTrash className='mr-2 h-4 w-4' />{' '}
+              {t('testimonial.actions.delete')}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

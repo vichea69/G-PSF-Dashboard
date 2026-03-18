@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslate } from '@/hooks/use-translate';
 import { PostContentEditor } from '@/features/post/component/post-content-editor';
 import {
   BannerForm,
@@ -109,6 +110,8 @@ export function PostContentCard({
   onIssuesResponsesChange,
   onWgTemplateChange
 }: PostContentCardProps) {
+  const { t } = useTranslate();
+
   return (
     <Card>
       <CardHeader className='space-y-3'>
@@ -119,8 +122,12 @@ export function PostContentCard({
           }
         >
           <TabsList>
-            <TabsTrigger value='en'>English</TabsTrigger>
-            <TabsTrigger value='km'>Khmer</TabsTrigger>
+            <TabsTrigger value='en'>
+              {t('post.contentCard.englishTab')}
+            </TabsTrigger>
+            <TabsTrigger value='km'>
+              {t('post.contentCard.khmerTab')}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </CardHeader>
@@ -134,43 +141,43 @@ export function PostContentCard({
           className='space-y-3'
         >
           <TabsContent value='en'>
-            <Label htmlFor='title-en'>Title</Label>
+            <Label htmlFor='title-en'>{t('post.contentCard.title')}</Label>
             <Input
               id='title-en'
               value={titleEn}
               onChange={(event) => onTitleEnChange(event.target.value)}
-              placeholder='Enter English title'
+              placeholder={t('post.contentCard.enterEnglishTitle')}
               className='mt-1'
             />
             <Label className='mt-3 block' htmlFor='description-en'>
-              Description
+              {t('post.contentCard.description')}
             </Label>
             <Textarea
               id='description-en'
               value={descriptionEn}
               onChange={(event) => onDescriptionEnChange(event.target.value)}
-              placeholder='Short description'
+              placeholder={t('post.contentCard.shortDescription')}
               className='mt-1'
             />
           </TabsContent>
 
           <TabsContent value='km'>
-            <Label htmlFor='title-km'>Title</Label>
+            <Label htmlFor='title-km'>{t('post.contentCard.title')}</Label>
             <Input
               id='title-km'
               value={titleKm}
               onChange={(event) => onTitleKmChange(event.target.value)}
-              placeholder='Enter Khmer title'
+              placeholder={t('post.contentCard.enterKhmerTitle')}
               className='mt-1'
             />
             <Label className='mt-3 block' htmlFor='description-km'>
-              Description
+              {t('post.contentCard.description')}
             </Label>
             <Textarea
               id='description-km'
               value={descriptionKm}
               onChange={(event) => onDescriptionKmChange(event.target.value)}
-              placeholder='Description in khmer'
+              placeholder={t('post.contentCard.descriptionKhmer')}
               className='mt-1'
             />
           </TabsContent>
@@ -179,7 +186,7 @@ export function PostContentCard({
         {isHeroBannerSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Hero Banner Content
+              {t('post.contentCard.heroBannerContent')}
             </CardTitle>
             <BannerForm
               language={activeLanguage}
@@ -190,7 +197,7 @@ export function PostContentCard({
         ) : isStatsSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Stats Block Content
+              {t('post.contentCard.statsBlockContent')}
             </CardTitle>
             <StatsForm
               language={activeLanguage}
@@ -201,7 +208,7 @@ export function PostContentCard({
         ) : isTextBlockSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Text Block Content
+              {t('post.contentCard.textBlockContent')}
             </CardTitle>
             <TextBlockForm
               language={activeLanguage}
@@ -212,7 +219,7 @@ export function PostContentCard({
         ) : isWgCoChairsSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Working Group Co-Chairs
+              {t('post.contentCard.wgCoChairsContent')}
             </CardTitle>
             <WgCoChairsForm
               language={activeLanguage}
@@ -223,7 +230,7 @@ export function PostContentCard({
         ) : isAnnualReportsSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Annual Reports
+              {t('post.contentCard.annualReportsContent')}
             </CardTitle>
             <AnnualReportsForm
               language={activeLanguage}
@@ -234,7 +241,7 @@ export function PostContentCard({
         ) : isIssuesResponsesSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Issues & Responses
+              {t('post.contentCard.issuesResponsesContent')}
             </CardTitle>
             <IssuesResponsesForm
               language={activeLanguage}
@@ -244,7 +251,9 @@ export function PostContentCard({
           </div>
         ) : isWgTemplateSection ? (
           <div className='space-y-2'>
-            <CardTitle className='text-sm font-medium'>WG Template</CardTitle>
+            <CardTitle className='text-sm font-medium'>
+              {t('post.contentCard.wgTemplateContent')}
+            </CardTitle>
             <WgTemplateForm
               language={activeLanguage}
               value={wgTemplateValue}
@@ -254,7 +263,7 @@ export function PostContentCard({
         ) : isAddressSection ? (
           <div className='space-y-2'>
             <CardTitle className='text-sm font-medium'>
-              Address Block Preview
+              {t('post.contentCard.addressBlockPreview')}
             </CardTitle>
           </div>
         ) : (
