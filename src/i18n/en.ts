@@ -55,6 +55,10 @@ export const en = {
       activityLog: 'Activity Log'
     }
   },
+  userNav: {
+    profileSettings: 'Profile & Setting',
+    logout: 'Log out'
+  },
   activityLog: {
     title: 'Activity Log',
     description: 'Review recent admin actions in a simple table.',
@@ -632,6 +636,44 @@ export const en = {
       saveFailed: 'Save error',
       deleteFailed: 'Failed to delete contact',
       unknown: 'Unknown'
+    }
+  },
+  profile: {
+    title: 'Account Settings',
+    description: 'Manage your profile and account',
+    form: {
+      avatar: 'Avatar',
+      avatarAlt: 'avatar',
+      selectFromMedia: 'Select from Media',
+      clear: 'Clear',
+      username: 'Username',
+      usernamePlaceholder: 'Your username',
+      email: 'Email',
+      emailPlaceholder: 'you@example.com',
+      bio: 'Bio',
+      bioPlaceholder: 'Tell us about yourself',
+      password: 'Password',
+      passwordPlaceholder: 'New password',
+      passwordHint: 'Leave blank to keep your current password.',
+      cancel: 'Cancel',
+      saving: 'Saving...',
+      saveChanges: 'Save Changes'
+    },
+    modal: {
+      title: 'Select avatar image',
+      description: 'Choose an image from Media Manager.'
+    },
+    validation: {
+      usernameRequired: 'Username should not be empty',
+      emailRequired: 'Email should not be empty',
+      invalidMediaUrl: 'Selected media does not have a valid image URL',
+      missingUploadUrl: 'Upload succeeded but no URL was returned'
+    },
+    toast: {
+      updated: 'Profile updated',
+      updateFailed: 'Failed to update profile',
+      avatarSelected: 'Avatar selected successfully',
+      avatarUploadFailed: 'Failed to upload avatar'
     }
   },
   logo: {

@@ -15,10 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { IconLogout, IconUserCircle } from '@tabler/icons-react';
 import { useAuthUser } from '@/hooks/use-auth-user';
+import { useTranslate } from '@/hooks/use-translate';
 
 export function UserNav() {
   const router = useRouter();
   const user = useAuthUser();
+  const { t } = useTranslate();
 
   async function handleLogout() {
     clearUserFromLocalStorage();
@@ -49,9 +51,10 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          {/* Keep dropdown labels in the shared dictionary so language switching stays consistent. */}
           <DropdownMenuItem onClick={() => router.push('/admin/profile')}>
             <IconUserCircle className='mr-2 h-4 w-4' />
-            Profile & Setting
+            {t('userNav.profileSettings')}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         {/* <DropdownMenuSeparator /> */}
@@ -62,7 +65,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <IconLogout className='mr-2 h-4 w-4' />
-          Log out
+          {t('userNav.logout')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

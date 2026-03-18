@@ -55,6 +55,10 @@ export const kh = {
       activityLog: 'កំណត់ហេតុសកម្មភាព'
     }
   },
+  userNav: {
+    profileSettings: 'ប្រវត្តិរូប និងការកំណត់',
+    logout: 'ចាកចេញ'
+  },
   activityLog: {
     title: 'កំណត់ហេតុសកម្មភាព',
     description: 'ពិនិត្យសកម្មភាពរបស់អ្នកគ្រប់គ្រងក្នុងតារាងសាមញ្ញ។',
@@ -630,6 +634,44 @@ export const kh = {
       saveFailed: 'ការរក្សាទុកបរាជ័យ',
       deleteFailed: 'បរាជ័យក្នុងការលបទំនាក់ទំនង',
       unknown: 'មិនស្គាល់'
+    }
+  },
+  profile: {
+    title: 'ការកំណត់គណនី',
+    description: 'គ្រប់គ្រងប្រវត្តិរូប និងគណនីរបស់អ្នក',
+    form: {
+      avatar: 'រូបតំណាង',
+      avatarAlt: 'រូបតំណាង',
+      selectFromMedia: 'ជ្រើសពី Media',
+      clear: 'សម្អាត',
+      username: 'ឈ្មោះអ្នកប្រើ',
+      usernamePlaceholder: 'ឈ្មោះអ្នកប្រើរបស់អ្នក',
+      email: 'អ៊ីមែល',
+      emailPlaceholder: 'you@example.com',
+      bio: 'ព័ត៌មានផ្ទាល់ខ្លួន',
+      bioPlaceholder: 'ប្រាប់អំពីខ្លួនអ្នក',
+      password: 'ពាក្យសម្ងាត់',
+      passwordPlaceholder: 'ពាក្យសម្ងាត់ថ្មី',
+      passwordHint: 'ទុកចន្លោះទទេ ប្រសិនបើអ្នកចង់រក្សាពាក្យសម្ងាត់បច្ចុប្បន្ន។',
+      cancel: 'បោះបង់',
+      saving: 'កំពុងរក្សាទុក...',
+      saveChanges: 'រក្សាទុកការកែប្រែ'
+    },
+    modal: {
+      title: 'ជ្រើសរូបភាពរូបតំណាង',
+      description: 'ជ្រើសរូបភាពពី Media Manager ។'
+    },
+    validation: {
+      usernameRequired: 'ឈ្មោះអ្នកប្រើមិនអាចទទេបានទេ',
+      emailRequired: 'អ៊ីមែលមិនអាចទទេបានទេ',
+      invalidMediaUrl: 'មេឌៀដែលបានជ្រើសមិនមានតំណរូបភាពត្រឹមត្រូវទេ',
+      missingUploadUrl: 'ការផ្ទុកបានជោគជ័យ ប៉ុន្តែមិនមាន URL ត្រឡប់មកវិញទេ'
+    },
+    toast: {
+      updated: 'បានកែប្រែប្រវត្តិរូបដោយជោគជ័យ',
+      updateFailed: 'បរាជ័យក្នុងការកែប្រែប្រវត្តិរូប',
+      avatarSelected: 'បានជ្រើសរូបតំណាងដោយជោគជ័យ',
+      avatarUploadFailed: 'បរាជ័យក្នុងការផ្ទុករូបតំណាង'
     }
   },
   logo: {

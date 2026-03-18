@@ -19,6 +19,7 @@ import {
   getUserFromLocalStorage,
   saveUserToLocalStorage
 } from '@/lib/auth-client';
+import { useTranslate } from '@/hooks/use-translate';
 
 type ProfileRecord = {
   username?: string | null;
@@ -55,6 +56,7 @@ function getInitials(value: string): string {
 }
 
 export default function ProfileSettings({ profile }: ProfileSettingsProps) {
+  const { t } = useTranslate();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ProfileFormValues>(() =>
@@ -79,11 +81,11 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
       const password = formData.password.trim();
 
       if (!username) {
-        throw new Error('Username should not be empty');
+        throw new Error(t('profile.validation.usernameRequired'));
       }
 
       if (!email) {
-        throw new Error('Email should not be empty');
+        throw new Error(t('profile.validation.emailRequired'));
       }
 
       const payload = {
@@ -132,12 +134,12 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
         });
       }
 
-      toast.success('Profile updated');
+      toast.success(t('profile.toast.updated'));
       setFormData((prev) => ({ ...prev, password: '' }));
       router.refresh();
     },
     onError: (error: any) => {
-      toast.error(error?.message ?? 'Failed to update profile');
+      toast.error(error?.message ?? t('profile.toast.updateFailed'));
     }
   });
 
@@ -152,7 +154,7 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
   const handleSelectImageFromMedia = (file: MediaFile) => {
     const selectedUrl = (file.url ?? file.thumbnail ?? '').trim();
     if (!selectedUrl) {
-      toast.error('Selected media does not have a valid image URL');
+      toast.error(t('profile.validation.invalidMediaUrl'));
       return;
     }
 
@@ -167,7 +169,7 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
     try {
       const result = await handleImageUpload(firstFile);
       if (!result?.url) {
-        throw new Error('Upload succeeded but no URL was returned');
+        throw new Error(t('profile.validation.missingUploadUrl'));
       }
 
       handleFieldChange('image', toApiAssetPath(result.url));
@@ -175,9 +177,9 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
         queryKey: ['media'],
         exact: false
       });
-      toast.success('Avatar selected successfully');
+      toast.success(t('profile.toast.avatarSelected'));
     } catch (error: any) {
-      toast.error(error?.message ?? 'Failed to upload avatar');
+      toast.error(error?.message ?? t('profile.toast.avatarUploadFailed'));
     } finally {
       setImageUploadLoading(false);
     }
@@ -199,13 +201,16 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
               <div className='grid gap-6'>
                 <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
                   <div className='text-sm font-medium md:col-span-2'>
-                    Avatar
+                    {t('profile.form.avatar')}
                   </div>
                   <div className='flex flex-col gap-4 md:col-span-10 md:flex-row md:items-center md:justify-between'>
                     <div className='flex items-center gap-3'>
                       <Avatar className='h-16 w-16'>
                         {avatarPreviewUrl ? (
-                          <AvatarImage src={avatarPreviewUrl} alt='avatar' />
+                          <AvatarImage
+                            src={avatarPreviewUrl}
+                            alt={t('profile.form.avatarAlt')}
+                          />
                         ) : (
                           <AvatarFallback className='text-sm font-semibold'>
                             {getInitials(formData.username)}
@@ -222,7 +227,7 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
                         onClick={() => setImagePickerOpen(true)}
                         disabled={isBusy}
                       >
-                        Select from Media
+                        {t('profile.form.selectFromMedia')}
                       </Button>
                       {formData.image ? (
                         <Button
@@ -232,7 +237,7 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
                           onClick={() => handleFieldChange('image', '')}
                           disabled={isBusy}
                         >
-                          Clear
+                          {t('profile.form.clear')}
                         </Button>
                       ) : null}
                     </div>
@@ -243,7 +248,7 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
 
                 <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
                   <div className='text-sm font-medium md:col-span-2'>
-                    Username
+                    {t('profile.form.username')}
                   </div>
                   <div className='md:col-span-4'>
                     <Input
@@ -252,43 +257,7 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
                       onChange={(event) =>
                         handleFieldChange('username', event.target.value)
                       }
-                      placeholder='Your username'
-                      disabled={isBusy}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
-                  <div className='text-sm font-medium md:col-span-2'>Email</div>
-                  <div className='md:col-span-4'>
-                    <Input
-                      id='email'
-                      type='email'
-                      value={formData.email}
-                      onChange={(event) =>
-                        handleFieldChange('email', event.target.value)
-                      }
-                      placeholder='you@example.com'
-                      disabled={isBusy}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                  <div className='text-sm font-medium md:col-span-2'>Bio</div>
-                  <div className='md:col-span-4'>
-                    <Textarea
-                      id='bio'
-                      value={formData.bio}
-                      onChange={(event) =>
-                        handleFieldChange('bio', event.target.value)
-                      }
-                      rows={4}
-                      placeholder='Tell us about yourself'
+                      placeholder={t('profile.form.usernamePlaceholder')}
                       disabled={isBusy}
                     />
                   </div>
@@ -298,7 +267,47 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
 
                 <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
                   <div className='text-sm font-medium md:col-span-2'>
-                    Password
+                    {t('profile.form.email')}
+                  </div>
+                  <div className='md:col-span-4'>
+                    <Input
+                      id='email'
+                      type='email'
+                      value={formData.email}
+                      onChange={(event) =>
+                        handleFieldChange('email', event.target.value)
+                      }
+                      placeholder={t('profile.form.emailPlaceholder')}
+                      disabled={isBusy}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>
+                    {t('profile.form.bio')}
+                  </div>
+                  <div className='md:col-span-4'>
+                    <Textarea
+                      id='bio'
+                      value={formData.bio}
+                      onChange={(event) =>
+                        handleFieldChange('bio', event.target.value)
+                      }
+                      rows={4}
+                      placeholder={t('profile.form.bioPlaceholder')}
+                      disabled={isBusy}
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-12'>
+                  <div className='text-sm font-medium md:col-span-2'>
+                    {t('profile.form.password')}
                   </div>
                   <div className='md:col-span-4'>
                     <Input
@@ -308,11 +317,11 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
                       onChange={(event) =>
                         handleFieldChange('password', event.target.value)
                       }
-                      placeholder='New password'
+                      placeholder={t('profile.form.passwordPlaceholder')}
                       disabled={isBusy}
                     />
                     <p className='text-muted-foreground mt-2 text-xs'>
-                      Leave blank to keep your current password.
+                      {t('profile.form.passwordHint')}
                     </p>
                   </div>
                 </div>
@@ -324,10 +333,12 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
                     onClick={handleCancel}
                     disabled={isBusy}
                   >
-                    Cancel
+                    {t('profile.form.cancel')}
                   </Button>
                   <Button type='submit' disabled={isBusy}>
-                    {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    {saveMutation.isPending
+                      ? t('profile.form.saving')
+                      : t('profile.form.saveChanges')}
                   </Button>
                 </div>
               </div>
@@ -342,8 +353,8 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
         onSelect={handleSelectImageFromMedia}
         onUploadFromDevice={handleUploadImageFromDevice}
         loading={imageUploadLoading}
-        title='Select avatar image'
-        description='Choose an image from Media Manager.'
+        title={t('profile.modal.title')}
+        description={t('profile.modal.description')}
         types={['image']}
         accept='image/*'
       />

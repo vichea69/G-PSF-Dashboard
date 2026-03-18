@@ -1,7 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import { Heading } from '@/components/ui/heading';
-import { Separator } from '@/components/ui/separator';
-import ProfileSettings from '@/features/profile/components/profile-settings';
+import ProfileScreen from '@/features/profile/components/profile-screen';
 import { cookies } from 'next/headers';
 import { baseAPI } from '@/lib/api';
 
@@ -31,14 +29,7 @@ export default async function Page() {
   //console.log('PROFILE:', profile);
   return (
     <PageContainer>
-      <div className='flex flex-1 flex-col space-y-4'>
-        <Heading
-          title='Account Settings'
-          description='Manage your profile and account'
-        />
-        <Separator />
-        <ProfileSettings profile={profile} />
-      </div>
+      <ProfileScreen profile={profile} />
     </PageContainer>
   );
 }
