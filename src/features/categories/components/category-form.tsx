@@ -30,8 +30,8 @@ import {
 } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useLanguage } from '@/context/language-context';
 import { extractPageRows, usePage } from '@/hooks/use-page';
+import { useTranslate } from '@/hooks/use-translate';
 import { cn } from '@/lib/utils';
 import { getLocalizedText } from '@/lib/helpers';
 import { useRouter } from 'next/navigation';
@@ -107,10 +107,12 @@ const getInitialPageIds = (initialData: Category | null) => {
 
 function PageIdsField({
   control,
-  pageOptions
+  pageOptions,
+  t
 }: {
   control: Control<CategoryFormValues>;
   pageOptions: PageOption[];
+  t: (key: string) => string;
 }) {
   return (
     <FormField
@@ -125,7 +127,7 @@ function PageIdsField({
 
         return (
           <FormItem>
-            <FormLabel>Pages</FormLabel>
+            <FormLabel>{t('category.form.pages')}</FormLabel>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -150,13 +152,13 @@ function PageIdsField({
                             variant='secondary'
                             className='rounded-sm px-1 font-normal'
                           >
-                            {selectedCount - 2}+ more
+                            {selectedCount - 2}+ {t('category.form.more')}
                           </Badge>
                         ) : null}
                       </div>
                     ) : (
                       <span className='text-muted-foreground'>
-                        Select pages
+                        {t('category.form.selectPages')}
                       </span>
                     )}
                   </Button>
@@ -164,9 +166,11 @@ function PageIdsField({
               </PopoverTrigger>
               <PopoverContent className='w-[260px] p-0' align='start'>
                 <Command>
-                  <CommandInput placeholder='Search pages...' />
+                  <CommandInput placeholder={t('category.form.searchPages')} />
                   <CommandList>
-                    <CommandEmpty>No pages found.</CommandEmpty>
+                    <CommandEmpty>
+                      {t('category.form.noPagesFound')}
+                    </CommandEmpty>
                     <CommandGroup className='max-h-[18.75rem] overflow-x-hidden overflow-y-auto'>
                       {pageOptions.map((option) => {
                         const isSelected = selectedIds.includes(option.value);
@@ -209,7 +213,7 @@ function PageIdsField({
                             onSelect={() => field.onChange([])}
                             className='justify-center text-center'
                           >
-                            Clear selection
+                            {t('category.form.clearSelection')}
                           </CommandItem>
                         </CommandGroup>
                       </>
@@ -232,7 +236,7 @@ export default function CategoryForm({
   initialData: Category | null;
 }) {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { language, t } = useTranslate();
   const { data: pagesData } = usePage();
   const [submitting, setSubmitting] = useState(false);
   const initialValues = useMemo<CategoryFormValues>(
@@ -281,7 +285,7 @@ export default function CategoryForm({
     mutationFn: (values: CategoryPayload) => createCategory(values),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category created successfully');
+      toast.success(t('category.form.createdSuccess'));
       router.replace('/admin/category');
     }
   });
@@ -295,7 +299,7 @@ export default function CategoryForm({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category updated successfully');
+      toast.success(t('category.form.updatedSuccess'));
       router.replace('/admin/category');
     }
   });
@@ -342,8 +346,12 @@ export default function CategoryForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             <Tabs defaultValue='en' className='space-y-4'>
               <TabsList>
-                <TabsTrigger value='en'>English</TabsTrigger>
-                <TabsTrigger value='km'>Khmer</TabsTrigger>
+                <TabsTrigger value='en'>
+                  {t('category.form.englishTab')}
+                </TabsTrigger>
+                <TabsTrigger value='km'>
+                  {t('category.form.khmerTab')}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value='en' className='space-y-4'>
@@ -352,7 +360,7 @@ export default function CategoryForm({
                   name='name.en'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>{t('category.form.name')}</FormLabel>
                       <FormControl>
                         <Input placeholder='' {...field} />
                       </FormControl>
@@ -365,7 +373,7 @@ export default function CategoryForm({
                   name='description.en'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('category.form.description')}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder=''
@@ -385,7 +393,7 @@ export default function CategoryForm({
                   name='name.km'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name </FormLabel>
+                      <FormLabel>{t('category.form.name')}</FormLabel>
                       <FormControl>
                         <Input placeholder='' {...field} />
                       </FormControl>
@@ -398,7 +406,7 @@ export default function CategoryForm({
                   name='description.km'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('category.form.description')}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder=''
@@ -413,18 +421,24 @@ export default function CategoryForm({
               </TabsContent>
             </Tabs>
 
-            <PageIdsField control={form.control} pageOptions={pageOptions} />
+            <PageIdsField
+              control={form.control}
+              pageOptions={pageOptions}
+              t={t}
+            />
 
             <div className='flex items-center gap-2'>
               <Button type='submit' disabled={submitting}>
-                {initialData ? 'Save Changes' : 'Create Category'}
+                {initialData
+                  ? t('category.form.saveChanges')
+                  : t('category.form.createSubmit')}
               </Button>
               <Button
                 type='button'
                 variant='outline'
                 onClick={() => router.push('/admin/category')}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </form>

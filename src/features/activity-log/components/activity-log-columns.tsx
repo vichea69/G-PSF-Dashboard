@@ -10,23 +10,26 @@ import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 import type { ActivityLogEvent, ActivityLogItem } from '../types';
 import { ActivityLogCellAction } from './activity-log-cell-action';
 
+type TranslateFn = (key: string) => string;
+
 type ActivityEventBadgeMeta = {
   label: string;
   variant: 'success' | 'info' | 'destructive';
 };
 
 function getActivityEventBadge(
-  event: ActivityLogEvent
+  event: ActivityLogEvent,
+  t: TranslateFn
 ): ActivityEventBadgeMeta {
   if (event === 'created') {
-    return { label: 'Created', variant: 'success' };
+    return { label: t('activityLog.created'), variant: 'success' };
   }
 
   if (event === 'deleted') {
-    return { label: 'Deleted', variant: 'destructive' };
+    return { label: t('activityLog.deleted'), variant: 'destructive' };
   }
 
-  return { label: 'Updated', variant: 'info' };
+  return { label: t('activityLog.updated'), variant: 'info' };
 }
 
 function getInitials(name: string) {
@@ -44,13 +47,15 @@ function formatContentPath(value: string) {
 
 export const activityLogDefaultSorting = [{ id: 'date', desc: true }];
 
-export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
+export function getActivityLogColumns(
+  t: TranslateFn
+): ColumnDef<ActivityLogItem>[] {
   return [
     {
       accessorKey: 'event',
-      header: 'Event',
+      header: t('activityLog.event'),
       cell: ({ row }) => {
-        const badge = getActivityEventBadge(row.original.event);
+        const badge = getActivityEventBadge(row.original.event, t);
 
         return (
           <Badge variant={badge.variant} appearance='outline' size='sm'>
@@ -75,7 +80,10 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
           .join(' ')
           .trim(),
       header: ({ column }: { column: Column<ActivityLogItem, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Activity' />
+        <DataTableColumnHeader
+          column={column}
+          title={t('activityLog.activity')}
+        />
       ),
       cell: ({ row }) => (
         <TruncatedTooltipCell
@@ -86,8 +94,8 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
         />
       ),
       meta: {
-        label: 'Activity',
-        placeholder: 'Search activity...',
+        label: t('activityLog.activity'),
+        placeholder: t('activityLog.searchPlaceholder'),
         variant: 'text'
       }
     },
@@ -102,7 +110,7 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
     // },
     {
       accessorKey: 'targetLabel',
-      header: 'Target',
+      header: t('activityLog.target'),
       cell: ({ row }) => (
         <TruncatedTooltipCell
           text={row.original.targetLabel}
@@ -115,7 +123,7 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
     {
       id: 'content',
       accessorFn: (row) => formatContentPath(row.contentPath),
-      header: 'Content',
+      header: t('activityLog.content'),
       cell: ({ row }) => (
         <span className='text-muted-foreground text-sm break-all'>
           {formatContentPath(row.original.contentPath) || '-'}
@@ -124,7 +132,7 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
     },
     {
       accessorKey: 'userName',
-      header: 'User',
+      header: t('activityLog.user'),
       cell: ({ row }) => {
         const item = row.original;
 
@@ -151,7 +159,7 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
     {
       accessorKey: 'date',
       header: ({ column }: { column: Column<ActivityLogItem, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Date' />
+        <DataTableColumnHeader column={column} title={t('activityLog.date')} />
       ),
       cell: ({ row }) => (
         <div className='min-w-[7rem] text-sm'>
@@ -161,7 +169,7 @@ export function getActivityLogColumns(): ColumnDef<ActivityLogItem>[] {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: t('activityLog.actions'),
       cell: ({ row }) => <ActivityLogCellAction item={row.original} />
     }
   ];

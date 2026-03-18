@@ -121,8 +121,16 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-kantumruy-pro), system-ui, sans-serif;
+    /* Use the shared app font token everywhere, with Khmer as a safe fallback. */
+    font-family: var(--font-sans), var(--font-kantumruy-pro), system-ui,
+      sans-serif;
   }
+}
+
+/* When Khmer is active, switch the shared sans font token for the whole admin UI. */
+body[data-language='kh'] {
+  --font-sans: var(--font-kantumruy-pro);
+  font-family: var(--font-kantumruy-pro), system-ui, sans-serif;
 }
 
 body[data-language='kh'] [data-sidebar='sidebar'] {

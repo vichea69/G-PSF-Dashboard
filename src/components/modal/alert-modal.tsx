@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   loading
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const { t } = useTranslate();
 
   useEffect(() => {
     setIsMounted(true);
@@ -28,14 +30,14 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
   return (
     <Modal
-      title='Are you sure?'
-      description='This action cannot be undone.'
+      title={t('confirmDialog.title')}
+      description={t('confirmDialog.description')}
       isOpen={isOpen}
       onClose={onClose}
     >
       <div className='flex w-full items-center justify-end space-x-2 pt-6'>
         <Button disabled={loading} variant='outline' onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           disabled={loading}
@@ -43,7 +45,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           appearance='default'
           onClick={onConfirm}
         >
-          Continue
+          {t('common.continue')}
         </Button>
       </div>
     </Modal>

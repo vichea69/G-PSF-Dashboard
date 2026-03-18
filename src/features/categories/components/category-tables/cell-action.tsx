@@ -17,6 +17,7 @@ import type { CategoryRow } from './columns';
 import { api } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface CellActionProps {
   data: CategoryRow;
@@ -27,6 +28,7 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateCategory = can(
@@ -43,7 +45,7 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
       router.refresh();
-      toast.success('Category deleted successfully');
+      toast.success(t('category.toast.deleted'));
     }
   });
 
@@ -79,22 +81,26 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
               onClick={(event) => event.stopPropagation()}
               onPointerDown={(event) => event.stopPropagation()}
             >
-              <span className='sr-only'>Open menu</span>
+              <span className='sr-only'>{t('category.actions.openMenu')}</span>
               <IconDotsVertical className='h-4 w-4' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {t('category.actions.menuLabel')}
+            </DropdownMenuLabel>
             {canUpdateCategory ? (
               <DropdownMenuItem
                 onClick={() => router.push(`/admin/category/${data.id}`)}
               >
-                <IconEdit className='mr-2 h-4 w-4' /> Update
+                <IconEdit className='mr-2 h-4 w-4' />{' '}
+                {t('category.actions.update')}
               </DropdownMenuItem>
             ) : null}
             {canDeleteCategory ? (
               <DropdownMenuItem onClick={() => setOpen(true)}>
-                <IconTrash className='mr-2 h-4 w-4' /> Delete
+                <IconTrash className='mr-2 h-4 w-4' />{' '}
+                {t('category.actions.delete')}
               </DropdownMenuItem>
             ) : null}
           </DropdownMenuContent>

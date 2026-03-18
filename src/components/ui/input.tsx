@@ -2,10 +2,10 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
-// Define input size variants
+// Use the shared app font token so text inputs switch fonts with the active language.
 const inputVariants = cva(
   `
-    flex w-full bg-background border border-input shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 
+    font-sans flex w-full bg-background border border-input shadow-xs shadow-black/5 transition-[color,box-shadow] text-foreground placeholder:text-muted-foreground/80 
     focus-visible:ring-ring/30  focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px]     
     disabled:cursor-not-allowed disabled:opacity-60 
     [&[readonly]]:bg-muted/80 [&[readonly]]:cursor-not-allowed
@@ -28,7 +28,7 @@ const inputVariants = cva(
 );
 
 const inputAddonVariants = cva(
-  'flex items-center shrink-0 justify-center bg-muted border border-input shadow-xs shadow-[rgba(0,0,0,0.05)] text-secondary-foreground [&_svg]:text-secondary-foreground/60',
+  'font-sans flex items-center shrink-0 justify-center bg-muted border border-input shadow-xs shadow-[rgba(0,0,0,0.05)] text-secondary-foreground [&_svg]:text-secondary-foreground/60',
   {
     variants: {
       variant: {
@@ -74,7 +74,7 @@ const inputGroupVariants = cva(
 
 const inputWrapperVariants = cva(
   `
-    flex items-center gap-1.5
+    font-sans flex items-center gap-1.5
     has-[:focus-visible]:ring-ring/30 
     has-[:focus-visible]:border-ring
     has-[:focus-visible]:outline-none 

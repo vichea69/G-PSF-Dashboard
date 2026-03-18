@@ -11,6 +11,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import type { ActivityLogItem } from '../types';
+import { useTranslate } from '@/hooks/use-translate';
 
 type ActivityLogDetailDialogProps = {
   item: ActivityLogItem;
@@ -27,10 +28,18 @@ function formatDateTime(value: string) {
 function getEventMeta(event: ActivityLogItem['event']): {
   label: string;
   variant: 'success' | 'info' | 'destructive';
-} {
-  if (event === 'created') return { label: 'Created', variant: 'success' };
-  if (event === 'deleted') return { label: 'Deleted', variant: 'destructive' };
-  return { label: 'Updated', variant: 'info' };
+} & { key: string } {
+  if (event === 'created') {
+    return { key: 'activityLog.created', label: 'Created', variant: 'success' };
+  }
+  if (event === 'deleted') {
+    return {
+      key: 'activityLog.deleted',
+      label: 'Deleted',
+      variant: 'destructive'
+    };
+  }
+  return { key: 'activityLog.updated', label: 'Updated', variant: 'info' };
 }
 
 function DetailRow({ label, value }: { label: string; value: ReactNode }) {
@@ -47,6 +56,7 @@ export function ActivityLogDetailDialog({
   open,
   onOpenChange
 }: ActivityLogDetailDialogProps) {
+  const { t } = useTranslate();
   const event = getEventMeta(item.event);
 
   return (
@@ -55,23 +65,29 @@ export function ActivityLogDetailDialog({
         <DialogHeader>
           <DialogTitle>{item.activity}</DialogTitle>
           <DialogDescription>
-            Review the full activity log information for this row.
+            {t('activityLog.detailDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <DetailRow
-            label='Event'
+            label={t('activityLog.event')}
             value={
               <Badge variant={event.variant} appearance='light' size='sm'>
-                {event.label}
+                {t(event.key)}
               </Badge>
             }
           />
-          <DetailRow label='Module' value={item.module} />
-          <DetailRow label='User' value={item.userName} />
-          <DetailRow label='Email' value={item.userEmail || '-'} />
-          <DetailRow label='Date' value={formatDateTime(item.date)} />
+          <DetailRow label={t('activityLog.module')} value={item.module} />
+          <DetailRow label={t('activityLog.user')} value={item.userName} />
+          <DetailRow
+            label={t('activityLog.email')}
+            value={item.userEmail || '-'}
+          />
+          <DetailRow
+            label={t('activityLog.date')}
+            value={formatDateTime(item.date)}
+          />
         </div>
       </DialogContent>
     </Dialog>

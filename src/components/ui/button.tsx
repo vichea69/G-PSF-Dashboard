@@ -4,8 +4,10 @@ import { ChevronDown, LucideIcon } from 'lucide-react';
 import { Slot as SlotPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
+// Buttons are used in tables, forms, dialogs, and dropdown triggers,
+// so `font-sans` here makes Khmer mode apply in one shared place.
 const buttonVariants = cva(
-  'cursor-pointer group whitespace-nowrap focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap text-sm font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0',
+  'font-sans cursor-pointer group whitespace-nowrap focus-visible:outline-hidden inline-flex items-center justify-center has-data-[arrow=true]:justify-between whitespace-nowrap text-sm font-medium ring-offset-background transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-60 [&_svg]:shrink-0',
   {
     variants: {
       variant: {

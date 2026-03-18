@@ -26,32 +26,34 @@ import {
   systemItem,
   userItems
 } from '@/constants/data';
-import { useLanguage, type Language } from '@/context/language-context';
+import { useTranslate } from '@/hooks/use-translate';
 import type { NavItem } from '@/types';
 
-const SIDEBAR_TRANSLATIONS: Record<Language, Record<string, string>> = {
-  en: {},
-  kh: {
-    Overview: 'ទិដ្ឋភាពទូទៅ',
-    Dashboard: 'ផ្ទាំងគ្រប់គ្រង',
-    'Content Management': 'ការគ្រប់គ្រងមាតិកា',
-    Logo: 'រូបសញ្ញា',
-    Category: 'ប្រភេទ',
-    Page: 'ទំព័រ',
-    Post: 'ប្រកាស',
-    'Site Menu Management': 'ការគ្រប់គ្រងម៉ឺនុយវេបសាយ',
-    Menu: 'ម៉ឺនុយ',
-    Administration: 'ការគ្រប់គ្រងអ្នកប្រើ',
-    User: 'អ្នកប្រើប្រាស់',
-    'Roles & Permissions': 'តួនាទី និងសិទ្ធិ',
-    Role: 'តួនាទី',
-    'System Log': 'កំណត់ហេតុប្រព័ន្ធ',
-    'Activity Log': 'សកម្មភាពប្រព័ន្ធ'
-  }
-};
+type TranslateFn = (key: string) => string;
 
-function translateLabel(label: string, language: Language) {
-  return SIDEBAR_TRANSLATIONS[language]?.[label] ?? label;
+// Keep one simple map from existing sidebar titles to dictionary keys.
+// This lets the current nav data stay unchanged while the UI becomes translatable.
+const SIDEBAR_ITEM_KEYS = {
+  Dashboard: 'sidebar.items.dashboard',
+  Category: 'sidebar.items.category',
+  Page: 'sidebar.items.page',
+  Section: 'sidebar.items.section',
+  Post: 'sidebar.items.post',
+  Contact: 'sidebar.items.contact',
+  Partner: 'sidebar.items.partner',
+  Testimonial: 'sidebar.items.testimonial',
+  'Working-Group': 'sidebar.items.workingGroup',
+  User: 'sidebar.items.user',
+  Role: 'sidebar.items.role',
+  'Site Setting': 'sidebar.items.siteSetting',
+  'Media Manager': 'sidebar.items.mediaManager',
+  'Menu and Footer': 'sidebar.items.menuAndFooter',
+  'Activity Log': 'sidebar.items.activityLog'
+} as const;
+
+function getSidebarItemLabel(title: string, t: TranslateFn) {
+  const key = SIDEBAR_ITEM_KEYS[title as keyof typeof SIDEBAR_ITEM_KEYS];
+  return key ? t(key) : title;
 }
 
 function filterItemsByPermission(
@@ -93,14 +95,13 @@ function filterItemsByPermission(
 
 export function SidebarNavItems({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
-  const { language } = useLanguage();
+  const { t } = useTranslate();
   const { can } = usePermissions();
-  const overviewLabel = translateLabel('Overview', language);
-  const contentLabel = translateLabel('Content Management', language);
-  const siteLabel = translateLabel('Site Menu Management', language);
-  // const user = translateLabel('Users', language);
-  const userLabel = translateLabel('Administration', language);
-  const systemLabel = translateLabel('System Log', language);
+  const overviewLabel = t('sidebar.groups.overview');
+  const contentLabel = t('sidebar.groups.contentManagement');
+  const siteLabel = t('sidebar.groups.siteMenuManagement');
+  const userLabel = t('sidebar.groups.administration');
+  const systemLabel = t('sidebar.groups.systemLog');
   const overviewItems = React.useMemo(
     () => filterItemsByPermission(items, can),
     [items, can]
@@ -124,7 +125,7 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
 
   const renderMenuItem = (item: NavItem) => {
     const IconComp = item.icon ? Icons[item.icon] : Icons.logo;
-    const itemLabel = translateLabel(item.title, language);
+    const itemLabel = getSidebarItemLabel(item.title, t);
     const isItemActive =
       pathname === item.url ||
       Boolean(item.items?.some((subItem) => pathname === subItem.url));
@@ -148,7 +149,7 @@ export function SidebarNavItems({ items }: { items: NavItem[] }) {
             <CollapsibleContent>
               <SidebarMenuSub>
                 {item.items.map((subItem) => {
-                  const subLabel = translateLabel(subItem.title, language);
+                  const subLabel = getSidebarItemLabel(subItem.title, t);
                   return (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton

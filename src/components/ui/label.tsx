@@ -6,7 +6,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Label as LabelPrimitive } from 'radix-ui';
 
 const labelVariants = cva(
-  'text-sm leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+  // Labels appear in almost every form, so we keep the font rule centralized here.
+  'font-sans text-sm leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
   {
     variants: {
       variant: {

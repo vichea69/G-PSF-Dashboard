@@ -13,17 +13,19 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { useRouter } from 'next/navigation';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
-import { categoryColumns, type CategoryRow } from './columns';
+import { useTranslate } from '@/hooks/use-translate';
+import { getCategoryColumns, type CategoryRow } from './columns';
 
 export function CategoriesTable({ data }: { data: CategoryRow[] }) {
   const router = useRouter();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateCategory = can(
     adminRoutePermissions.categories.update.resource,
     adminRoutePermissions.categories.update.action
   );
-  const columns = useMemo(() => categoryColumns, []);
+  const columns = useMemo(() => getCategoryColumns(t), [t]);
   const table = useReactTable({
     data,
     columns,
