@@ -94,11 +94,14 @@ type WgTemplateSectionProps = {
 
 function WgTemplateSection({ value, title, children }: WgTemplateSectionProps) {
   return (
-    <AccordionItem value={value} className='overflow-hidden rounded-lg border'>
-      <AccordionTrigger className='px-4 py-3 text-base font-medium hover:no-underline'>
+    <AccordionItem
+      value={value}
+      className='bg-card border-border/70 overflow-hidden rounded-2xl border shadow-sm'
+    >
+      <AccordionTrigger className='px-5 py-4 text-base font-semibold hover:no-underline'>
         {title}
       </AccordionTrigger>
-      <AccordionContent className='px-4 pb-4'>{children}</AccordionContent>
+      <AccordionContent className='px-5 pb-5'>{children}</AccordionContent>
     </AccordionItem>
   );
 }
@@ -135,6 +138,7 @@ export function WgTemplateForm({
           language={language}
           value={formData.textBlock}
           cardTitle='Mandate & Scope'
+          descriptionInput='tiptap'
           onChange={(nextTextBlock) =>
             onChange?.({
               ...formData,

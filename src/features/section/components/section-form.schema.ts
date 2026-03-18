@@ -18,8 +18,8 @@ export const blockTypes = [
   WG_TEMPLATE,
   'text_block',
   WORKING_GROUP_CO_CHAIRS,
-  ANNUAL_REPORTS,
-  ISSUES_RESPONSES
+  ANNUAL_REPORTS
+  // ISSUES_RESPONSES
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   hero_banner: 'Hero Banner',
@@ -29,8 +29,8 @@ export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   [WG_TEMPLATE]: 'WG Template',
   text_block: 'Text Block',
   [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs',
-  [ANNUAL_REPORTS]: 'Annual Reports',
-  [ISSUES_RESPONSES]: 'Issues & Responses'
+  [ANNUAL_REPORTS]: 'Annual Reports'
+  // [ISSUES_RESPONSES]: 'Issues & Responses'
 };
 
 const localizedRequired = z.string().trim().min(1, {

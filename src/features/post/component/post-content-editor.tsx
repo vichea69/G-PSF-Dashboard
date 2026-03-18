@@ -109,6 +109,7 @@ type PostContentEditorProps = {
   onChange?: (value: PostContent) => void;
   placeholder?: string;
   className?: string;
+  mode?: 'full' | 'text';
 };
 
 const ResizableImage = Image.extend({
@@ -181,12 +182,14 @@ export function PostContentEditor({
   value,
   onChange,
   placeholder,
-  className
+  className,
+  mode = 'full'
 }: PostContentEditorProps) {
   const lastSyncedContent = React.useRef<EditorContentValue>(
     normalizeContent(value)
   );
 
+  const isTextOnlyMode = mode === 'text';
   const [isImageSelected, setIsImageSelected] = React.useState(false);
   const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
 
@@ -202,7 +205,7 @@ export function PostContentEditor({
         'aria-label': 'Post content editor',
         class: cn(
           'tiptap post-content-editor__body prose prose-slate max-w-none dark:prose-invert',
-          'focus:outline-none min-h-[280px] text-sm leading-6'
+          'focus:outline-none min-h-[280px] text-sm leading-6 font-sans'
         ),
         'data-placeholder': placeholder ?? 'Write the post content...'
       }
@@ -215,27 +218,31 @@ export function PostContentEditor({
           enableClickSelection: true
         }
       }),
-      HorizontalRule,
+      ...(!isTextOnlyMode ? [HorizontalRule] : []),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),
-      ResizableImage,
-      YouTubeNode,
       Typography,
       Superscript,
       Subscript,
       Selection,
-      ImageUploadNode.configure({
-        accept: 'image/*',
-        maxSize: MAX_FILE_SIZE,
-        limit: 5,
-        upload: handleImageUpload,
-        onError: (error) => {
-          // eslint-disable-next-line no-console
-          console.error('Upload failed:', error);
-        }
-      })
+      ...(!isTextOnlyMode
+        ? [
+            ResizableImage,
+            YouTubeNode,
+            ImageUploadNode.configure({
+              accept: 'image/*',
+              maxSize: MAX_FILE_SIZE,
+              limit: 5,
+              upload: handleImageUpload,
+              onError: (error) => {
+                // eslint-disable-next-line no-console
+                console.error('Upload failed:', error);
+              }
+            })
+          ]
+        : [])
     ],
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
@@ -575,22 +582,26 @@ export function PostContentEditor({
             <TextAlignButton align='justify' />
           </ToolbarGroup>
 
-          <ToolbarSeparator />
+          {!isTextOnlyMode ? (
+            <>
+              <ToolbarSeparator />
 
-          <ToolbarGroup>
-            <VideoPopover />
-            <Button
-              type='button'
-              data-style='ghost'
-              aria-label='Add image'
-              tooltip='Add image'
-              onClick={() => setImageDialogOpen(true)}
-            >
-              <ImagePlusIcon className='tiptap-button-icon' />
-            </Button>
-          </ToolbarGroup>
+              <ToolbarGroup>
+                <VideoPopover />
+                <Button
+                  type='button'
+                  data-style='ghost'
+                  aria-label='Add image'
+                  tooltip='Add image'
+                  onClick={() => setImageDialogOpen(true)}
+                >
+                  <ImagePlusIcon className='tiptap-button-icon' />
+                </Button>
+              </ToolbarGroup>
+            </>
+          ) : null}
 
-          {isImageSelected ? (
+          {!isTextOnlyMode && isImageSelected ? (
             <>
               <ToolbarSeparator />
               <ToolbarGroup>
@@ -663,7 +674,7 @@ export function PostContentEditor({
       </EditorContext.Provider>
 
       <FileModal
-        isOpen={imageDialogOpen}
+        isOpen={!isTextOnlyMode && imageDialogOpen}
         onClose={() => setImageDialogOpen(false)}
         onSelect={handleInsertFromMedia}
         onUploadFromDevice={handleUploadFromDevice}

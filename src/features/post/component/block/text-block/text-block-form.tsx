@@ -11,7 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { PostContentEditor } from '@/features/post/component/post-content-editor';
+import type { PostContent } from '@/server/action/post/types';
 import { FileText, Plus, X } from 'lucide-react';
+
+export type TextBlockDescriptionValue = PostContent | string;
 
 export interface TextBlockData {
   items: {
@@ -20,8 +24,8 @@ export interface TextBlockData {
       km: string;
     };
     description: {
-      en: string;
-      km: string;
+      en: TextBlockDescriptionValue;
+      km: TextBlockDescriptionValue;
     };
   }[];
 }
@@ -59,6 +63,36 @@ const normalizeTextBlockData = (value?: TextBlockData): TextBlockData => {
     };
   }
 
+  const normalizeDescriptionValue = (
+    entry: unknown
+  ): TextBlockDescriptionValue => {
+    if (!entry) return '';
+
+    if (typeof entry === 'string') {
+      const trimmed = entry.trim();
+      if (!trimmed) return '';
+
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed && typeof parsed === 'object') {
+            return parsed as PostContent;
+          }
+        } catch {
+          return entry;
+        }
+      }
+
+      return entry;
+    }
+
+    if (typeof entry === 'object') {
+      return entry as PostContent;
+    }
+
+    return '';
+  };
+
   return {
     items: Array.isArray(candidate.items)
       ? candidate.items.map((item) => ({
@@ -67,8 +101,8 @@ const normalizeTextBlockData = (value?: TextBlockData): TextBlockData => {
             km: item?.title?.km ?? ''
           },
           description: {
-            en: item?.description?.en ?? '',
-            km: item?.description?.km ?? ''
+            en: normalizeDescriptionValue(item?.description?.en),
+            km: normalizeDescriptionValue(item?.description?.km)
           }
         }))
       : []
@@ -80,13 +114,15 @@ type TextBlockFormProps = {
   value?: TextBlockData;
   onChange?: (value: TextBlockData) => void;
   cardTitle?: string;
+  descriptionInput?: 'textarea' | 'tiptap';
 };
 
 export function TextBlockForm({
   language,
   value,
   onChange,
-  cardTitle = 'Text Items'
+  cardTitle = 'Text Items',
+  descriptionInput = 'textarea'
 }: TextBlockFormProps) {
   const formData = normalizeTextBlockData(value);
   const isKhmer = language === 'km';
@@ -104,10 +140,26 @@ export function TextBlockForm({
     });
   };
 
-  const updateField = (
+  const updateTitle = (index: number, text: string) => {
+    onChange?.({
+      ...formData,
+      items: formData.items.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              title: {
+                ...item.title,
+                [language]: text
+              }
+            }
+          : item
+      )
+    });
+  };
+
+  const updateDescription = (
     index: number,
-    key: 'title' | 'description',
-    text: string
+    value: TextBlockDescriptionValue
   ) => {
     onChange?.({
       ...formData,
@@ -115,9 +167,9 @@ export function TextBlockForm({
         itemIndex === index
           ? {
               ...item,
-              [key]: {
-                ...item[key],
-                [language]: text
+              description: {
+                ...item.description,
+                [language]: value
               }
             }
           : item
@@ -133,8 +185,8 @@ export function TextBlockForm({
   };
 
   return (
-    <Card>
-      <CardHeader className='border-b'>
+    <Card className='gap-4 border-0 bg-transparent py-0 shadow-none'>
+      <CardHeader className='px-0 pb-0'>
         <CardTitle className='flex items-center gap-2'>
           <FileText className='size-5' />
           {cardTitle}
@@ -147,14 +199,14 @@ export function TextBlockForm({
         </CardAction>
       </CardHeader>
 
-      <CardContent className='space-y-4'>
+      <CardContent className='space-y-4 px-0'>
         {formData.items.map((item, index) => (
           <div
             key={index}
-            className='bg-muted/20 space-y-3 rounded-lg border p-4'
+            className='bg-muted/15 ring-border/40 space-y-4 rounded-2xl p-5 ring-1'
           >
             <div className='flex items-center justify-between gap-2'>
-              <Label>{`Text ${index + 1}`}</Label>
+              <p className='text-foreground text-sm font-semibold'>{`Text ${index + 1}`}</p>
               <Button
                 type='button'
                 variant='ghost'
@@ -173,9 +225,7 @@ export function TextBlockForm({
               <Input
                 id={`text-block-title-${index}`}
                 value={isKhmer ? item.title.km : item.title.en}
-                onChange={(event) =>
-                  updateField(index, 'title', event.target.value)
-                }
+                onChange={(event) => updateTitle(index, event.target.value)}
                 placeholder={
                   isKhmer ? 'Enter title in Khmer' : 'Enter title in English'
                 }
@@ -186,26 +236,49 @@ export function TextBlockForm({
               <Label htmlFor={`text-block-description-${index}`}>
                 {isKhmer ? 'Description (Khmer)' : 'Description (English)'}
               </Label>
-              <Textarea
-                id={`text-block-description-${index}`}
-                value={isKhmer ? item.description.km : item.description.en}
-                onChange={(event) =>
-                  updateField(index, 'description', event.target.value)
-                }
-                placeholder={
-                  isKhmer
-                    ? 'Enter description in Khmer'
-                    : 'Enter description in English'
-                }
-                rows={4}
-                className='resize-none'
-              />
+              {descriptionInput === 'tiptap' ? (
+                <PostContentEditor
+                  id={`text-block-description-${index}`}
+                  value={isKhmer ? item.description.km : item.description.en}
+                  onChange={(nextValue) => updateDescription(index, nextValue)}
+                  placeholder={
+                    isKhmer
+                      ? 'Enter description in Khmer'
+                      : 'Enter description in English'
+                  }
+                  mode='text'
+                  className='border-border/60 bg-background rounded-xl shadow-none'
+                />
+              ) : (
+                <Textarea
+                  id={`text-block-description-${index}`}
+                  value={
+                    typeof (isKhmer
+                      ? item.description.km
+                      : item.description.en) === 'string'
+                      ? ((isKhmer
+                          ? item.description.km
+                          : item.description.en) as string)
+                      : ''
+                  }
+                  onChange={(event) =>
+                    updateDescription(index, event.target.value)
+                  }
+                  placeholder={
+                    isKhmer
+                      ? 'Enter description in Khmer'
+                      : 'Enter description in English'
+                  }
+                  rows={4}
+                  className='resize-none'
+                />
+              )}
             </div>
           </div>
         ))}
 
         {formData.items.length === 0 && (
-          <div className='text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-8'>
+          <div className='text-muted-foreground bg-muted/10 border-border/60 flex flex-col items-center justify-center rounded-2xl border border-dashed py-10'>
             <FileText className='mb-2 size-8' />
             <p>No text added. Click Add Text to start.</p>
           </div>

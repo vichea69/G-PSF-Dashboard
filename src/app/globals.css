@@ -130,6 +130,17 @@ body[data-language='kh'] [data-sidebar='sidebar'] {
   font-family: var(--font-kantumruy-pro), system-ui, sans-serif;
 }
 
+/* Always include Khmer font as fallback so mixed English/Khmer text renders cleanly. */
+.post-content-editor__body {
+  font-family: var(--font-sans), var(--font-kantumruy-pro), system-ui,
+    sans-serif;
+}
+
+body[data-language='kh'] .post-content-editor__body {
+  --font-sans: var(--font-kantumruy-pro);
+  font-family: var(--font-kantumruy-pro), system-ui, sans-serif;
+}
+
 /* View Transition Wave Effect */
 ::view-transition-old(root),
 ::view-transition-new(root) {
