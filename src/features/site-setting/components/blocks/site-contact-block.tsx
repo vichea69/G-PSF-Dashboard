@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { SiteContact } from '@/features/site-setting/types/site-setting-types';
+import { useTranslate } from '@/hooks/use-translate';
 
 type SiteContactBlockProps = {
   value: SiteContact;
@@ -19,6 +20,7 @@ type SiteContactBlockProps = {
 };
 
 export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
+  const { t } = useTranslate();
   const phones = value.en.phones;
   const desks = value.en.desks;
 
@@ -149,15 +151,17 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='text-base font-semibold'>Contact</CardTitle>
+        <CardTitle className='text-base font-semibold'>
+          {t('siteSetting.contact.title')}
+        </CardTitle>
         <CardDescription>
-          Manage phone numbers and desk emails for the contact section.
+          {t('siteSetting.contact.description')}
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='space-y-3'>
           <div className='flex items-center justify-between'>
-            <Label>Phone Numbers</Label>
+            <Label>{t('siteSetting.contact.phoneNumbers')}</Label>
             <Button
               type='button'
               variant='outline'
@@ -165,7 +169,7 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
               onClick={addPhone}
             >
               <Plus className='mr-2 h-4 w-4' />
-              Add Phone
+              {t('siteSetting.contact.addPhone')}
             </Button>
           </div>
           {phones.map((phone, index) => (
@@ -173,7 +177,7 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
               <Input
                 value={phone}
                 onChange={(event) => updatePhone(index, event.target.value)}
-                placeholder='+855 99 799 579'
+                placeholder={t('siteSetting.contact.phonePlaceholder')}
               />
               <Button
                 type='button'
@@ -189,10 +193,10 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
 
         <div className='space-y-3'>
           <div className='flex items-center justify-between'>
-            <Label>Desks</Label>
+            <Label>{t('siteSetting.contact.desks')}</Label>
             <Button type='button' variant='outline' size='sm' onClick={addDesk}>
               <Plus className='mr-2 h-4 w-4' />
-              Add Desk
+              {t('siteSetting.contact.addDesk')}
             </Button>
           </div>
 
@@ -207,7 +211,7 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
                   onChange={(event) =>
                     updateDeskTitle(deskIndex, event.target.value)
                   }
-                  placeholder='Desk title (General, China Desk...)'
+                  placeholder={t('siteSetting.contact.deskTitlePlaceholder')}
                 />
                 <Button
                   type='button'
@@ -221,7 +225,9 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
 
               <div className='space-y-2'>
                 <div className='flex items-center justify-between'>
-                  <Label className='text-xs'>Desk Emails</Label>
+                  <Label className='text-xs'>
+                    {t('siteSetting.contact.deskEmails')}
+                  </Label>
                   <Button
                     type='button'
                     variant='outline'
@@ -229,7 +235,7 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
                     onClick={() => addDeskEmail(deskIndex)}
                   >
                     <Plus className='mr-2 h-4 w-4' />
-                    Add Email
+                    {t('siteSetting.contact.addEmail')}
                   </Button>
                 </div>
 
@@ -247,7 +253,7 @@ export function SiteContactBlock({ value, onChange }: SiteContactBlockProps) {
                           event.target.value
                         )
                       }
-                      placeholder='desk@example.com'
+                      placeholder={t('siteSetting.contact.emailPlaceholder')}
                     />
                     <Button
                       type='button'

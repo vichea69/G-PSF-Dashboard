@@ -17,6 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UserUpsertDialog } from '../user-upsert-dialog';
 import { deleteAdminUser } from '@/server/action/admin/admin';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface CellActionProps {
   data: UserRow;
@@ -26,6 +27,7 @@ export function UsersCellAction({ data }: CellActionProps) {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const qc = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateUser = can(
@@ -41,7 +43,7 @@ export function UsersCellAction({ data }: CellActionProps) {
     mutationFn: async () => deleteAdminUser(String(data.id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User deleted');
+      toast.success(t('user.toast.deleted'));
     },
     onError: (e: any) => {
       const detail = e?.response?.data;
@@ -50,7 +52,7 @@ export function UsersCellAction({ data }: CellActionProps) {
         detail?.error ||
         (typeof detail === 'string' ? detail : undefined) ||
         (typeof e?.message === 'string' ? e.message : undefined) ||
-        'Delete failed';
+        t('user.toast.deleteFailed');
       toast.error(msg);
       // console.error('Delete user error', e?.response?.status, detail, e);
     }
@@ -84,23 +86,23 @@ export function UsersCellAction({ data }: CellActionProps) {
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('user.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('user.actions.menuLabel')}</DropdownMenuLabel>
           {canUpdateUser ? (
             <DropdownMenuItem onClick={() => setOpenEdit(true)}>
               <IconEdit className='mr-2 h-4 w-4 text-fuchsia-500' />
-              <span className='text-fuchsia-500'> Edit </span>
+              <span className='text-fuchsia-500'>{t('user.actions.edit')}</span>
             </DropdownMenuItem>
           ) : null}
 
           {canDeleteUser ? (
             <DropdownMenuItem onClick={() => setOpenDelete(true)}>
               <IconTrash className='mr-2 h-4 w-4 text-red-500' />
-              <span className='text-red-500'>Delete </span>
+              <span className='text-red-500'>{t('user.actions.delete')}</span>
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

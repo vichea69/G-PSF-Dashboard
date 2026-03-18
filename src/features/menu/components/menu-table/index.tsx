@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePermissions } from '@/context/permission-context';
 import {
@@ -11,7 +12,8 @@ import {
 } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { menuColumns } from './columns';
+import { useTranslate } from '@/hooks/use-translate';
+import { getMenuColumns } from './columns';
 import {
   CreateMenuDialog,
   type CreateMenuPayload
@@ -26,6 +28,7 @@ interface MenuTableListProps {
 
 export function MenuTableList({ data, onCreate }: MenuTableListProps) {
   const router = useRouter();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateMenu = can(
@@ -36,10 +39,11 @@ export function MenuTableList({ data, onCreate }: MenuTableListProps) {
     adminRoutePermissions.menu.create.resource,
     adminRoutePermissions.menu.create.action
   );
+  const columns = useMemo(() => getMenuColumns(t), [t]);
 
   const table = useReactTable({
     data,
-    columns: menuColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),

@@ -30,6 +30,7 @@ import {
   Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface UploadModalProps {
   open: boolean;
@@ -77,6 +78,7 @@ export function UploadModal({
   onOpenChange,
   folderId
 }: UploadModalProps) {
+  const { t } = useTranslate();
   const targetFolderId = normalizeFolderId(folderId);
   const uploadEndpoint = targetFolderId
     ? `/media/upload/folders/${encodeURIComponent(targetFolderId)}`
@@ -239,7 +241,7 @@ export function UploadModal({
           )
         );
 
-        toast.success(`${upload.file.name} uploaded`);
+        toast.success(`${upload.file.name} ${t('media.upload.uploaded')}`);
         void queryClient.invalidateQueries({ queryKey: ['media'] });
         return true;
       } catch (error: unknown) {
@@ -256,7 +258,7 @@ export function UploadModal({
             error.message)
           : error instanceof Error
             ? error.message
-            : 'Failed to upload file';
+            : t('media.upload.uploadFailed');
 
         setUploads((prev) =>
           prev.map((item) =>
@@ -275,6 +277,7 @@ export function UploadModal({
       clearProgressTimer,
       clearUploadRequest,
       queryClient,
+      t,
       updateUploadProgress,
       uploadEndpoint
     ]
@@ -404,7 +407,7 @@ export function UploadModal({
       return (
         <span className='inline-flex items-center gap-1 text-xs font-medium text-green-600'>
           <CheckCircle2 className='h-3.5 w-3.5' />
-          Done
+          {t('media.upload.done')}
         </span>
       );
     }
@@ -413,7 +416,7 @@ export function UploadModal({
       return (
         <span className='text-destructive inline-flex items-center gap-1 text-xs font-medium'>
           <TriangleAlert className='h-3.5 w-3.5' />
-          Failed
+          {t('media.upload.failed')}
         </span>
       );
     }
@@ -438,10 +441,10 @@ export function UploadModal({
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className='max-w-[calc(100vw-1rem)] p-4 sm:max-w-xl sm:p-5'>
         <DialogHeader>
-          <DialogTitle>Upload Files</DialogTitle>
+          <DialogTitle>{t('media.upload.title')}</DialogTitle>
           <DialogDescription className='text-sm leading-5'>
-            Drag and drop files here or click to browse.{' '}
-            {targetFolderId ? 'Files will be uploaded to this folder.' : ''}
+            {t('media.upload.description')}{' '}
+            {targetFolderId ? t('media.upload.descriptionInFolder') : ''}
           </DialogDescription>
         </DialogHeader>
 
@@ -461,15 +464,19 @@ export function UploadModal({
         >
           <Upload className='text-muted-foreground mx-auto h-8 w-8 sm:h-10 sm:w-10' />
           <h3 className='mt-3 text-sm font-semibold sm:text-base'>
-            {isDragging ? 'Drop files here' : 'Drag and drop files here'}
+            {isDragging
+              ? t('media.upload.dropHere')
+              : t('media.upload.dragAndDrop')}
           </h3>
-          <p className='text-muted-foreground mt-1.5 text-xs sm:text-sm'>or</p>
+          <p className='text-muted-foreground mt-1.5 text-xs sm:text-sm'>
+            {t('media.upload.or')}
+          </p>
           <Button
             size='sm'
             className='mt-3 w-full sm:w-auto'
             onClick={() => openFilePicker(handleFiles)}
           >
-            Browse Files
+            {t('media.upload.browseFiles')}
           </Button>
         </div>
 
@@ -520,7 +527,7 @@ export function UploadModal({
                             onClick={() => retryUpload(upload.id)}
                           >
                             <RefreshCw className='h-3.5 w-3.5' />
-                            Retry
+                            {t('media.upload.retry')}
                           </Button>
                         </div>
                       )}
@@ -535,10 +542,10 @@ export function UploadModal({
         <div className='mt-3 flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between'>
           <p className='text-muted-foreground text-xs'>
             {uploads.length === 0
-              ? 'Choose files to start uploading.'
+              ? t('media.upload.idleHint')
               : hasActiveUploads
-                ? 'Uploading...'
-                : 'Upload complete.'}
+                ? t('media.upload.uploadingState')
+                : t('media.upload.completeState')}
           </p>
 
           <div className='flex items-center justify-end gap-2'>
@@ -549,7 +556,7 @@ export function UploadModal({
               onClick={() => handleDialogChange(false)}
               disabled={hasActiveUploads}
             >
-              Close
+              {t('media.upload.close')}
             </Button>
           </div>
         </div>

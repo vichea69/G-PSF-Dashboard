@@ -1,7 +1,10 @@
+'use client';
+
 import { useMemo } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import type { RoleResourceDefinition } from '@/features/role/type/role';
+import { useTranslate } from '@/hooks/use-translate';
 
 import type { PermissionSelection } from './types';
 
@@ -25,6 +28,7 @@ export function PermissionsTable({
   onToggleAction,
   onToggleAll
 }: PermissionsTableProps) {
+  const { t } = useTranslate();
   const selectedMap = useMemo(() => {
     return new Map(selected.map((entry) => [entry.resource, entry.actions]));
   }, [selected]);
@@ -47,7 +51,7 @@ export function PermissionsTable({
   if (resources.length === 0) {
     return (
       <div className='text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm'>
-        No resources available.
+        {t('role.permissions.noResourcesAvailable')}
       </div>
     );
   }
@@ -76,9 +80,13 @@ function PermissionsHeaderRow({
 }: {
   actionColumns: ActionColumn[];
 }) {
+  const { t } = useTranslate();
+
   return (
     <div className='text-muted-foreground grid grid-cols-6 items-center gap-4 px-5 py-3 text-sm font-medium'>
-      <span className='col-span-2 text-left'>Resource</span>
+      <span className='col-span-2 text-left'>
+        {t('role.permissions.resourceHeader')}
+      </span>
       {actionColumns.map((column) => (
         <span key={column.action} className='text-center'>
           {column.label || column.action}
@@ -103,6 +111,7 @@ function PermissionRow({
   onToggleAction,
   onToggleAll
 }: PermissionRowProps) {
+  const { t } = useTranslate();
   const availableActions = resource.actions.map((action) => action.action);
   const availableSet = new Set(availableActions);
   const selectAllState = getSelectAllState(selectedActions, availableActions);
@@ -115,7 +124,7 @@ function PermissionRow({
           onCheckedChange={(checked) =>
             onToggleAll(resource.resource, checked === true)
           }
-          aria-label={`Toggle all permissions for ${resource.label || resource.resource}`}
+          aria-label={`${t('role.permissions.toggleAllFor')} ${resource.label || resource.resource}`}
         />
         <div className='flex flex-col'>
           <span className='text-foreground text-sm font-medium'>
@@ -137,7 +146,7 @@ function PermissionRow({
         return (
           <div key={column.action} className='flex items-center justify-center'>
             <Checkbox
-              aria-label={`Allow ${column.label || column.action} on ${resource.label || resource.resource}`}
+              aria-label={`${t('role.permissions.allow')} ${column.label || column.action} ${t('role.permissions.on')} ${resource.label || resource.resource}`}
               checked={isChecked}
               disabled={!isAvailable}
               onCheckedChange={(checked) => {

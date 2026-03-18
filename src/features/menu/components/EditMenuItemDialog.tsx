@@ -24,6 +24,7 @@ import {
   getMenuLabelText,
   toLocalizedLabel
 } from '@/features/menu/types';
+import { useTranslate } from '@/hooks/use-translate';
 import { toast } from 'sonner';
 
 type EditFormState = {
@@ -65,6 +66,7 @@ export function EditMenuItemDialog({
     url: '',
     parentId: null
   });
+  const { t } = useTranslate();
 
   useEffect(() => {
     if (!item) return;
@@ -92,19 +94,19 @@ export function EditMenuItemDialog({
     const url = form.url.trim();
 
     if (!labelEn && !labelKm) {
-      toast.error('Please enter at least one label (EN or KM).');
+      toast.error(t('menu.dialogs.labelRequired'));
       return;
     }
 
     if (!url) {
-      toast.error('URL is required.');
+      toast.error(t('menu.dialogs.urlRequired'));
       return;
     }
 
     const isInternalPath = url.startsWith('/');
     const isAbsoluteUrl = /^https?:\/\//i.test(url);
     if (!isInternalPath && !isAbsoluteUrl) {
-      toast.error('URL must start with "/" or "http(s)://".');
+      toast.error(t('menu.dialogs.urlInvalid'));
       return;
     }
 
@@ -126,16 +128,18 @@ export function EditMenuItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Menu Item</DialogTitle>
+          <DialogTitle>{t('menu.dialogs.editItemTitle')}</DialogTitle>
           <DialogDescription>
-            Update the label, URL, or parent of this item.
+            {t('menu.dialogs.editItemDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1.5'>
-              <Label htmlFor='editItemLabelEn'>Label (EN)</Label>
+              <Label htmlFor='editItemLabelEn'>
+                {t('menu.dialogs.labelEn')}
+              </Label>
               <Input
                 id='editItemLabelEn'
                 value={form.label.en}
@@ -149,7 +153,9 @@ export function EditMenuItemDialog({
               />
             </div>
             <div className='space-y-1.5'>
-              <Label htmlFor='editItemLabelKm'>Label (KM)</Label>
+              <Label htmlFor='editItemLabelKm'>
+                {t('menu.dialogs.labelKm')}
+              </Label>
               <Input
                 id='editItemLabelKm'
                 value={form.label.km}
@@ -165,19 +171,19 @@ export function EditMenuItemDialog({
           </div>
 
           <div className='space-y-1.5'>
-            <Label htmlFor='editItemUrl'>URL</Label>
+            <Label htmlFor='editItemUrl'>{t('menu.dialogs.url')}</Label>
             <Input
               id='editItemUrl'
               value={form.url}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, url: event.target.value }))
               }
-              placeholder='/resources/policy-updates'
+              placeholder={t('menu.dialogs.urlEditPlaceholder')}
             />
           </div>
 
           <div className='space-y-1.5'>
-            <Label>Parent Item</Label>
+            <Label>{t('menu.dialogs.parentItem')}</Label>
             <Select
               value={form.parentId ?? '__none__'}
               onValueChange={(value) =>
@@ -188,10 +194,12 @@ export function EditMenuItemDialog({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder='No parent (top level)' />
+                <SelectValue placeholder={t('menu.dialogs.noParent')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='__none__'>No parent (top level)</SelectItem>
+                <SelectItem value='__none__'>
+                  {t('menu.dialogs.noParent')}
+                </SelectItem>
                 {availableParents.map((menuItem) => (
                   <SelectItem key={menuItem.id} value={menuItem.id}>
                     {getMenuLabelText(menuItem.label)}
@@ -208,10 +216,10 @@ export function EditMenuItemDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              {t('menu.dialogs.cancel')}
             </Button>
             <Button type='button' onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? t('menu.dialogs.saving') : t('menu.dialogs.save')}
             </Button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
@@ -40,6 +40,7 @@ import {
 } from '@/features/menu/hook/use-menu';
 import { useMenu } from '@/hooks/use-menu';
 import { normalizeMenuTreeResponse } from '@/features/menu/utils/menu-normalizer';
+import { useTranslate } from '@/hooks/use-translate';
 import { toast } from 'sonner';
 
 const normalizeSlug = (value: string) => {
@@ -51,6 +52,18 @@ const normalizeSlug = (value: string) => {
     .replace(/-+/g, '-');
 };
 
+const readMenuErrorMessage = (
+  error: unknown,
+  fallback: string,
+  knownFallbacks: string[]
+) => {
+  const message = error instanceof Error ? error.message?.trim() : '';
+  if (!message || knownFallbacks.includes(message)) {
+    return fallback;
+  }
+  return message;
+};
+
 type DeleteTarget = { type: 'menu' } | { type: 'item'; itemId: string } | null;
 
 interface MenuDetailClientProps {
@@ -59,6 +72,7 @@ interface MenuDetailClientProps {
 
 export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
   const router = useRouter();
+  const { t } = useTranslate();
   const { menu, isLoading, isError, isFetching } = useMenuTree(slug);
   const { data: allMenusData } = useMenu();
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
@@ -86,10 +100,14 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
     [menu?.items, editingItemId]
   );
 
+  useEffect(() => {
+    document.title = menu?.name || t('menu.title');
+  }, [menu?.name, t]);
+
   const handleCreateMenu = (payload: CreateMenuPayload) => {
     const nextSlug = normalizeSlug(payload.name);
     if (!nextSlug) {
-      toast.error('Menu slug is required');
+      toast.error(t('menu.toast.slugRequired'));
       return;
     }
 
@@ -97,11 +115,15 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
       { name: nextSlug },
       {
         onSuccess: () => {
-          toast.success('Menu created');
+          toast.success(t('menu.toast.created'));
           router.push(`/admin/menu/${nextSlug}`);
         },
         onError: (error) => {
-          toast.error((error as Error)?.message ?? 'Failed to create menu');
+          toast.error(
+            readMenuErrorMessage(error, t('menu.toast.createFailed'), [
+              'Failed to create menu'
+            ])
+          );
         }
       }
     );
@@ -129,11 +151,13 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
       },
       {
         onSuccess: () => {
-          toast.success('Menu item created');
+          toast.success(t('menu.toast.itemCreated'));
         },
         onError: (error) => {
           toast.error(
-            (error as Error)?.message ?? 'Failed to create menu item'
+            readMenuErrorMessage(error, t('menu.toast.itemCreateFailed'), [
+              'Failed to create menu item'
+            ])
           );
         }
       }
@@ -163,9 +187,13 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
         }
       });
 
-      toast.success('Menu name updated');
+      toast.success(t('menu.toast.nameUpdated'));
     } catch (error) {
-      toast.error((error as Error)?.message ?? 'Failed to update menu name');
+      toast.error(
+        readMenuErrorMessage(error, t('menu.toast.nameUpdateFailed'), [
+          'Failed to update menu'
+        ])
+      );
       throw error;
     }
   };
@@ -200,12 +228,14 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
       },
       {
         onSuccess: () => {
-          toast.success('Menu item updated');
+          toast.success(t('menu.toast.itemUpdated'));
           setEditingItemId(null);
         },
         onError: (error) => {
           toast.error(
-            (error as Error)?.message ?? 'Failed to update menu item'
+            readMenuErrorMessage(error, t('menu.toast.itemUpdateFailed'), [
+              'Failed to update menu item'
+            ])
           );
         }
       }
@@ -220,12 +250,14 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
         { menuId: menu.id, itemId: deleteTarget.itemId },
         {
           onSuccess: () => {
-            toast.success('Menu item deleted');
+            toast.success(t('menu.toast.itemDeleted'));
             setDeleteTarget(null);
           },
           onError: (error) => {
             toast.error(
-              (error as Error)?.message ?? 'Failed to delete menu item'
+              readMenuErrorMessage(error, t('menu.toast.itemDeleteFailed'), [
+                'Failed to delete menu item'
+              ])
             );
           }
         }
@@ -237,12 +269,16 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
       { menuId: menu.id },
       {
         onSuccess: () => {
-          toast.success('Menu deleted');
+          toast.success(t('menu.toast.deleted'));
           setDeleteTarget(null);
           router.push('/admin/menu');
         },
         onError: (error) => {
-          toast.error((error as Error)?.message ?? 'Failed to delete menu');
+          toast.error(
+            readMenuErrorMessage(error, t('menu.toast.deleteFailed'), [
+              'Failed to delete menu'
+            ])
+          );
         }
       }
     );
@@ -290,9 +326,13 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
           });
         })
       );
-      toast.success('Menu order updated');
+      toast.success(t('menu.toast.orderUpdated'));
     } catch (error) {
-      toast.error((error as Error)?.message ?? 'Failed to reorder items');
+      toast.error(
+        readMenuErrorMessage(error, t('menu.toast.reorderFailed'), [
+          'Failed to update menu item'
+        ])
+      );
     }
   };
 
@@ -322,8 +362,8 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-start justify-between'>
           <Heading
-            title='Menus'
-            description='Create and manage navigation menus'
+            title={t('menu.title')}
+            description={t('menu.description')}
           />
           <div className='flex gap-2'>
             {menu ? (
@@ -346,7 +386,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
                 disabled={deleteMenuMutation.isPending}
               >
                 <Trash2 className='mr-2 h-4 w-4' />
-                Delete
+                {t('menu.panel.delete')}
               </Button>
             ) : null}
           </div>
@@ -360,7 +400,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
               <CardContent className='p-3'>
                 <div className='mb-2 flex items-center justify-between'>
                   <h3 className='text-muted-foreground px-1 text-xs font-semibold tracking-wider uppercase'>
-                    Menus
+                    {t('menu.panel.sidebarTitle')}
                   </h3>
                   <CreateMenuDialog onCreate={handleCreateMenu} />
                 </div>
@@ -371,7 +411,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
                   </ScrollArea>
                 ) : (
                   <p className='text-muted-foreground px-1 py-4 text-center text-xs'>
-                    No menus yet
+                    {t('menu.panel.noMenusYet')}
                   </p>
                 )}
               </CardContent>
@@ -401,7 +441,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
               <Card>
                 <CardContent className='p-4'>
                   <div className='text-destructive text-sm'>
-                    Failed to load menu. Please check the slug and try again.
+                    {t('menu.toast.detailLoadFailed')}
                   </div>
                 </CardContent>
               </Card>
@@ -411,7 +451,6 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
               <MenuItemsPanel
                 selectedMenu={menu}
                 onEdit={requestEditMenuItem}
-                onToggleVisibility={undefined}
                 onDelete={requestDeleteMenuItem}
                 onReorder={handleReorderItems}
               />
@@ -419,7 +458,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
 
             {isFetching && !isLoading ? (
               <p className='text-muted-foreground mt-2 text-xs'>
-                Refreshing...
+                {t('menu.panel.refreshing')}
               </p>
             ) : null}
           </div>

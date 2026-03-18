@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useTranslate } from '@/hooks/use-translate';
 import { Pencil } from 'lucide-react';
 
 export interface RenameMenuPayload {
@@ -31,6 +32,7 @@ export function RenameMenuDialog({
 }: RenameMenuDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(currentName);
+  const { t } = useTranslate();
 
   useEffect(() => {
     if (!open) {
@@ -55,31 +57,33 @@ export function RenameMenuDialog({
       <DialogTrigger asChild>
         <Button variant='outline'>
           <Pencil className='mr-2 h-4 w-4' />
-          Rename
+          {t('menu.dialogs.rename')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename Menu</DialogTitle>
+          <DialogTitle>{t('menu.dialogs.renameMenuTitle')}</DialogTitle>
           <DialogDescription>
-            Update the display name for this menu.
+            {t('menu.dialogs.renameMenuDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='space-y-1.5'>
-            <Label htmlFor='menu-rename-name'>Menu Name</Label>
+            <Label htmlFor='menu-rename-name'>
+              {t('menu.dialogs.menuName')}
+            </Label>
             <Input
               id='menu-rename-name'
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder='Quick link'
+              placeholder={t('menu.dialogs.menuNamePlaceholder')}
               disabled={loading}
             />
           </div>
 
           <Button onClick={handleSubmit} className='w-full' disabled={loading}>
-            Save Name
+            {t('menu.dialogs.saveName')}
           </Button>
         </div>
       </DialogContent>

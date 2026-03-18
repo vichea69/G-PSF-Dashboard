@@ -10,11 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Copy, Trash2 } from 'lucide-react';
 import {
   formatFileSize,
-  formatDate,
   type MediaFile
 } from '@/features/media/types/media-type';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface PreviewModalProps {
   file: MediaFile | null;
@@ -29,14 +29,23 @@ export function PreviewModal({
   onOpenChange,
   onDelete
 }: PreviewModalProps) {
+  const { t } = useTranslate();
   if (!file) return null;
+
+  const getTypeLabel = (type: MediaFile['type']) => {
+    if (type === 'image') return t('media.table.image');
+    if (type === 'video') return t('media.table.video');
+    if (type === 'pdf') return t('media.table.pdf');
+    if (type === 'document') return t('media.table.document');
+    return type;
+  };
 
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(file.url);
-      toast.success('URL copied');
+      toast.success(t('media.preview.copied'));
     } catch {
-      toast.error('Failed to copy URL');
+      toast.error(t('media.preview.copyFailed'));
     }
   };
 
@@ -82,14 +91,16 @@ export function PreviewModal({
                   </div>
                 ) : (
                   <p className='text-muted-foreground text-sm'>
-                    PDF thumbnail not available
+                    {t('media.preview.pdfThumbnailUnavailable')}
                   </p>
                 )}
               </div>
             ) : file.type === 'video' ? (
               <div className='flex h-full items-center justify-center'>
                 <div className='text-center'>
-                  <p className='text-muted-foreground'>Video preview</p>
+                  <p className='text-muted-foreground'>
+                    {t('media.preview.videoPreview')}
+                  </p>
                   <p className='text-muted-foreground mt-2 text-sm'>
                     {file.name}
                   </p>
@@ -98,10 +109,10 @@ export function PreviewModal({
             ) : (
               <div className='text-center'>
                 <p className='text-muted-foreground'>
-                  {file.type.toUpperCase()} File
+                  {getTypeLabel(file.type)} {t('media.preview.fileTypeSuffix')}
                 </p>
                 <p className='text-muted-foreground mt-2 text-sm'>
-                  Preview not available
+                  {t('media.preview.previewUnavailable')}
                 </p>
               </div>
             )}
@@ -110,14 +121,20 @@ export function PreviewModal({
           {/* Metadata Sidebar */}
           <div className='w-64 space-y-6'>
             <div>
-              <h4 className='mb-3 text-sm font-semibold'>File Details</h4>
+              <h4 className='mb-3 text-sm font-semibold'>
+                {t('media.preview.fileDetails')}
+              </h4>
               <dl className='space-y-2 text-sm'>
                 <div>
-                  <dt className='text-muted-foreground'>Type</dt>
-                  <dd className='capitalize'>{file.type}</dd>
+                  <dt className='text-muted-foreground'>
+                    {t('media.preview.type')}
+                  </dt>
+                  <dd className='capitalize'>{getTypeLabel(file.type)}</dd>
                 </div>
                 <div>
-                  <dt className='text-muted-foreground'>Size</dt>
+                  <dt className='text-muted-foreground'>
+                    {t('media.preview.size')}
+                  </dt>
                   <dd>{formatFileSize(file.size)}</dd>
                 </div>
                 {/* <div>
@@ -134,7 +151,7 @@ export function PreviewModal({
                 onClick={handleCopyUrl}
               >
                 <Copy className='mr-2 h-4 w-4' />
-                Copy URL
+                {t('media.preview.copyUrl')}
               </Button>
               {/* <Button
                 className='w-full justify-start bg-transparent'
@@ -158,7 +175,7 @@ export function PreviewModal({
                 onClick={handleDelete}
               >
                 <Trash2 className='mr-2 h-4 w-4' />
-                Delete
+                {t('media.preview.delete')}
               </Button>
             </div>
           </div>

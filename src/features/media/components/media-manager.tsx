@@ -36,6 +36,7 @@ import {
 } from '@/features/media/types/media-type';
 import { toast } from 'sonner';
 import { AlertModal } from '@/components/modal/alert-modal';
+import { useTranslate } from '@/hooks/use-translate';
 
 type ViewMode = 'grid' | 'list';
 type SortOption = 'newest' | 'name' | 'size';
@@ -52,6 +53,7 @@ function normalizeFolderId(value?: string | null): string | null {
 
 export function MediaManager({ folderId }: MediaManagerProps = {}) {
   const router = useRouter();
+  const { t } = useTranslate();
   const activeFolderId = normalizeFolderId(folderId);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -98,7 +100,17 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
   const createFolderMutation = useCreateMediaFolder();
   const deleteFolderMutation = useDeleteMediaFolder();
   const errorMessage =
-    error instanceof Error ? error.message : 'Something went wrong';
+    error instanceof Error ? error.message : t('media.loadFailed');
+
+  // Keep the browser title aligned with the current media view.
+  useEffect(() => {
+    if (resolvedActiveFolder?.name) {
+      document.title = `${t('media.folderTitlePrefix')}: ${resolvedActiveFolder.name}`;
+      return;
+    }
+
+    document.title = t('media.title');
+  }, [resolvedActiveFolder?.name, t]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -215,7 +227,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
 
     try {
       await Promise.all(ids.map((id) => deleteMediaMutation.mutateAsync(id)));
-      toast.success('Media deleted successfully');
+      toast.success(t('media.toast.deleted'));
 
       setSelectedFiles((prev) => {
         const next = new Set(prev);
@@ -224,7 +236,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
       });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Failed to delete media';
+        err instanceof Error ? err.message : t('media.toast.deleteFailed');
       toast.error(message);
     } finally {
       setDeleteLoading(false);
@@ -250,14 +262,14 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
         )
       );
 
-      toast.success(
-        `Deleted ${folderIds.length} folder${folderIds.length > 1 ? 's' : ''} and files`
-      );
+      toast.success(t('media.toast.foldersDeleted'));
       setSelectedFolders(new Set());
       setConfirmDeleteFoldersOpen(false);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Failed to delete folder';
+        err instanceof Error
+          ? err.message
+          : t('media.toast.deleteFolderFailed');
       toast.error(message);
     }
   };
@@ -265,10 +277,12 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
   const handleCreateFolder = async (folderName: string) => {
     try {
       await createFolderMutation.mutateAsync({ name: folderName });
-      toast.success(`Folder "${folderName}" created`);
+      toast.success(t('media.toast.folderCreated'));
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Failed to create folder';
+        err instanceof Error
+          ? err.message
+          : t('media.toast.createFolderFailed');
       toast.error(message);
       throw err;
     }
@@ -290,15 +304,16 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
           {inFolderView ? (
             <Button type='button' variant='outline' onClick={backToAllMedia}>
               <ArrowLeft className='mr-2 h-4 w-4' />
-              All Media
+              {t('media.toolbar.allMedia')}
             </Button>
           ) : null}
 
           {inFolderView ? (
             <div className='text-muted-foreground text-sm'>
-              Folder:{' '}
+              {t('media.toolbar.folder')}:{' '}
               <span className='text-foreground font-medium'>
-                {resolvedActiveFolder?.name ?? 'Selected Folder'}
+                {resolvedActiveFolder?.name ??
+                  t('media.toolbar.selectedFolder')}
               </span>
             </div>
           ) : null}
@@ -308,7 +323,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
             <Search className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2' />
             <Input
               type='text'
-              placeholder='Search files...'
+              placeholder={t('media.toolbar.searchFiles')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className='bg-background pl-9'
@@ -318,7 +333,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
           {/* Upload Button */}
           <Button onClick={() => setUploadModalOpen(true)}>
             <Upload className='mr-2 h-4 w-4' />
-            Upload
+            {t('media.toolbar.upload')}
           </Button>
 
           {!inFolderView ? (
@@ -328,7 +343,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               onClick={() => setCreateFolderModalOpen(true)}
             >
               <FolderPlus className='mr-2 h-4 w-4' />
-              Create Folder
+              {t('media.toolbar.createFolder')}
             </Button>
           ) : null}
 
@@ -340,7 +355,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               onClick={confirmDeleteSelectedFolders}
               disabled={deleteFolderMutation.isPending}
             >
-              Delete Folder ({selectedFolders.size})
+              {t('media.toolbar.deleteFolder')} ({selectedFolders.size})
             </Button>
           ) : null}
 
@@ -351,6 +366,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               size='sm'
               onClick={() => setViewMode('grid')}
               className='h-7 px-2'
+              aria-label={t('media.toolbar.gridView')}
             >
               <Grid3x3 className='h-4 w-4' />
             </Button>
@@ -359,6 +375,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               size='sm'
               onClick={() => setViewMode('list')}
               className='h-7 px-2'
+              aria-label={t('media.toolbar.listView')}
             >
               <List className='h-4 w-4' />
             </Button>
@@ -373,9 +390,11 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='newest'>Newest</SelectItem>
-              <SelectItem value='name'>Name</SelectItem>
-              <SelectItem value='size'>Size</SelectItem>
+              <SelectItem value='newest'>
+                {t('media.toolbar.newest')}
+              </SelectItem>
+              <SelectItem value='name'>{t('media.toolbar.name')}</SelectItem>
+              <SelectItem value='size'>{t('media.toolbar.size')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -387,7 +406,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               onClick={confirmDeleteSelected}
               disabled={deletingIds.size > 0}
             >
-              Delete ({selectedFiles.size})
+              {t('media.toolbar.deleteFiles')} ({selectedFiles.size})
             </Button>
           )}
         </div>
@@ -397,16 +416,16 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
       <div className='flex-1 overflow-auto'>
         {isLoading ? (
           <div className='flex h-full items-center justify-center'>
-            <p className='text-muted-foreground'>Loading media...</p>
+            <p className='text-muted-foreground'>{t('media.state.loading')}</p>
           </div>
         ) : error ? (
           <div className='flex h-full items-center justify-center'>
             <div className='text-center'>
               <p className='text-destructive mb-2 text-sm'>
-                Failed to load media: {errorMessage}
+                {t('media.loadFailed')}: {errorMessage}
               </p>
               <Button variant='outline' onClick={() => refetch()}>
-                Retry
+                {t('media.state.retry')}
               </Button>
             </div>
           </div>
@@ -416,15 +435,15 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
               <FileImage className='text-muted-foreground mx-auto h-12 w-12' />
               <h3 className='mt-4 text-lg font-semibold'>
                 {inFolderView
-                  ? 'No files in this folder'
-                  : 'No media files found'}
+                  ? t('media.state.noFilesInFolder')
+                  : t('media.state.noMediaFilesFound')}
               </h3>
               <p className='text-muted-foreground mt-2 text-sm'>
                 {searchQuery
-                  ? 'Try adjusting your search'
+                  ? t('media.state.adjustSearch')
                   : inFolderView
-                    ? 'Upload files or go back to all media.'
-                    : 'Upload your first file to get started'}
+                    ? t('media.state.uploadOrGoBack')
+                    : t('media.state.uploadFirstFile')}
               </p>
               {!searchQuery && (
                 <Button
@@ -432,7 +451,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
                   onClick={() => setUploadModalOpen(true)}
                 >
                   <Upload className='mr-2 h-4 w-4' />
-                  Upload Files
+                  {t('media.state.uploadFiles')}
                 </Button>
               )}
             </div>
@@ -479,7 +498,7 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
         <div className='border-border bg-card border-t px-6 py-3'>
           <div className='flex flex-wrap items-center justify-between gap-3'>
             <p className='text-muted-foreground text-sm'>
-              Total {total} file{total === 1 ? '' : 's'}
+              {total} {t('media.toolbar.totalFilesSuffix')}
             </p>
             <div className='flex items-center gap-2'>
               <Button
@@ -488,10 +507,10 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={page <= 1}
               >
-                Prev
+                {t('media.toolbar.prev')}
               </Button>
               <span className='text-sm'>
-                Page {page} of {totalPages}
+                {t('table.page')} {page} {t('table.of')} {totalPages}
               </span>
               <Button
                 variant='outline'
@@ -501,11 +520,13 @@ export function MediaManager({ folderId }: MediaManagerProps = {}) {
                 }
                 disabled={page >= totalPages}
               >
-                Next
+                {t('media.toolbar.next')}
               </Button>
             </div>
             <div className='flex items-center gap-2'>
-              <span className='text-muted-foreground text-sm'>Rows</span>
+              <span className='text-muted-foreground text-sm'>
+                {t('media.toolbar.rows')}
+              </span>
               <Select
                 value={String(pageSize)}
                 onValueChange={(value) => {

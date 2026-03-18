@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useTranslate } from '@/hooks/use-translate';
 import { Plus } from 'lucide-react';
 
 export interface CreateMenuPayload {
@@ -24,6 +25,7 @@ interface CreateMenuDialogProps {
 
 export function CreateMenuDialog({ onCreate }: CreateMenuDialogProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslate();
   const [form, setForm] = useState<CreateMenuPayload>({
     name: ''
   });
@@ -40,34 +42,34 @@ export function CreateMenuDialog({ onCreate }: CreateMenuDialogProps) {
       <DialogTrigger asChild>
         <Button variant='primary' size='sm'>
           <Plus className='mr-1.5 h-3.5 w-3.5' />
-          New
+          {t('menu.addNew')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Menu</DialogTitle>
+          <DialogTitle>{t('menu.dialogs.createMenuTitle')}</DialogTitle>
           <DialogDescription>
-            Enter a slug identifier for the new navigation menu.
+            {t('menu.dialogs.createMenuDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
           <div className='space-y-1.5'>
-            <Label htmlFor='menuName'>Menu Slug</Label>
+            <Label htmlFor='menuName'>{t('menu.dialogs.menuSlug')}</Label>
             <Input
               id='menuName'
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder='main-nav or footer-links'
+              placeholder={t('menu.dialogs.menuSlugPlaceholder')}
             />
             <p className='text-muted-foreground text-xs'>
-              Lowercase with hyphens, e.g.{' '}
+              {t('menu.dialogs.menuSlugHint')}{' '}
               <code className='bg-muted rounded px-1 py-0.5 text-[11px]'>
                 main-nav
               </code>
             </p>
           </div>
           <Button onClick={handleSubmit} className='w-full'>
-            Create Menu
+            {t('menu.dialogs.createMenuButton')}
           </Button>
         </div>
       </DialogContent>

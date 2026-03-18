@@ -21,6 +21,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { MenuGroup, getMenuLabelText } from '@/features/menu/types';
+import { useTranslate } from '@/hooks/use-translate';
 import { toast } from 'sonner';
 
 export interface CreateMenuItemPayload {
@@ -42,6 +43,7 @@ export function CreateMenuItemDialog({
   onCreate
 }: CreateMenuItemDialogProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslate();
   const [form, setForm] = useState<CreateMenuItemPayload>({
     label: {
       en: '',
@@ -57,19 +59,19 @@ export function CreateMenuItemDialog({
     const url = form.url.trim();
 
     if (!labelEn && !labelKm) {
-      toast.error('Please enter at least one label (EN or KM).');
+      toast.error(t('menu.dialogs.labelRequired'));
       return;
     }
 
     if (!url) {
-      toast.error('URL is required.');
+      toast.error(t('menu.dialogs.urlRequired'));
       return;
     }
 
     const isInternalPath = url.startsWith('/');
     const isAbsoluteUrl = /^https?:\/\//i.test(url);
     if (!isInternalPath && !isAbsoluteUrl) {
-      toast.error('URL must start with "/" or "http(s)://".');
+      toast.error(t('menu.dialogs.urlInvalid'));
       return;
     }
 
@@ -97,20 +99,22 @@ export function CreateMenuItemDialog({
       <DialogTrigger asChild>
         <Button>
           <Plus className='mr-2 h-4 w-4' />
-          Add Item
+          {t('menu.dialogs.addItem')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Menu Item</DialogTitle>
+          <DialogTitle>{t('menu.dialogs.createItemTitle')}</DialogTitle>
           <DialogDescription>
-            Create a new item in the <strong>{selectedMenu.name}</strong> menu.
+            {t('menu.dialogs.createItemDescriptionPrefix')}{' '}
+            <strong>{selectedMenu.name}</strong>{' '}
+            {t('menu.dialogs.createItemDescriptionSuffix')}
           </DialogDescription>
         </DialogHeader>
         <div className='space-y-4'>
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1.5'>
-              <Label htmlFor='itemLabelEn'>Label (EN)</Label>
+              <Label htmlFor='itemLabelEn'>{t('menu.dialogs.labelEn')}</Label>
               <Input
                 id='itemLabelEn'
                 value={form.label.en}
@@ -127,7 +131,7 @@ export function CreateMenuItemDialog({
               />
             </div>
             <div className='space-y-1.5'>
-              <Label htmlFor='itemLabelKm'>Label (KM)</Label>
+              <Label htmlFor='itemLabelKm'>{t('menu.dialogs.labelKm')}</Label>
               <Input
                 id='itemLabelKm'
                 value={form.label.km}
@@ -145,16 +149,16 @@ export function CreateMenuItemDialog({
             </div>
           </div>
           <div className='space-y-1.5'>
-            <Label htmlFor='itemUrl'>URL</Label>
+            <Label htmlFor='itemUrl'>{t('menu.dialogs.url')}</Label>
             <Input
               id='itemUrl'
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
-              placeholder='/page-url or https://external.com'
+              placeholder={t('menu.dialogs.urlPlaceholder')}
             />
           </div>
           <div className='space-y-1.5'>
-            <Label>Parent Item</Label>
+            <Label>{t('menu.dialogs.parentItem')}</Label>
             <Select
               value={form.parentId ?? '__none__'}
               onValueChange={(value) =>
@@ -165,10 +169,12 @@ export function CreateMenuItemDialog({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder='No parent (top level)' />
+                <SelectValue placeholder={t('menu.dialogs.noParent')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='__none__'>No parent (top level)</SelectItem>
+                <SelectItem value='__none__'>
+                  {t('menu.dialogs.noParent')}
+                </SelectItem>
                 {selectedMenu.items.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
                     {getMenuLabelText(item.label)}
@@ -178,7 +184,7 @@ export function CreateMenuItemDialog({
             </Select>
           </div>
           <Button onClick={handleSubmit} className='w-full'>
-            Add Item
+            {t('menu.dialogs.addItem')}
           </Button>
         </div>
       </DialogContent>

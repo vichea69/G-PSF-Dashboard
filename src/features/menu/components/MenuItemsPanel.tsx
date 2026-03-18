@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Menu as MenuIcon } from 'lucide-react';
 import type { MenuItem, MenuGroup } from '@/features/menu/types';
+import { useTranslate } from '@/hooks/use-translate';
 import {
   MenuItemRow,
   type FlatMenuItem
@@ -56,7 +57,6 @@ function buildFlatList(
 interface MenuItemsPanelProps {
   selectedMenu: MenuGroup;
   onEdit?: (itemId: string) => void;
-  onToggleVisibility?: (itemId: string) => void;
   onDelete?: (itemId: string) => void;
   onReorder?: (nextItems: MenuGroup['items']) => void;
 }
@@ -64,11 +64,11 @@ interface MenuItemsPanelProps {
 export function MenuItemsPanel({
   selectedMenu,
   onEdit,
-  onToggleVisibility,
   onDelete,
   onReorder
 }: MenuItemsPanelProps) {
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const { t } = useTranslate();
 
   /* ---------- flat list ------------------------------------------------ */
 
@@ -180,10 +180,10 @@ export function MenuItemsPanel({
             <MenuIcon className='text-muted-foreground h-9 w-9' />
           </div>
           <h3 className='text-foreground mb-1 text-base font-medium'>
-            No menu items yet
+            {t('menu.panel.noItemsTitle')}
           </h3>
           <p className='text-muted-foreground mx-auto max-w-xs text-sm'>
-            Add your first menu item to start building the navigation structure
+            {t('menu.panel.noItemsDescription')}
           </p>
         </CardContent>
       </Card>
@@ -201,7 +201,7 @@ export function MenuItemsPanel({
               {selectedMenu.name}
             </h2>
             <Badge variant='secondary' size='sm'>
-              {selectedMenu.items.length} items
+              {selectedMenu.items.length} {t('menu.panel.itemsSuffix')}
             </Badge>
             <Badge variant='outline' size='sm'>
               {selectedMenu.location}
@@ -226,7 +226,6 @@ export function MenuItemsPanel({
                     isExpanded={!collapsedIds.has(flat.item.id)}
                     onToggleExpand={toggleExpand}
                     onEdit={onEdit}
-                    onToggleVisibility={onToggleVisibility}
                     onDelete={onDelete}
                   />
                 ))}

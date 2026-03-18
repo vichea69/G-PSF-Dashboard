@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 
 function toDateSafe(
@@ -31,12 +31,6 @@ export function RelativeTime({
   className?: string;
 }) {
   const date = useMemo(() => toDateSafe(value ?? undefined), [value]);
-  const [now, setNow] = useState<Date>(() => new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(id);
-  }, []);
 
   if (!date) return <span className={className}>-</span>;
 

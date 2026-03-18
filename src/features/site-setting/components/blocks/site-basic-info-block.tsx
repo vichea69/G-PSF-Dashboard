@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslate } from '@/hooks/use-translate';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import type { MediaFile } from '@/features/media/types/media-type';
 import type {
@@ -50,6 +51,7 @@ function MediaPickerField({
   onChoose,
   onClear
 }: MediaPickerFieldProps) {
+  const { t } = useTranslate();
   const previewUrl = useMemo(() => resolveApiAssetUrl(value), [value]);
 
   return (
@@ -58,11 +60,11 @@ function MediaPickerField({
         <Label>{label}</Label>
         <div className='flex items-center gap-2'>
           <Button type='button' size='sm' variant='outline' onClick={onChoose}>
-            Choose file
+            {t('siteSetting.basicInfo.chooseFile')}
           </Button>
           {value ? (
             <Button type='button' size='sm' variant='ghost' onClick={onClear}>
-              Clear
+              {t('siteSetting.basicInfo.clear')}
             </Button>
           ) : null}
         </div>
@@ -72,7 +74,7 @@ function MediaPickerField({
         <div className='relative h-60 w-full max-w-md overflow-hidden rounded-md border'>
           <Image
             src={previewUrl}
-            alt={`${label} preview`}
+            alt={`${label} ${t('siteSetting.basicInfo.previewAltSuffix')}`}
             fill
             unoptimized
             className='object-cover'
@@ -81,7 +83,7 @@ function MediaPickerField({
       ) : (
         <div className='text-muted-foreground bg-muted/30 flex h-40 w-full max-w-md items-center justify-center rounded-md border border-dashed text-sm'>
           <ImageIcon className='mr-2 h-4 w-4' />
-          No image selected
+          {t('siteSetting.basicInfo.noImageSelected')}
         </div>
       )}
     </div>
@@ -99,6 +101,7 @@ export function SiteBasicInfoBlock({
   onLocalizedChange,
   onMediaChange
 }: SiteBasicInfoBlockProps) {
+  const { t } = useTranslate();
   const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
 
   const localeSuffix = activeLocale === 'en' ? 'EN' : 'KM';
@@ -118,7 +121,7 @@ export function SiteBasicInfoBlock({
       <Card>
         <CardContent className='space-y-6'>
           <div className='space-y-2'>
-            <Label>{`Site Title (${localeSuffix})`}</Label>
+            <Label>{`${t('siteSetting.basicInfo.siteTitle')} (${localeSuffix})`}</Label>
             <Input
               value={titleValue}
               onChange={(event) =>
@@ -126,14 +129,14 @@ export function SiteBasicInfoBlock({
               }
               placeholder={
                 activeLocale === 'en'
-                  ? 'Enter site title in English'
-                  : 'បញ្ចូលចំណងជើងគេហទំព័រជាភាសាខ្មែរ'
+                  ? t('siteSetting.basicInfo.titlePlaceholderEn')
+                  : t('siteSetting.basicInfo.titlePlaceholderKm')
               }
             />
           </div>
 
           <div className='space-y-2'>
-            <Label>{`Site Description (${localeSuffix})`}</Label>
+            <Label>{`${t('siteSetting.basicInfo.siteDescription')} (${localeSuffix})`}</Label>
             <Textarea
               value={descriptionValue}
               onChange={(event) =>
@@ -145,8 +148,8 @@ export function SiteBasicInfoBlock({
               }
               placeholder={
                 activeLocale === 'en'
-                  ? 'Enter site description in English'
-                  : 'បញ្ចូលពិពណ៌នាគេហទំព័រជាភាសាខ្មែរ'
+                  ? t('siteSetting.basicInfo.descriptionPlaceholderEn')
+                  : t('siteSetting.basicInfo.descriptionPlaceholderKm')
               }
               className='min-h-[96px]'
             />
@@ -154,14 +157,14 @@ export function SiteBasicInfoBlock({
 
           <div className='space-y-4'>
             <MediaPickerField
-              label='Site Logo'
+              label={t('siteSetting.basicInfo.siteLogo')}
               value={logo}
               onChoose={() => setPickerTarget('logo')}
               onClear={() => onMediaChange('logo', '')}
             />
 
             <MediaPickerField
-              label='Footer Background'
+              label={t('siteSetting.basicInfo.footerBackground')}
               value={footerBackground}
               onChoose={() => setPickerTarget('footerBackground')}
               onClear={() => onMediaChange('footerBackground', '')}
@@ -169,7 +172,7 @@ export function SiteBasicInfoBlock({
           </div>
 
           <div className='space-y-2'>
-            <Label>{`Address (${localeSuffix})`}</Label>
+            <Label>{`${t('siteSetting.basicInfo.address')} (${localeSuffix})`}</Label>
             <Textarea
               value={addressValue}
               onChange={(event) =>
@@ -177,15 +180,15 @@ export function SiteBasicInfoBlock({
               }
               placeholder={
                 activeLocale === 'en'
-                  ? 'Enter address in English'
-                  : 'បញ្ចូលអាសយដ្ឋានជាភាសាខ្មែរ'
+                  ? t('siteSetting.basicInfo.addressPlaceholderEn')
+                  : t('siteSetting.basicInfo.addressPlaceholderKm')
               }
               className='min-h-[96px]'
             />
           </div>
 
           <div className='space-y-2'>
-            <Label>{`Open Time (${localeSuffix})`}</Label>
+            <Label>{`${t('siteSetting.basicInfo.openTime')} (${localeSuffix})`}</Label>
             <Textarea
               value={openTimeValue}
               onChange={(event) =>
@@ -193,8 +196,8 @@ export function SiteBasicInfoBlock({
               }
               placeholder={
                 activeLocale === 'en'
-                  ? 'Enter open time in English'
-                  : 'បញ្ចូលម៉ោងបើកជាភាសាខ្មែរ'
+                  ? t('siteSetting.basicInfo.openTimePlaceholderEn')
+                  : t('siteSetting.basicInfo.openTimePlaceholderKm')
               }
               className='min-h-[96px]'
             />
@@ -208,10 +211,10 @@ export function SiteBasicInfoBlock({
         onSelect={handleSelectMedia}
         title={
           pickerTarget === 'logo'
-            ? 'Select Logo Image'
-            : 'Select Footer Background'
+            ? t('siteSetting.basicInfo.selectLogoImage')
+            : t('siteSetting.basicInfo.selectFooterBackground')
         }
-        description='Choose an image from Media Manager.'
+        description={t('siteSetting.basicInfo.chooseImageDescription')}
         types={['image']}
         accept='image/*'
         allowUploadFromDevice={false}

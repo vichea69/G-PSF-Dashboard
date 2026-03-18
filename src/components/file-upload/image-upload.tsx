@@ -45,18 +45,55 @@ export default function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
-  const validateFile = (file: File): string | null => {
-    if (!file.type.startsWith('image/')) {
-      return 'File must be an image';
-    }
-    if (file.size > maxSize) {
-      return `File size must be less than ${(maxSize / 1024 / 1024).toFixed(1)}MB`;
-    }
-    if (images.length >= maxFiles) {
-      return `Maximum ${maxFiles} files allowed`;
-    }
-    return null;
-  };
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      if (!file.type.startsWith('image/')) {
+        return 'File must be an image';
+      }
+      if (file.size > maxSize) {
+        return `File size must be less than ${(maxSize / 1024 / 1024).toFixed(1)}MB`;
+      }
+      if (images.length >= maxFiles) {
+        return `Maximum ${maxFiles} files allowed`;
+      }
+      return null;
+    },
+    [images.length, maxFiles, maxSize]
+  );
+
+  const simulateUpload = useCallback(
+    (imageFile: ImageFile) => {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 20;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+
+          setImages((prev) => {
+            const updatedImages = prev.map((img) =>
+              img.id === imageFile.id
+                ? { ...img, progress: 100, status: 'completed' as const }
+                : img
+            );
+
+            if (updatedImages.every((img) => img.status === 'completed')) {
+              onUploadComplete?.(updatedImages);
+            }
+
+            return updatedImages;
+          });
+        } else {
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === imageFile.id ? { ...img, progress } : img
+            )
+          );
+        }
+      }, 100);
+    },
+    [onUploadComplete]
+  );
 
   const addImages = useCallback(
     (files: FileList | File[]) => {
@@ -90,47 +127,12 @@ export default function ImageUpload({
         setImages(updatedImages);
         onImagesChange?.(updatedImages);
 
-        // Simulate upload progress
+        // Keep the upload logic in one helper so this part stays simple.
         newImages.forEach((imageFile) => simulateUpload(imageFile));
       }
     },
-    [images, maxFiles, maxSize, onImagesChange]
+    [images, onImagesChange, simulateUpload, validateFile]
   );
-
-  const simulateUpload = (imageFile: ImageFile) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 20;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === imageFile.id
-              ? { ...img, progress: 100, status: 'completed' as const }
-              : img
-          )
-        );
-
-        const updatedImages = images.map((img) =>
-          img.id === imageFile.id
-            ? { ...img, progress: 100, status: 'completed' as const }
-            : img
-        );
-
-        if (updatedImages.every((img) => img.status === 'completed')) {
-          onUploadComplete?.(updatedImages);
-        }
-      } else {
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === imageFile.id ? { ...img, progress } : img
-          )
-        );
-      }
-    }, 100);
-  };
 
   const removeImage = useCallback((id: string) => {
     setImages((prev) => {

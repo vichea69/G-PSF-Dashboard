@@ -17,17 +17,31 @@ import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useDeleteMenu } from '@/features/menu/hook/use-menu';
 import type { MenuGroup } from '@/features/menu/types';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
+import { useTranslate } from '@/hooks/use-translate';
 import { toast } from 'sonner';
 
 interface CellActionProps {
   data: MenuGroup;
 }
 
+const readMenuErrorMessage = (
+  error: unknown,
+  fallback: string,
+  knownFallbacks: string[]
+) => {
+  const message = error instanceof Error ? error.message?.trim() : '';
+  if (!message || knownFallbacks.includes(message)) {
+    return fallback;
+  }
+  return message;
+};
+
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const qc = useQueryClient();
   const deleteMenuMutation = useDeleteMenu();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const canUpdateMenu = can(
@@ -48,13 +62,17 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       { menuId: data.id },
       {
         onSuccess: () => {
-          toast.success('Menu deleted');
+          toast.success(t('menu.toast.deleted'));
           setOpen(false);
           qc.invalidateQueries({ queryKey: ['menus'] });
           router.push('/admin/menu');
         },
         onError: (error) => {
-          toast.error((error as Error)?.message ?? 'Failed to delete menu');
+          toast.error(
+            readMenuErrorMessage(error, t('menu.toast.deleteFailed'), [
+              'Failed to delete menu'
+            ])
+          );
         }
       }
     );
@@ -75,12 +93,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             className='h-8 w-8 p-0'
             onClick={(event) => event.stopPropagation()}
           >
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('menu.table.actions')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('menu.table.actions')}</DropdownMenuLabel>
           {canUpdateMenu ? (
             <DropdownMenuItem
               onClick={(event) => {
@@ -88,7 +106,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 router.push(`/admin/menu/${data.slug}`);
               }}
             >
-              <IconEdit className='mr-2 h-4 w-4' /> Edit
+              <IconEdit className='mr-2 h-4 w-4' /> {t('menu.panel.edit')}
             </DropdownMenuItem>
           ) : null}
           {canDeleteMenu ? (
@@ -99,7 +117,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 setOpen(true);
               }}
             >
-              <IconTrash className='mr-2 h-4 w-4' /> Delete
+              <IconTrash className='mr-2 h-4 w-4' /> {t('menu.panel.delete')}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

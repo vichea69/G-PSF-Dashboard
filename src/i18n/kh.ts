@@ -865,5 +865,399 @@ export const kh = {
       idRequired: 'ត្រូវការលេខសម្គាល់ក្រុមការងារ',
       titleRequired: 'ត្រូវការចំណងជើង'
     }
+  },
+  user: {
+    title: 'អ្នកប្រើប្រាស់',
+    description: 'គ្រប់គ្រងអ្នកប្រើប្រាស់',
+    addNew: 'បន្ថែមអ្នកប្រើ',
+    createTitle: 'បង្កើតអ្នកប្រើ',
+    createDescription: 'បន្ថែមអ្នកប្រើថ្មីទៅក្នុងកន្លែងធ្វើការរបស់អ្នក។',
+    editTitle: 'កែប្រែអ្នកប្រើ',
+    editDescription: 'កែប្រែអ្នកប្រើដែលបានជ្រើស។',
+    columns: {
+      avatar: 'រូបតំណាង',
+      username: 'ឈ្មោះអ្នកប្រើ',
+      email: 'អ៊ីមែល',
+      bio: 'ជីវប្រវត្តិ',
+      role: 'តួនាទី',
+      lastLogin: 'ចូលប្រើចុងក្រោយ',
+      actions: 'សកម្មភាព'
+    },
+    filters: {
+      usernameLabel: 'ឈ្មោះអ្នកប្រើ',
+      searchUsername: 'ស្វែងរកឈ្មោះអ្នកប្រើ...'
+    },
+    form: {
+      username: 'ឈ្មោះអ្នកប្រើ',
+      usernamePlaceholder: 'johndoe',
+      password: 'ពាក្យសម្ងាត់',
+      passwordPlaceholder: '********',
+      email: 'អ៊ីមែល',
+      emailPlaceholder: 'john@example.com',
+      bioOptional: 'ជីវប្រវត្តិ (ស្រេចចិត្ត)',
+      bioPlaceholder: 'ជីវប្រវត្តិខ្លី...',
+      imageOptional: 'រូបភាព (ស្រេចចិត្ត)',
+      selectFromMedia: 'ជ្រើសពី Media',
+      clear: 'សម្អាត',
+      noImageSelected: 'មិនទាន់បានជ្រើសរូបភាពទេ។',
+      imagePreviewAlt: 'ការមើលជាមុនរូបភាពអ្នកប្រើ',
+      role: 'តួនាទី',
+      selectRole: 'ជ្រើសតួនាទី',
+      rolesLoadFailed: 'បរាជ័យក្នុងការផ្ទុកតួនាទី។',
+      cancel: 'បោះបង់',
+      createSubmit: 'បង្កើត',
+      saveChanges: 'រក្សាទុកការកែប្រែ',
+      selectUserImage: 'ជ្រើសរូបភាពអ្នកប្រើ',
+      mediaDescription: 'ជ្រើសរូបភាពពី Media Manager។',
+      validation: {
+        usernameRequired: 'ឈ្មោះអ្នកប្រើមិនអាចទទេបានទេ',
+        emailRequired: 'អ៊ីមែលមិនអាចទទេបានទេ',
+        emailInvalid: 'អ៊ីមែលត្រូវតែជាអាសយដ្ឋានត្រឹមត្រូវ',
+        roleRequired: 'តួនាទីមិនអាចទទេបានទេ',
+        passwordRequired: 'ពាក្យសម្ងាត់មិនអាចទទេបានទេ'
+      }
+    },
+    actions: {
+      menuLabel: 'សកម្មភាព',
+      openMenu: 'បើកម៉ឺនុយ',
+      edit: 'កែប្រែ',
+      delete: 'លុប'
+    },
+    toast: {
+      created: 'បានបង្កើតអ្នកប្រើប្រាស់ដោយជោគជ័យ',
+      updated: 'បានកែប្រែអ្នកប្រើប្រាស់ដោយជោគជ័យ',
+      deleted: 'បានលុបអ្នកប្រើប្រាស់ដោយជោគជ័យ',
+      deleteFailed: 'ការលុបបរាជ័យ',
+      createFailed: 'បរាជ័យក្នុងការបង្កើតអ្នកប្រើប្រាស់',
+      updateFailed: 'បរាជ័យក្នុងការកែប្រែអ្នកប្រើប្រាស់',
+      selectedMediaInvalid: 'មេឌៀដែលបានជ្រើសមិនមានតំណរូបភាពត្រឹមត្រូវទេ',
+      loadFailed: 'បរាជ័យក្នុងការផ្ទុកអ្នកប្រើប្រាស់'
+    }
+  },
+  role: {
+    title: 'តួនាទី និងសិទ្ធិ',
+    description: 'គ្រប់គ្រងតួនាទី និងសិទ្ធិរបស់អ្នកប្រើ',
+    addNew: 'បន្ថែមតួនាទី',
+    createTitle: 'បង្កើតតួនាទី',
+    createDescription: 'កំណត់សិទ្ធិ និងផ្ដល់ការចូលប្រើសម្រាប់តួនាទីថ្មី។',
+    editTitle: 'កែប្រែតួនាទី',
+    editDescription: 'កែប្រែសិទ្ធិ និងព័ត៌មានលម្អិតរបស់តួនាទី។',
+    columns: {
+      role: 'តួនាទី',
+      type: 'ប្រភេទ',
+      status: 'ស្ថានភាព',
+      permissions: 'សិទ្ធិ',
+      resources: 'ធនធាន',
+      updated: 'បានកែប្រែ',
+      actions: 'សកម្មភាព'
+    },
+    filters: {
+      roleLabel: 'តួនាទី',
+      searchRole: 'ស្វែងរកតួនាទី...'
+    },
+    form: {
+      roleName: 'ឈ្មោះតួនាទី',
+      roleNamePlaceholder: 'បញ្ចូលឈ្មោះតួនាទី',
+      description: 'ការពិពណ៌នា',
+      descriptionPlaceholder: 'ការពិពណ៌នាខ្លីអំពីតួនាទីនេះ',
+      cancel: 'បោះបង់',
+      createSubmit: 'បង្កើតតួនាទី',
+      creating: 'កំពុងបង្កើត...',
+      saveChanges: 'រក្សាទុកការកែប្រែ',
+      saving: 'កំពុងរក្សាទុក...'
+    },
+    permissions: {
+      loadingResources: 'កំពុងផ្ទុកធនធានដែលមាន...',
+      loadResourcesFailed: 'បរាជ័យក្នុងការផ្ទុកធនធានដែលមាន',
+      roleNameRequired: 'ត្រូវការឈ្មោះតួនាទី',
+      noResourcesAvailable: 'មិនមានធនធានទេ។',
+      resourcesTitle: 'ធនធាន',
+      resourcesDescription:
+        'ប្ដូរសិទ្ធិទាំងអស់សម្រាប់តួនាទីនេះ ឬកែតម្រូវតាមផ្នែកខាងក្រោម។',
+      permissionsActiveSuffix: 'សិទ្ធិកំពុងសកម្ម',
+      selectAll: 'ជ្រើសទាំងអស់',
+      deselectAll: 'ដកជម្រើសទាំងអស់',
+      resourceHeader: 'ធនធាន',
+      toggleAllFor: 'ប្ដូរសិទ្ធិទាំងអស់សម្រាប់',
+      allow: 'អនុញ្ញាត',
+      on: 'លើ',
+      loadingRoleDetails: 'កំពុងផ្ទុកព័ត៌មានតួនាទី...',
+      roleNotFound: 'រកមិនឃើញតួនាទី',
+      roleNotFoundDescription: 'មិនអាចផ្ទុកតួនាទីដែលបានជ្រើសបានទេ។',
+      unableToLoadRole: 'មិនអាចផ្ទុកតួនាទីបានទេ',
+      loadRoleDataFailed: 'បរាជ័យក្នុងការផ្ទុកទិន្នន័យតួនាទី',
+      noChangesToSave: 'មិនមានការកែប្រែសម្រាប់រក្សាទុកទេ'
+    },
+    type: {
+      system: 'ប្រព័ន្ធ',
+      custom: 'ផ្ទាល់ខ្លួន'
+    },
+    status: {
+      active: 'សកម្ម',
+      inactive: 'មិនសកម្ម'
+    },
+    actions: {
+      menuLabel: 'សកម្មភាព',
+      openMenu: 'បើកម៉ឺនុយ',
+      edit: 'កែប្រែ',
+      delete: 'លុប'
+    },
+    toast: {
+      created: 'បានបង្កើតតួនាទីដោយជោគជ័យ',
+      updated: 'បានកែប្រែតួនាទីដោយជោគជ័យ',
+      deleted: 'បានលុបតួនាទីដោយជោគជ័យ',
+      createFailed: 'បរាជ័យក្នុងការបង្កើតតួនាទី',
+      updateFailed: 'បរាជ័យក្នុងការកែប្រែតួនាទី',
+      deleteFailed: 'បរាជ័យក្នុងការលុបតួនាទី',
+      idMissing: 'មិនមានលេខសម្គាល់តួនាទី',
+      loadFailed: 'បរាជ័យក្នុងការផ្ទុកតួនាទី'
+    }
+  },
+  siteSetting: {
+    title: 'ការកំណត់គេហទំព័រ',
+    description: 'គ្រប់គ្រងឡូហ្គោ និងមាតិកាទំព័រគេហទំព័រ',
+    loading: 'កំពុងផ្ទុកការកំណត់គេហទំព័រ...',
+    loadFailed: 'បរាជ័យក្នុងការផ្ទុកការកំណត់គេហទំព័រ',
+    tabs: {
+      english: 'អង់គ្លេស',
+      khmer: 'ខ្មែរ'
+    },
+    form: {
+      saving: 'កំពុងរក្សាទុក...',
+      saveChanges: 'រក្សាទុកការកែប្រែ'
+    },
+    basicInfo: {
+      siteTitle: 'ចំណងជើងគេហទំព័រ',
+      siteDescription: 'ពិពណ៌នាគេហទំព័រ',
+      siteLogo: 'ឡូហ្គោគេហទំព័រ',
+      footerBackground: 'ផ្ទៃខាងក្រោយបាតទំព័រ',
+      address: 'អាសយដ្ឋាន',
+      openTime: 'ម៉ោងបើក',
+      chooseFile: 'ជ្រើសឯកសារ',
+      clear: 'សម្អាត',
+      noImageSelected: 'មិនទាន់បានជ្រើសរូបភាពទេ',
+      selectLogoImage: 'ជ្រើសរូបភាពឡូហ្គោ',
+      selectFooterBackground: 'ជ្រើសផ្ទៃខាងក្រោយបាតទំព័រ',
+      chooseImageDescription: 'ជ្រើសរូបភាពពី Media Manager។',
+      titlePlaceholderEn: 'Enter site title in English',
+      titlePlaceholderKm: 'បញ្ចូលចំណងជើងគេហទំព័រជាភាសាខ្មែរ',
+      descriptionPlaceholderEn: 'Enter site description in English',
+      descriptionPlaceholderKm: 'បញ្ចូលពិពណ៌នាគេហទំព័រជាភាសាខ្មែរ',
+      addressPlaceholderEn: 'Enter address in English',
+      addressPlaceholderKm: 'បញ្ចូលអាសយដ្ឋានជាភាសាខ្មែរ',
+      openTimePlaceholderEn: 'Enter open time in English',
+      openTimePlaceholderKm: 'បញ្ចូលម៉ោងបើកជាភាសាខ្មែរ',
+      previewAltSuffix: 'ការមើលជាមុន'
+    },
+    contact: {
+      title: 'ទំនាក់ទំនង',
+      description: 'គ្រប់គ្រងលេខទូរស័ព្ទ និងអ៊ីមែលផ្នែកទំនាក់ទំនង។',
+      phoneNumbers: 'លេខទូរស័ព្ទ',
+      addPhone: 'បន្ថែមលេខទូរស័ព្ទ',
+      desks: 'ផ្នែកការងារ',
+      addDesk: 'បន្ថែមផ្នែក',
+      deskEmails: 'អ៊ីមែលផ្នែក',
+      addEmail: 'បន្ថែមអ៊ីមែល',
+      phonePlaceholder: '+855 99 799 579',
+      deskTitlePlaceholder: 'ចំណងជើងផ្នែក (ទូទៅ, China Desk...)',
+      emailPlaceholder: 'desk@example.com'
+    },
+    socialLinks: {
+      title: 'តំណសង្គម',
+      description: 'បន្ថែមតំណបណ្ដាញសង្គមសម្រាប់បាតទំព័រ ឬផ្នែកទំនាក់ទំនង។',
+      addLink: 'បន្ថែមតំណ',
+      icon: 'រូបតំណាង',
+      selectIconFromLibrary: 'ជ្រើសរូបតំណាងពីបណ្ណាល័យ',
+      linkTitle: 'ចំណងជើង',
+      titlePlaceholder: 'Facebook',
+      url: 'URL',
+      urlPlaceholder: 'https://example.com'
+    },
+    toast: {
+      saved: 'បានរក្សាទុកការកំណត់គេហទំព័រដោយជោគជ័យ',
+      saveFailed: 'បរាជ័យក្នុងការរក្សាទុកការកំណត់គេហទំព័រ'
+    }
+  },
+  media: {
+    title: 'គ្រប់គ្រងមេឌៀ',
+    folderTitlePrefix: 'ថតមេឌៀ',
+    loadFailed: 'បរាជ័យក្នុងការផ្ទុកមេឌៀ',
+    toolbar: {
+      allMedia: 'មេឌៀទាំងអស់',
+      folder: 'ថត',
+      selectedFolder: 'ថតដែលបានជ្រើស',
+      searchFiles: 'ស្វែងរកឯកសារ...',
+      upload: 'ផ្ទុកឡើង',
+      createFolder: 'បង្កើតថត',
+      deleteFolder: 'លុបថត',
+      deleteFiles: 'លុប',
+      gridView: 'ទិដ្ឋភាពក្រឡា',
+      listView: 'ទិដ្ឋភាពបញ្ជី',
+      newest: 'ថ្មីបំផុត',
+      name: 'ឈ្មោះ',
+      size: 'ទំហំ',
+      prev: 'មុន',
+      next: 'បន្ទាប់',
+      rows: 'ជួរ',
+      totalFilesSuffix: 'ឯកសារ'
+    },
+    state: {
+      loading: 'កំពុងផ្ទុកមេឌៀ...',
+      retry: 'ព្យាយាមម្ដងទៀត',
+      noFilesInFolder: 'មិនមានឯកសារនៅក្នុងថតនេះទេ',
+      noMediaFilesFound: 'មិនមានឯកសារមេឌៀទេ',
+      adjustSearch: 'សូមព្យាយាមកែសម្រួលការស្វែងរក',
+      uploadOrGoBack: 'ផ្ទុកឯកសារ ឬត្រឡប់ទៅមេឌៀទាំងអស់វិញ។',
+      uploadFirstFile: 'ផ្ទុកឯកសារដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើម',
+      uploadFiles: 'ផ្ទុកឯកសារ'
+    },
+    table: {
+      preview: 'មើលជាមុន',
+      name: 'ឈ្មោះ',
+      type: 'ប្រភេទ',
+      size: 'ទំហំ',
+      date: 'កាលបរិច្ឆេទ',
+      actions: 'សកម្មភាព',
+      folder: 'ថត',
+      image: 'រូបភាព',
+      video: 'វីដេអូ',
+      pdf: 'PDF',
+      document: 'ឯកសារ'
+    },
+    createFolder: {
+      title: 'បង្កើតថត',
+      description: 'បញ្ចូលឈ្មោះថតសម្រាប់រៀបចំឯកសារមេឌៀរបស់អ្នក។',
+      folderName: 'ឈ្មោះថត',
+      folderNamePlaceholder: 'ឧទាហរណ៍: Reports 2026',
+      required: 'ត្រូវការឈ្មោះថត',
+      cancel: 'បោះបង់',
+      create: 'បង្កើត',
+      creating: 'កំពុងបង្កើត...'
+    },
+    upload: {
+      title: 'ផ្ទុកឯកសារ',
+      description: 'អូសទម្លាក់ឯកសារនៅទីនេះ ឬចុចដើម្បីរុករក។',
+      descriptionInFolder: 'ឯកសារនឹងត្រូវបានផ្ទុកទៅក្នុងថតនេះ។',
+      dropHere: 'ទម្លាក់ឯកសារនៅទីនេះ',
+      dragAndDrop: 'អូសទម្លាក់ឯកសារនៅទីនេះ',
+      or: 'ឬ',
+      browseFiles: 'រុករកឯកសារ',
+      done: 'រួចរាល់',
+      failed: 'បរាជ័យ',
+      idleHint: 'ជ្រើសឯកសារដើម្បីចាប់ផ្តើមផ្ទុកឡើង។',
+      uploadingState: 'កំពុងផ្ទុកឡើង...',
+      completeState: 'ការផ្ទុកឡើងរួចរាល់។',
+      uploaded: 'បានផ្ទុកឡើង',
+      uploadFailed: 'បរាជ័យក្នុងការផ្ទុកឯកសារ',
+      retry: 'ព្យាយាមម្ដងទៀត',
+      clearCompleted: 'សម្អាតដែលរួចរាល់',
+      close: 'បិទ'
+    },
+    preview: {
+      copied: 'បានចម្លង URL',
+      copyFailed: 'បរាជ័យក្នុងការចម្លង URL',
+      pdfThumbnailUnavailable: 'មិនមានរូបភាពតូច PDF ទេ',
+      videoPreview: 'មើលវីដេអូជាមុន',
+      previewUnavailable: 'មិនអាចមើលជាមុនបាន',
+      fileTypeSuffix: 'ឯកសារ',
+      fileDetails: 'ព័ត៌មានឯកសារ',
+      type: 'ប្រភេទ',
+      size: 'ទំហំ',
+      copyUrl: 'ចម្លង URL',
+      delete: 'លុប'
+    },
+    toast: {
+      deleted: 'បានលុបមេឌៀដោយជោគជ័យ',
+      deleteFailed: 'បរាជ័យក្នុងការលុបមេឌៀ',
+      foldersDeleted: 'បានលុបថតដោយជោគជ័យ',
+      deleteFolderFailed: 'បរាជ័យក្នុងការលុបថត',
+      folderCreated: 'បានបង្កើតថតដោយជោគជ័យ',
+      createFolderFailed: 'បរាជ័យក្នុងការបង្កើតថត'
+    }
+  },
+  menu: {
+    title: 'ម៉ឺនុយ',
+    description: 'បង្កើត និងគ្រប់គ្រងម៉ឺនុយនាវីហ្គេសិន',
+    addNew: 'បន្ថែមថ្មី',
+    table: {
+      name: 'ឈ្មោះ',
+      slug: 'Slug',
+      items: 'ចំនួនធាតុ',
+      status: 'ស្ថានភាព',
+      created: 'បានបង្កើត',
+      actions: 'សកម្មភាព',
+      searchName: 'ស្វែងរកឈ្មោះ...',
+      active: 'សកម្ម',
+      inactive: 'មិនសកម្ម',
+      loading: 'កំពុងផ្ទុកម៉ឺនុយ...',
+      loadFailed: 'បរាជ័យក្នុងការផ្ទុកម៉ឺនុយ។'
+    },
+    dialogs: {
+      createMenuTitle: 'បង្កើតម៉ឺនុយថ្មី',
+      createMenuDescription: 'បញ្ចូល slug សម្រាប់ម៉ឺនុយនាវីហ្គេសិនថ្មី។',
+      menuSlug: 'Slug ម៉ឺនុយ',
+      menuSlugPlaceholder: 'main-nav ឬ footer-links',
+      menuSlugHint: 'ប្រើអក្សរតូច និងសហសញ្ញា ឧ.',
+      createMenuButton: 'បង្កើតម៉ឺនុយ',
+      rename: 'ប្ដូរឈ្មោះ',
+      renameMenuTitle: 'ប្ដូរឈ្មោះម៉ឺនុយ',
+      renameMenuDescription: 'កែប្រែឈ្មោះបង្ហាញរបស់ម៉ឺនុយនេះ។',
+      menuName: 'ឈ្មោះម៉ឺនុយ',
+      menuNamePlaceholder: 'Quick link',
+      saveName: 'រក្សាទុកឈ្មោះ',
+      createItemTitle: 'បន្ថែមធាតុម៉ឺនុយ',
+      createItemDescriptionPrefix: 'បង្កើតធាតុថ្មីក្នុងម៉ឺនុយ',
+      createItemDescriptionSuffix: 'នេះ។',
+      editItemTitle: 'កែប្រែធាតុម៉ឺនុយ',
+      editItemDescription: 'កែប្រែស្លាក URL ឬមេរបស់ធាតុនេះ។',
+      labelEn: 'ស្លាក (EN)',
+      labelKm: 'ស្លាក (KM)',
+      labelRequired: 'សូមបញ្ចូលយ៉ាងតិចស្លាកមួយ (EN ឬ KM)។',
+      url: 'URL',
+      urlPlaceholder: '/page-url ឬ https://external.com',
+      urlEditPlaceholder: '/resources/policy-updates',
+      urlRequired: 'ត្រូវការ URL។',
+      urlInvalid: 'URL ត្រូវតែចាប់ផ្តើមដោយ "/" ឬ "http(s)://".',
+      parentItem: 'ធាតុមេ',
+      noParent: 'គ្មានមេ (កម្រិតលើ)',
+      addItem: 'បន្ថែមធាតុ',
+      cancel: 'បោះបង់',
+      save: 'រក្សាទុក',
+      saving: 'កំពុងរក្សាទុក...'
+    },
+    panel: {
+      sidebarTitle: 'ម៉ឺនុយ',
+      noMenusYet: 'មិនទាន់មានម៉ឺនុយទេ',
+      noItemsTitle: 'មិនទាន់មានធាតុម៉ឺនុយទេ',
+      noItemsDescription:
+        'បន្ថែមធាតុម៉ឺនុយដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើមរៀបចំរចនាសម្ព័ន្ធនាវីហ្គេសិន',
+      itemsSuffix: 'ធាតុ',
+      hidden: 'លាក់',
+      opensInNewTab: 'បើកក្នុងផ្ទាំងថ្មី',
+      edit: 'កែប្រែ',
+      delete: 'លុប',
+      hide: 'លាក់',
+      show: 'បង្ហាញ',
+      refreshing: 'កំពុងផ្ទុកឡើងវិញ...'
+    },
+    toast: {
+      slugRequired: 'ត្រូវការ slug ម៉ឺនុយ',
+      created: 'បានបង្កើតម៉ឺនុយ',
+      createFailed: 'បរាជ័យក្នុងការបង្កើតម៉ឺនុយ',
+      nameUpdated: 'បានកែប្រែឈ្មោះម៉ឺនុយ',
+      nameUpdateFailed: 'បរាជ័យក្នុងការកែប្រែឈ្មោះម៉ឺនុយ',
+      itemCreated: 'បានបង្កើតធាតុម៉ឺនុយ',
+      itemCreateFailed: 'បរាជ័យក្នុងការបង្កើតធាតុម៉ឺនុយ',
+      itemUpdated: 'បានកែប្រែធាតុម៉ឺនុយ',
+      itemUpdateFailed: 'បរាជ័យក្នុងការកែប្រែធាតុម៉ឺនុយ',
+      itemDeleted: 'បានលុបធាតុម៉ឺនុយ',
+      itemDeleteFailed: 'បរាជ័យក្នុងការលុបធាតុម៉ឺនុយ',
+      deleted: 'បានលុបម៉ឺនុយ',
+      deleteFailed: 'បរាជ័យក្នុងការលុបម៉ឺនុយ',
+      orderUpdated: 'បានកែប្រែលំដាប់ម៉ឺនុយ',
+      reorderFailed: 'បរាជ័យក្នុងការកែប្រែលំដាប់ធាតុ',
+      detailLoadFailed:
+        'បរាជ័យក្នុងការផ្ទុកម៉ឺនុយ។ សូមពិនិត្យ slug ហើយព្យាយាមម្ដងទៀត។'
+    }
   }
 } as const;

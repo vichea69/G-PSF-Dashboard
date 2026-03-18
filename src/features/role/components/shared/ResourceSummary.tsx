@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface ResourceSummaryProps {
   resourceCount: number;
@@ -18,12 +21,16 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   isAllSelected,
   onToggleAll
 }) => {
+  const { t } = useTranslate();
+
   return (
     <div className='border-border/60 bg-muted/30 flex flex-col gap-4 rounded-lg border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between'>
       <div className='space-y-1'>
-        <p className='text-sm font-medium'>Resources</p>
+        <p className='text-sm font-medium'>
+          {t('role.permissions.resourcesTitle')}
+        </p>
         <p className='text-muted-foreground text-sm'>
-          Toggle every permission for this role or adjust per section below.
+          {t('role.permissions.resourcesDescription')}
         </p>
       </div>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4'>
@@ -32,7 +39,8 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
             {resourceCount}
           </Badge>
           <span className='text-muted-foreground text-xs'>
-            {totalGranted} of {totalPermissions} permissions active
+            {totalGranted} {t('table.of')} {totalPermissions}{' '}
+            {t('role.permissions.permissionsActiveSuffix')}
           </span>
         </div>
         <Button
@@ -42,7 +50,9 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
           size='sm'
           onClick={onToggleAll}
         >
-          {isAllSelected ? 'Deselect all' : 'Select all'}
+          {isAllSelected
+            ? t('role.permissions.deselectAll')
+            : t('role.permissions.selectAll')}
         </Button>
       </div>
     </div>

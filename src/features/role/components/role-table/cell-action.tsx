@@ -20,6 +20,7 @@ import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { DeleteRole } from '@/server/action/admin/role';
 import { RoleAPI } from '@/features/role/type/role';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface RoleCellActionProps {
   role: RoleAPI;
@@ -30,6 +31,7 @@ const ROLES_QUERY_KEY = ['roles'] as const;
 export function RoleCellAction({ role }: RoleCellActionProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
   const { can } = usePermissions();
   const editHref = useMemo(() => getRoleEditHref(role), [role]);
@@ -48,7 +50,7 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
       await DeleteRole(roleId);
     },
     onSuccess: () => {
-      toast.success(`Role "${role.name}" deleted successfully`);
+      toast.success(t('role.toast.deleted'));
       setOpenDelete(false);
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
     },
@@ -56,19 +58,19 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
       const message =
         (error as any)?.response?.data?.message ??
         (error as Error)?.message ??
-        'Failed to delete role';
+        t('role.toast.deleteFailed');
       toast.error(message);
     }
   });
 
   const onDelete = useCallback(() => {
     if (!role.id) {
-      toast.error('Role id is missing');
+      toast.error(t('role.toast.idMissing'));
       return;
     }
 
     deleteMutation.mutate(Number(role.id));
-  }, [deleteMutation, role.id]);
+  }, [deleteMutation, role.id, t]);
 
   const onManage = useCallback(() => {
     router.push(editHref);
@@ -90,22 +92,22 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>{t('role.actions.openMenu')}</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('role.actions.menuLabel')}</DropdownMenuLabel>
           {canUpdateRole ? (
             <DropdownMenuItem onClick={onManage}>
               <IconEdit className='mr-2 h-4 w-4 text-blue-500' />
-              <span className='text-blue-500'>Edit</span>
+              <span className='text-blue-500'>{t('role.actions.edit')}</span>
             </DropdownMenuItem>
           ) : null}
           {canDeleteRole ? (
             <DropdownMenuItem onClick={() => setOpenDelete(true)}>
               <IconTrash className='mr-2 h-4 w-4 text-red-500' />
-              <span className='text-red-500'>Delete</span>
+              <span className='text-red-500'>{t('role.actions.delete')}</span>
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

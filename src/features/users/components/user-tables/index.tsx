@@ -11,15 +11,18 @@ import {
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { Can } from '@/context/permission-context';
-import { userColumns, type UserRow } from './columns';
+import { getUserColumns, type UserRow } from './columns';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { UserUpsertDialog } from '../user-upsert-dialog';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
+import { useTranslate } from '@/hooks/use-translate';
 
 export function UsersTable({ data }: { data: UserRow[] }) {
   const [openCreate, setOpenCreate] = useState(false);
-  const columns = useMemo(() => userColumns, []);
+  const { t } = useTranslate();
+  // Rebuild columns when the language changes so labels stay in sync.
+  const columns = useMemo(() => getUserColumns(t), [t]);
   const table = useReactTable({
     data,
     columns,
@@ -38,7 +41,7 @@ export function UsersTable({ data }: { data: UserRow[] }) {
             action={adminRoutePermissions.users.create.action}
           >
             <Button size='sm' onClick={() => setOpenCreate(true)}>
-              Add User
+              {t('user.addNew')}
             </Button>
           </Can>
         </DataTableToolbar>

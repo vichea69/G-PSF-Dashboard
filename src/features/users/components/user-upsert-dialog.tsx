@@ -38,30 +38,45 @@ import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl, toApiAssetPath } from '@/lib/asset-url';
 import { useRole } from '@/features/role/hook/use-role';
 import type { RoleAPI } from '@/features/role/type/role';
+import { useTranslate } from '@/hooks/use-translate';
 
-const baseSchema = z.object({
-  username: z.string().trim().min(1, 'username should not be empty'),
-  email: z
-    .string()
-    .trim()
-    .min(1, 'email should not be empty')
-    .email('email must be an email'),
-  role: z.string().trim().min(1, 'role should not be empty'),
-  bio: z.string().optional(),
-  image: z.string().optional(),
-  password: z.string().optional()
-});
+type FormValues = {
+  username: string;
+  email: string;
+  role: string;
+  bio?: string;
+  image?: string;
+  password?: string;
+};
 
-const createSchema = baseSchema.extend({
-  password: z
-    .string({ required_error: 'password should not be empty' })
-    .trim()
-    .min(1, 'password should not be empty')
-});
+type TranslateFn = (key: string) => string;
 
-const editSchema = baseSchema; // password optional when editing
+function buildEditSchema(t: TranslateFn) {
+  return z.object({
+    username: z
+      .string()
+      .trim()
+      .min(1, t('user.form.validation.usernameRequired')),
+    email: z
+      .string()
+      .trim()
+      .min(1, t('user.form.validation.emailRequired'))
+      .email(t('user.form.validation.emailInvalid')),
+    role: z.string().trim().min(1, t('user.form.validation.roleRequired')),
+    bio: z.string().optional(),
+    image: z.string().optional(),
+    password: z.string().optional()
+  });
+}
 
-type FormValues = z.infer<typeof baseSchema>;
+function buildCreateSchema(t: TranslateFn) {
+  return buildEditSchema(t).extend({
+    password: z
+      .string({ required_error: t('user.form.validation.passwordRequired') })
+      .trim()
+      .min(1, t('user.form.validation.passwordRequired'))
+  });
+}
 
 function getRoleOptionValue(role: RoleAPI) {
   return role.slug?.trim() || String(role.id);
@@ -104,15 +119,21 @@ export function UserUpsertDialog({
 }) {
   const qc = useQueryClient();
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const { t } = useTranslate();
   const rolesQuery = useRole();
   const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
   const resolvedInitialRole = useMemo(
     () => resolveRoleValue(initialData?.role, roles),
     [initialData?.role, roles]
   );
+  // Build schema inside the component so validation messages follow the active language.
+  const schema = useMemo(
+    () => (mode === 'create' ? buildCreateSchema(t) : buildEditSchema(t)),
+    [mode, t]
+  );
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(mode === 'create' ? createSchema : editSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       username: initialData?.username ?? '',
       email: initialData?.email ?? '',
@@ -160,11 +181,14 @@ export function UserUpsertDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User created');
+      toast.success(t('user.toast.created'));
       onOpenChange(false);
     },
     onError: (e: any) => {
-      const msg = e?.response?.data?.message ?? e?.message ?? 'Create failed';
+      const msg =
+        e?.response?.data?.message ??
+        e?.message ??
+        t('user.toast.createFailed');
       toast.error(msg);
     }
   });
@@ -187,11 +211,14 @@ export function UserUpsertDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User updated');
+      toast.success(t('user.toast.updated'));
       onOpenChange(false);
     },
     onError: (e: any) => {
-      const msg = e?.response?.data?.message ?? e?.message ?? 'Update failed';
+      const msg =
+        e?.response?.data?.message ??
+        e?.message ??
+        t('user.toast.updateFailed');
       toast.error(msg);
     }
   });
@@ -204,7 +231,7 @@ export function UserUpsertDialog({
   const handleSelectImageFromMedia = (file: MediaFile) => {
     const selectedUrl = (file.url ?? file.thumbnail ?? '').trim();
     if (!selectedUrl) {
-      toast.error('Selected media does not have a valid image URL');
+      toast.error(t('user.toast.selectedMediaInvalid'));
       return;
     }
 
@@ -222,12 +249,12 @@ export function UserUpsertDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'Create User' : 'Edit User'}
+            {mode === 'create' ? t('user.createTitle') : t('user.editTitle')}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'Add a new user to your workspace.'
-              : 'Update the selected user.'}
+              ? t('user.createDescription')
+              : t('user.editDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -238,9 +265,12 @@ export function UserUpsertDialog({
               name='username'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t('user.form.username')}</FormLabel>
                   <FormControl>
-                    <Input placeholder='johndoe' {...field} />
+                    <Input
+                      placeholder={t('user.form.usernamePlaceholder')}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -252,11 +282,11 @@ export function UserUpsertDialog({
                 name='password'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('user.form.password')}</FormLabel>
                     <FormControl>
                       <Input
                         type='password'
-                        placeholder='********'
+                        placeholder={t('user.form.passwordPlaceholder')}
                         {...field}
                       />
                     </FormControl>
@@ -270,11 +300,11 @@ export function UserUpsertDialog({
               name='email'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('user.form.email')}</FormLabel>
                   <FormControl>
                     <Input
                       type='email'
-                      placeholder='john@example.com'
+                      placeholder={t('user.form.emailPlaceholder')}
                       {...field}
                     />
                   </FormControl>
@@ -287,10 +317,10 @@ export function UserUpsertDialog({
               name='bio'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bio (optional)</FormLabel>
+                  <FormLabel>{t('user.form.bioOptional')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder='Short bio...'
+                      placeholder={t('user.form.bioPlaceholder')}
                       className='resize-none'
                       {...field}
                     />
@@ -305,7 +335,7 @@ export function UserUpsertDialog({
               render={({ field }) => (
                 <FormItem>
                   <div className='flex items-center justify-between gap-2'>
-                    <FormLabel>Image (optional)</FormLabel>
+                    <FormLabel>{t('user.form.imageOptional')}</FormLabel>
                     <div className='flex items-center gap-2'>
                       <Button
                         type='button'
@@ -314,7 +344,7 @@ export function UserUpsertDialog({
                         onClick={() => setImagePickerOpen(true)}
                         disabled={loading}
                       >
-                        Select from Media
+                        {t('user.form.selectFromMedia')}
                       </Button>
                       {field.value ? (
                         <Button
@@ -324,7 +354,7 @@ export function UserUpsertDialog({
                           onClick={() => field.onChange('')}
                           disabled={loading}
                         >
-                          Clear
+                          {t('user.form.clear')}
                         </Button>
                       ) : null}
                     </div>
@@ -334,7 +364,7 @@ export function UserUpsertDialog({
                       <div className='relative h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-white'>
                         <Image
                           src={resolveApiAssetUrl(field.value)}
-                          alt='User image preview'
+                          alt={t('user.form.imagePreviewAlt')}
                           fill
                           unoptimized
                           className='object-cover'
@@ -343,7 +373,7 @@ export function UserUpsertDialog({
                     </div>
                   ) : (
                     <div className='text-muted-foreground mt-2 rounded-md border border-dashed p-3 text-sm'>
-                      No image selected.
+                      {t('user.form.noImageSelected')}
                     </div>
                   )}
                   <FormMessage />
@@ -355,7 +385,7 @@ export function UserUpsertDialog({
               name='role'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>{t('user.form.role')}</FormLabel>
                   <FormControl>
                     <Select
                       value={field.value || undefined}
@@ -363,7 +393,7 @@ export function UserUpsertDialog({
                       disabled={loading || rolesQuery.isLoading}
                     >
                       <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Select role' />
+                        <SelectValue placeholder={t('user.form.selectRole')} />
                       </SelectTrigger>
                       <SelectContent>
                         {roles.map((role) => (
@@ -379,7 +409,7 @@ export function UserUpsertDialog({
                   </FormControl>
                   {rolesQuery.isError ? (
                     <p className='text-destructive text-sm'>
-                      Failed to load roles.
+                      {t('user.form.rolesLoadFailed')}
                     </p>
                   ) : null}
                   <FormMessage />
@@ -394,10 +424,12 @@ export function UserUpsertDialog({
                 variant='ghost'
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t('user.form.cancel')}
               </Button>
               <Button type='submit' disabled={loading}>
-                {mode === 'create' ? 'Create' : 'Save changes'}
+                {mode === 'create'
+                  ? t('user.form.createSubmit')
+                  : t('user.form.saveChanges')}
               </Button>
             </div>
           </form>
@@ -408,8 +440,8 @@ export function UserUpsertDialog({
           onClose={() => setImagePickerOpen(false)}
           onSelect={handleSelectImageFromMedia}
           allowUploadFromDevice={false}
-          title='Select user image'
-          description='Select an image from Media Manager.'
+          title={t('user.form.selectUserImage')}
+          description={t('user.form.mediaDescription')}
           types={['image']}
           accept='image/*'
         />

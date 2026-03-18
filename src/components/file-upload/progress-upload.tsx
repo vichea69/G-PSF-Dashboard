@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
   formatBytes,
@@ -321,9 +322,12 @@ export default function ProgressUpload({
                 <div className='flex-shrink-0'>
                   {fileItem.preview &&
                   fileItem.file.type.startsWith('image/') ? (
-                    <img
+                    <Image
                       src={fileItem.preview}
                       alt={fileItem.file.name}
+                      width={48}
+                      height={48}
+                      unoptimized
                       className='h-12 w-12 rounded-lg border object-cover'
                     />
                   ) : (

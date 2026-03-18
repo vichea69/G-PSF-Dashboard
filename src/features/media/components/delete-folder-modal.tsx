@@ -9,6 +9,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslate } from '@/hooks/use-translate';
 
 type DeleteFolderModalProps = {
   open: boolean;
@@ -27,10 +28,13 @@ export function DeleteFolderModal({
   folderName,
   force = false
 }: DeleteFolderModalProps) {
-  const title = force ? 'Delete Folder' : 'Delete Folder?';
+  const { t } = useTranslate();
+  const title = force
+    ? t('media.toolbar.deleteFolder')
+    : `${t('media.toolbar.deleteFolder')}?`;
   const description = force
-    ? `This will delete "${folderName || 'this folder'}" and all files inside. This action cannot be undone.`
-    : `This will delete "${folderName || 'this folder'}". The folder must be empty.`;
+    ? `This will delete "${folderName || t('media.toolbar.selectedFolder')}" and all files inside. This action cannot be undone.`
+    : `This will delete "${folderName || t('media.toolbar.selectedFolder')}". The folder must be empty.`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,7 +51,7 @@ export function DeleteFolderModal({
             disabled={loading}
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t('media.createFolder.cancel')}
           </Button>
           <Button
             type='button'
@@ -55,7 +59,9 @@ export function DeleteFolderModal({
             disabled={loading}
             onClick={() => onConfirm()}
           >
-            {loading ? 'Deleting...' : 'Delete'}
+            {loading
+              ? `${t('media.preview.delete')}...`
+              : t('media.preview.delete')}
           </Button>
         </DialogFooter>
       </DialogContent>

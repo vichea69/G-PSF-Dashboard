@@ -15,6 +15,7 @@ import {
   type SiteSettingFormValues
 } from '@/features/site-setting/types/site-setting-types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslate } from '@/hooks/use-translate';
 
 function trimSiteSettingPayload(values: SiteSettingFormValues) {
   return {
@@ -87,6 +88,7 @@ function toFormData(values: SiteSettingFormValues) {
 
 export default function SiteSetting() {
   const queryClient = useQueryClient();
+  const { t } = useTranslate();
   const { data, isLoading, isError, error } = useSiteSetting();
   const [formData, setFormData] = useState<SiteSettingFormValues>(
     createEmptySiteSetting()
@@ -104,14 +106,14 @@ export default function SiteSetting() {
       return UpdateSiteSetting(payload);
     },
     onSuccess: () => {
-      toast.success('Site settings saved');
+      toast.success(t('siteSetting.toast.saved'));
       queryClient.invalidateQueries({ queryKey: ['site-setting'] });
     },
     onError: (mutationError: unknown) => {
       const message =
         mutationError instanceof Error
           ? mutationError.message
-          : 'Failed to save site settings';
+          : t('siteSetting.toast.saveFailed');
       toast.error(message);
     }
   });
@@ -124,14 +126,14 @@ export default function SiteSetting() {
   if (isLoading) {
     return (
       <div className='text-muted-foreground rounded-md border border-dashed p-6 text-sm'>
-        Loading site settings...
+        {t('siteSetting.loading')}
       </div>
     );
   }
 
   if (isError) {
     const message =
-      error instanceof Error ? error.message : 'Failed to load site settings';
+      error instanceof Error ? error.message : t('siteSetting.loadFailed');
     return (
       <div className='text-destructive rounded-md border border-dashed p-6 text-sm'>
         {message}
@@ -148,8 +150,10 @@ export default function SiteSetting() {
           className='w-fit'
         >
           <TabsList>
-            <TabsTrigger value='en'>English</TabsTrigger>
-            <TabsTrigger value='km'>Khmer</TabsTrigger>
+            <TabsTrigger value='en'>
+              {t('siteSetting.tabs.english')}
+            </TabsTrigger>
+            <TabsTrigger value='km'>{t('siteSetting.tabs.khmer')}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -193,7 +197,9 @@ export default function SiteSetting() {
 
         <div className='flex justify-end'>
           <Button type='submit' disabled={mutation.isPending}>
-            {mutation.isPending ? 'Saving...' : 'Save changes'}
+            {mutation.isPending
+              ? t('siteSetting.form.saving')
+              : t('siteSetting.form.saveChanges')}
           </Button>
         </div>
       </form>

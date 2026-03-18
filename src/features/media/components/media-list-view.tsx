@@ -36,6 +36,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { DataTablePagination } from '@/components/ui/table/data-table-pagination';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface MediaListViewProps {
   folders: MediaFolder[];
@@ -86,6 +87,7 @@ export function MediaListView({
   onPageChange,
   onPageSizeChange
 }: MediaListViewProps) {
+  const { t } = useTranslate();
   const rows = useMemo<MediaListRow[]>(
     () => [
       ...folders.map((folder) => ({
@@ -141,207 +143,194 @@ export function MediaListView({
   const getTypeBadge = (type: MediaFile['type']) => {
     switch (type) {
       case 'image':
-        return { variant: 'info' as const, label: 'Image' };
+        return { variant: 'info' as const, label: t('media.table.image') };
       case 'video':
-        return { variant: 'success' as const, label: 'Video' };
+        return { variant: 'success' as const, label: t('media.table.video') };
       case 'pdf':
-        return { variant: 'warning' as const, label: 'PDF' };
+        return { variant: 'warning' as const, label: t('media.table.pdf') };
       case 'document':
       default:
-        return { variant: 'secondary' as const, label: 'Document' };
+        return {
+          variant: 'secondary' as const,
+          label: t('media.table.document')
+        };
     }
   };
 
-  const columns = useMemo<ColumnDef<MediaListRow>[]>(
-    () => [
-      {
-        id: 'select',
-        header: () => (
-          <Checkbox
-            checked={someSelected ? 'indeterminate' : allSelected}
-            onCheckedChange={(value) => toggleAllRows(value === true)}
-            disabled={rows.length === 0}
-          />
-        ),
-        cell: ({ row }) => {
-          const mediaRow = row.original;
-          if (mediaRow.kind === 'folder') {
-            return (
-              <Checkbox
-                checked={selectedFolders.has(mediaRow.folder.id)}
-                onCheckedChange={() =>
-                  onToggleFolderSelection(mediaRow.folder.id)
-                }
-              />
-            );
-          }
-
-          const file = mediaRow.file;
+  const columns: ColumnDef<MediaListRow>[] = [
+    {
+      id: 'select',
+      header: () => (
+        <Checkbox
+          checked={someSelected ? 'indeterminate' : allSelected}
+          onCheckedChange={(value) => toggleAllRows(value === true)}
+          disabled={rows.length === 0}
+        />
+      ),
+      cell: ({ row }) => {
+        const mediaRow = row.original;
+        if (mediaRow.kind === 'folder') {
           return (
             <Checkbox
-              checked={selectedFiles.has(file.id)}
-              onCheckedChange={() => onToggleSelection(file.id)}
+              checked={selectedFolders.has(mediaRow.folder.id)}
+              onCheckedChange={() =>
+                onToggleFolderSelection(mediaRow.folder.id)
+              }
             />
           );
         }
-      },
-      {
-        id: 'preview',
-        header: 'Preview',
-        cell: ({ row }) => {
-          const mediaRow = row.original;
-          if (mediaRow.kind === 'folder') {
-            return (
-              <div className='bg-muted flex h-14 w-14 items-center justify-center overflow-hidden rounded'>
-                <Folder className='h-6 w-6 text-[#f59e0b]' />
-              </div>
-            );
-          }
 
-          const file = mediaRow.file;
-          const canShowThumbnail =
-            (file.type === 'image' || file.type === 'pdf') &&
-            Boolean(file.thumbnail);
+        const file = mediaRow.file;
+        return (
+          <Checkbox
+            checked={selectedFiles.has(file.id)}
+            onCheckedChange={() => onToggleSelection(file.id)}
+          />
+        );
+      }
+    },
+    {
+      id: 'preview',
+      header: t('media.table.preview'),
+      cell: ({ row }) => {
+        const mediaRow = row.original;
+        if (mediaRow.kind === 'folder') {
           return (
-            <div className='bg-muted relative h-14 w-14 overflow-hidden rounded'>
-              {canShowThumbnail ? (
-                <Image
-                  src={file.thumbnail || '/placeholder.svg'}
-                  alt={file.name}
-                  fill
-                  className='object-cover'
-                  unoptimized
-                />
-              ) : (
-                <div className='flex h-full items-center justify-center'>
-                  {getFileIcon(file.type)}
-                </div>
-              )}
+            <div className='bg-muted flex h-14 w-14 items-center justify-center overflow-hidden rounded'>
+              <Folder className='h-6 w-6 text-[#f59e0b]' />
             </div>
           );
         }
-      },
-      {
-        id: 'name',
-        header: 'Name',
-        cell: ({ row }) => (
-          <div className='text-foreground truncate text-sm font-medium'>
-            {row.original.kind === 'folder'
-              ? row.original.folder.name
-              : row.original.file.name}
-          </div>
-        )
-      },
-      {
-        id: 'type',
-        header: 'Type',
-        cell: ({ row }) => {
-          const mediaRow = row.original;
-          if (mediaRow.kind === 'folder') {
-            return (
-              <Badge
-                variant='secondary'
-                appearance='light'
-                size='sm'
-                className='font-medium'
-              >
-                Folder
-              </Badge>
-            );
-          }
 
-          const badge = getTypeBadge(mediaRow.file.type);
+        const file = mediaRow.file;
+        const canShowThumbnail =
+          (file.type === 'image' || file.type === 'pdf') &&
+          Boolean(file.thumbnail);
+        return (
+          <div className='bg-muted relative h-14 w-14 overflow-hidden rounded'>
+            {canShowThumbnail ? (
+              <Image
+                src={file.thumbnail || '/placeholder.svg'}
+                alt={file.name}
+                fill
+                className='object-cover'
+                unoptimized
+              />
+            ) : (
+              <div className='flex h-full items-center justify-center'>
+                {getFileIcon(file.type)}
+              </div>
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      id: 'name',
+      header: t('media.table.name'),
+      cell: ({ row }) => (
+        <div className='text-foreground truncate text-sm font-medium'>
+          {row.original.kind === 'folder'
+            ? row.original.folder.name
+            : row.original.file.name}
+        </div>
+      )
+    },
+    {
+      id: 'type',
+      header: t('media.table.type'),
+      cell: ({ row }) => {
+        const mediaRow = row.original;
+        if (mediaRow.kind === 'folder') {
           return (
             <Badge
-              variant={badge.variant}
+              variant='secondary'
               appearance='light'
               size='sm'
               className='font-medium'
             >
-              {badge.label}
+              {t('media.table.folder')}
             </Badge>
           );
         }
-      },
-      {
-        id: 'size',
-        header: 'Size',
-        cell: ({ row }) => (
-          <div className='text-muted-foreground text-sm'>
-            {row.original.kind === 'folder'
-              ? '-'
-              : formatFileSize(row.original.file.size)}
-          </div>
-        )
-      },
-      {
-        id: 'date',
-        header: 'Date',
-        cell: ({ row }) => (
-          <div className='text-muted-foreground text-sm'>
-            {formatDate(
-              row.original.kind === 'folder'
-                ? row.original.folder.createdAt
-                : row.original.file.uploadedAt
-            )}
-          </div>
-        )
-      },
-      {
-        id: 'actions',
-        header: () => <div className='text-right'>Actions</div>,
-        cell: ({ row }) => {
-          const mediaRow = row.original;
-          if (mediaRow.kind === 'folder') {
-            return (
-              <div className='flex justify-end gap-2'>
-                <Button
-                  size='sm'
-                  variant='ghost'
-                  onClick={() => onOpenFolder?.(mediaRow.folder)}
-                >
-                  <FolderOpen className='h-4 w-4' />
-                </Button>
-              </div>
-            );
-          }
 
-          const file = mediaRow.file;
+        const badge = getTypeBadge(mediaRow.file.type);
+        return (
+          <Badge
+            variant={badge.variant}
+            appearance='light'
+            size='sm'
+            className='font-medium'
+          >
+            {badge.label}
+          </Badge>
+        );
+      }
+    },
+    {
+      id: 'size',
+      header: t('media.table.size'),
+      cell: ({ row }) => (
+        <div className='text-muted-foreground text-sm'>
+          {row.original.kind === 'folder'
+            ? '-'
+            : formatFileSize(row.original.file.size)}
+        </div>
+      )
+    },
+    {
+      id: 'date',
+      header: t('media.table.date'),
+      cell: ({ row }) => (
+        <div className='text-muted-foreground text-sm'>
+          {formatDate(
+            row.original.kind === 'folder'
+              ? row.original.folder.createdAt
+              : row.original.file.uploadedAt
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'actions',
+      header: () => (
+        <div className='text-right'>{t('media.table.actions')}</div>
+      ),
+      cell: ({ row }) => {
+        const mediaRow = row.original;
+        if (mediaRow.kind === 'folder') {
           return (
             <div className='flex justify-end gap-2'>
-              <Button size='sm' variant='ghost' onClick={() => onPreview(file)}>
-                <Eye className='h-4 w-4' />
-              </Button>
               <Button
                 size='sm'
                 variant='ghost'
-                disabled={deletingIds?.has(file.id)}
-                onClick={() => onDelete(file)}
+                onClick={() => onOpenFolder?.(mediaRow.folder)}
               >
-                <Trash2 className='h-4 w-4' />
+                <FolderOpen className='h-4 w-4' />
               </Button>
             </div>
           );
         }
+
+        const file = mediaRow.file;
+        return (
+          <div className='flex justify-end gap-2'>
+            <Button size='sm' variant='ghost' onClick={() => onPreview(file)}>
+              <Eye className='h-4 w-4' />
+            </Button>
+            <Button
+              size='sm'
+              variant='ghost'
+              disabled={deletingIds?.has(file.id)}
+              onClick={() => onDelete(file)}
+            >
+              <Trash2 className='h-4 w-4' />
+            </Button>
+          </div>
+        );
       }
-    ],
-    [
-      allSelected,
-      deletingIds,
-      files.length,
-      folders,
-      onDelete,
-      onOpenFolder,
-      onPreview,
-      onToggleAll,
-      onToggleFolderSelection,
-      onToggleSelection,
-      rows.length,
-      selectedFiles,
-      selectedFolders,
-      someSelected
-    ]
-  );
+    }
+  ];
 
   const table = useReactTable({
     data: rows,
@@ -419,7 +408,7 @@ export function MediaListView({
                   colSpan={table.getAllColumns().length}
                   className='h-24 text-center'
                 >
-                  No results.
+                  {t('table.noResults')}
                 </TableCell>
               </TableRow>
             )}

@@ -23,6 +23,7 @@ import type {
   UpdateRoleInfo,
   UpdateRolePermissions
 } from '@/server/action/admin/types';
+import { useTranslate } from '@/hooks/use-translate';
 
 const ROLES_QUERY_KEY = ['roles'] as const;
 
@@ -127,6 +128,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const hydratedRoleIdRef = useRef<string | null>(null);
+  const { t } = useTranslate();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -220,7 +222,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
       shouldUpdatePermissions: boolean;
     }) => {
       if (!resolvedRoleId) {
-        throw new Error('Role id is missing');
+        throw new Error(t('role.toast.idMissing'));
       }
 
       const numericRoleId = Number(resolvedRoleId);
@@ -236,13 +238,13 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
       return true;
     },
     onSuccess: () => {
-      toast.success('Role updated successfully');
+      toast.success(t('role.toast.updated'));
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ['role', roleId] });
       router.push('/admin/roles');
     },
     onError: (error: unknown) => {
-      toast.error(getErrorMessage(error, 'Failed to update role'));
+      toast.error(getErrorMessage(error, t('role.toast.updateFailed')));
     }
   });
 
@@ -351,7 +353,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
     const trimmedDescription = description.trim();
 
     if (!trimmedName) {
-      toast.error('Role name is required');
+      toast.error(t('role.permissions.roleNameRequired'));
       return;
     }
 
@@ -366,7 +368,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
       trimmedDescription !== (role?.description ?? '').trim();
 
     if (!shouldUpdateInfo && !shouldUpdatePermissions) {
-      toast.info('No changes to save');
+      toast.info(t('role.permissions.noChangesToSave'));
       return;
     }
 
@@ -393,7 +395,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
     return (
       <Card>
         <CardContent className='text-muted-foreground py-6 text-sm'>
-          Loading role details...
+          {t('role.permissions.loadingRoleDetails')}
         </CardContent>
       </Card>
     );
@@ -402,9 +404,9 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
   if (!role) {
     return (
       <Alert variant='destructive' appearance='light'>
-        <AlertTitle>Role not found</AlertTitle>
+        <AlertTitle>{t('role.permissions.roleNotFound')}</AlertTitle>
         <AlertDescription>
-          The selected role could not be loaded.
+          {t('role.permissions.roleNotFoundDescription')}
         </AlertDescription>
       </Alert>
     );
@@ -413,9 +415,9 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
   if (loadError) {
     return (
       <Alert variant='destructive' appearance='light'>
-        <AlertTitle>Unable to load role</AlertTitle>
+        <AlertTitle>{t('role.permissions.unableToLoadRole')}</AlertTitle>
         <AlertDescription>
-          {getErrorMessage(loadError, 'Failed to load role data')}
+          {getErrorMessage(loadError, t('role.permissions.loadRoleDataFailed'))}
         </AlertDescription>
       </Alert>
     );
@@ -461,10 +463,12 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
               onClick={handleCancel}
               disabled={editRoleMutation.isPending}
             >
-              Cancel
+              {t('role.form.cancel')}
             </Button>
             <Button type='submit' disabled={isSubmitDisabled}>
-              {editRoleMutation.isPending ? 'Saving...' : 'Save changes'}
+              {editRoleMutation.isPending
+                ? t('role.form.saving')
+                : t('role.form.saveChanges')}
             </Button>
           </CardFooter>
         </Card>

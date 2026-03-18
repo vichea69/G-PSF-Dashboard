@@ -10,7 +10,6 @@ export const useUser = () => {
     queryFn: async () => {
       const headers = await getAuthHeaders();
       const response = await api.get('/users', { headers });
-      console.log(response);
       return response.data;
     }
   });

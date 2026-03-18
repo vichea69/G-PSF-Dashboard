@@ -3,6 +3,7 @@
 import { Folder } from 'lucide-react';
 import { type MediaFolder } from '@/features/media/types/media-type';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useTranslate } from '@/hooks/use-translate';
 
 type MediaFolderStructureProps = {
   folders: MediaFolder[];
@@ -49,6 +50,7 @@ function MediaFolderCard({
   onToggleSelection,
   onOpenFolder
 }: MediaFolderCardProps) {
+  const { t } = useTranslate();
   const openFolder = () => onOpenFolder?.(folder);
 
   return (
@@ -83,7 +85,9 @@ function MediaFolderCard({
         <p className='text-foreground group-hover:text-primary truncate text-sm font-medium transition-colors'>
           {folder.name}
         </p>
-        <p className='text-muted-foreground mt-1 text-xs'>Folder</p>
+        <p className='text-muted-foreground mt-1 text-xs'>
+          {t('media.table.folder')}
+        </p>
       </div>
       <span className='bg-primary/60 pointer-events-none absolute right-0 bottom-0 left-0 h-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100' />
     </div>

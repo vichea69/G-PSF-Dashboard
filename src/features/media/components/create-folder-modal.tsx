@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useTranslate } from '@/hooks/use-translate';
 
 type CreateFolderModalProps = {
   open: boolean;
@@ -25,6 +26,7 @@ export function CreateFolderModal({
   onOpenChange,
   onCreate
 }: CreateFolderModalProps) {
+  const { t } = useTranslate();
   const [folderName, setFolderName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,7 +42,7 @@ export function CreateFolderModal({
     const trimmedName = folderName.trim();
 
     if (!trimmedName) {
-      toast.error('Folder name is required');
+      toast.error(t('media.createFolder.required'));
       return;
     }
 
@@ -59,20 +61,22 @@ export function CreateFolderModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Create Folder</DialogTitle>
+          <DialogTitle>{t('media.createFolder.title')}</DialogTitle>
           <DialogDescription>
-            Enter a folder name to organize your media files.
+            {t('media.createFolder.description')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <Label htmlFor='folder-name'>Folder Name</Label>
+            <Label htmlFor='folder-name'>
+              {t('media.createFolder.folderName')}
+            </Label>
             <Input
               id='folder-name'
               value={folderName}
               onChange={(event) => setFolderName(event.target.value)}
-              placeholder='Example: Reports 2026'
+              placeholder={t('media.createFolder.folderNamePlaceholder')}
               autoFocus
             />
           </div>
@@ -84,10 +88,12 @@ export function CreateFolderModal({
               disabled={submitting}
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t('media.createFolder.cancel')}
             </Button>
             <Button type='submit' disabled={submitting}>
-              {submitting ? 'Creating...' : 'Create'}
+              {submitting
+                ? t('media.createFolder.creating')
+                : t('media.createFolder.create')}
             </Button>
           </DialogFooter>
         </form>

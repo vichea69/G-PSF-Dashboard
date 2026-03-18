@@ -868,5 +868,401 @@ export const en = {
       idRequired: 'Working group id is required',
       titleRequired: 'Title is required'
     }
+  },
+  user: {
+    title: 'Users',
+    description: 'Manage users',
+    addNew: 'Add User',
+    createTitle: 'Create User',
+    createDescription: 'Add a new user to your workspace.',
+    editTitle: 'Edit User',
+    editDescription: 'Update the selected user.',
+    columns: {
+      avatar: 'Avatar',
+      username: 'Username',
+      email: 'Email',
+      bio: 'Bio',
+      role: 'Role',
+      lastLogin: 'Last Login',
+      actions: 'Actions'
+    },
+    filters: {
+      usernameLabel: 'Username',
+      searchUsername: 'Search username...'
+    },
+    form: {
+      username: 'Username',
+      usernamePlaceholder: 'johndoe',
+      password: 'Password',
+      passwordPlaceholder: '********',
+      email: 'Email',
+      emailPlaceholder: 'john@example.com',
+      bioOptional: 'Bio (optional)',
+      bioPlaceholder: 'Short bio...',
+      imageOptional: 'Image (optional)',
+      selectFromMedia: 'Select from Media',
+      clear: 'Clear',
+      noImageSelected: 'No image selected.',
+      imagePreviewAlt: 'User image preview',
+      role: 'Role',
+      selectRole: 'Select role',
+      rolesLoadFailed: 'Failed to load roles.',
+      cancel: 'Cancel',
+      createSubmit: 'Create',
+      saveChanges: 'Save changes',
+      selectUserImage: 'Select user image',
+      mediaDescription: 'Select an image from Media Manager.',
+      validation: {
+        usernameRequired: 'Username should not be empty',
+        emailRequired: 'Email should not be empty',
+        emailInvalid: 'Email must be a valid email address',
+        roleRequired: 'Role should not be empty',
+        passwordRequired: 'Password should not be empty'
+      }
+    },
+    actions: {
+      menuLabel: 'Actions',
+      openMenu: 'Open menu',
+      edit: 'Edit',
+      delete: 'Delete'
+    },
+    toast: {
+      created: 'User created successfully',
+      updated: 'User updated successfully',
+      deleted: 'User deleted successfully',
+      deleteFailed: 'Delete failed',
+      createFailed: 'Create failed',
+      updateFailed: 'Update failed',
+      selectedMediaInvalid: 'Selected media does not have a valid image URL',
+      loadFailed: 'Failed to load users'
+    }
+  },
+  role: {
+    title: 'Role and Permission',
+    description: 'Manage role and permission of user',
+    addNew: 'New Role',
+    createTitle: 'Create Role',
+    createDescription: 'Define permissions and assign access for a new role.',
+    editTitle: 'Edit Role',
+    editDescription: 'Adjust permissions and update role details.',
+    columns: {
+      role: 'Role',
+      type: 'Type',
+      status: 'Status',
+      permissions: 'Permissions',
+      resources: 'Resources',
+      updated: 'Updated',
+      actions: 'Actions'
+    },
+    filters: {
+      roleLabel: 'Role',
+      searchRole: 'Search role...'
+    },
+    form: {
+      roleName: 'Role Name',
+      roleNamePlaceholder: 'Enter role name',
+      description: 'Description',
+      descriptionPlaceholder: 'Short description about this role',
+      cancel: 'Cancel',
+      createSubmit: 'Create role',
+      creating: 'Creating...',
+      saveChanges: 'Save changes',
+      saving: 'Saving...'
+    },
+    permissions: {
+      loadingResources: 'Loading available resources...',
+      loadResourcesFailed: 'Failed to load available resources',
+      roleNameRequired: 'Role name is required',
+      noResourcesAvailable: 'No resources available.',
+      resourcesTitle: 'Resources',
+      resourcesDescription:
+        'Toggle every permission for this role or adjust per section below.',
+      permissionsActiveSuffix: 'permissions active',
+      selectAll: 'Select all',
+      deselectAll: 'Deselect all',
+      resourceHeader: 'Resource',
+      toggleAllFor: 'Toggle all permissions for',
+      allow: 'Allow',
+      on: 'on',
+      loadingRoleDetails: 'Loading role details...',
+      roleNotFound: 'Role not found',
+      roleNotFoundDescription: 'The selected role could not be loaded.',
+      unableToLoadRole: 'Unable to load role',
+      loadRoleDataFailed: 'Failed to load role data',
+      noChangesToSave: 'No changes to save'
+    },
+    type: {
+      system: 'System',
+      custom: 'Custom'
+    },
+    status: {
+      active: 'Active',
+      inactive: 'Inactive'
+    },
+    actions: {
+      menuLabel: 'Actions',
+      openMenu: 'Open menu',
+      edit: 'Edit',
+      delete: 'Delete'
+    },
+    toast: {
+      created: 'Role created successfully',
+      updated: 'Role updated successfully',
+      deleted: 'Role deleted successfully',
+      createFailed: 'Failed to create role',
+      updateFailed: 'Failed to update role',
+      deleteFailed: 'Failed to delete role',
+      idMissing: 'Role id is missing',
+      loadFailed: 'Failed to load roles'
+    }
+  },
+  siteSetting: {
+    title: 'Site Settings',
+    description: 'Manage logo and site page content',
+    loading: 'Loading site settings...',
+    loadFailed: 'Failed to load site settings',
+    tabs: {
+      english: 'English',
+      khmer: 'Khmer'
+    },
+    form: {
+      saving: 'Saving...',
+      saveChanges: 'Save changes'
+    },
+    basicInfo: {
+      siteTitle: 'Site Title',
+      siteDescription: 'Site Description',
+      siteLogo: 'Site Logo',
+      footerBackground: 'Footer Background',
+      address: 'Address',
+      openTime: 'Open Time',
+      chooseFile: 'Choose file',
+      clear: 'Clear',
+      noImageSelected: 'No image selected',
+      selectLogoImage: 'Select Logo Image',
+      selectFooterBackground: 'Select Footer Background',
+      chooseImageDescription: 'Choose an image from Media Manager.',
+      titlePlaceholderEn: 'Enter site title in English',
+      titlePlaceholderKm: 'បញ្ចូលចំណងជើងគេហទំព័រជាភាសាខ្មែរ',
+      descriptionPlaceholderEn: 'Enter site description in English',
+      descriptionPlaceholderKm: 'បញ្ចូលពិពណ៌នាគេហទំព័រជាភាសាខ្មែរ',
+      addressPlaceholderEn: 'Enter address in English',
+      addressPlaceholderKm: 'បញ្ចូលអាសយដ្ឋានជាភាសាខ្មែរ',
+      openTimePlaceholderEn: 'Enter open time in English',
+      openTimePlaceholderKm: 'បញ្ចូលម៉ោងបើកជាភាសាខ្មែរ',
+      previewAltSuffix: 'preview'
+    },
+    contact: {
+      title: 'Contact',
+      description:
+        'Manage phone numbers and desk emails for the contact section.',
+      phoneNumbers: 'Phone Numbers',
+      addPhone: 'Add Phone',
+      desks: 'Desks',
+      addDesk: 'Add Desk',
+      deskEmails: 'Desk Emails',
+      addEmail: 'Add Email',
+      phonePlaceholder: '+855 99 799 579',
+      deskTitlePlaceholder: 'Desk title (General, China Desk...)',
+      emailPlaceholder: 'desk@example.com'
+    },
+    socialLinks: {
+      title: 'Social Links',
+      description: 'Add social links shown in footer or contact section.',
+      addLink: 'Add Link',
+      icon: 'Icon',
+      selectIconFromLibrary: 'Select icon from library',
+      linkTitle: 'Title',
+      titlePlaceholder: 'Facebook',
+      url: 'URL',
+      urlPlaceholder: 'https://example.com'
+    },
+    toast: {
+      saved: 'Site settings saved',
+      saveFailed: 'Failed to save site settings'
+    }
+  },
+  media: {
+    title: 'Media Manager',
+    folderTitlePrefix: 'Media Folder',
+    loadFailed: 'Failed to load media',
+    toolbar: {
+      allMedia: 'All Media',
+      folder: 'Folder',
+      selectedFolder: 'Selected Folder',
+      searchFiles: 'Search files...',
+      upload: 'Upload',
+      createFolder: 'Create Folder',
+      deleteFolder: 'Delete Folder',
+      deleteFiles: 'Delete',
+      gridView: 'Grid view',
+      listView: 'List view',
+      newest: 'Newest',
+      name: 'Name',
+      size: 'Size',
+      prev: 'Prev',
+      next: 'Next',
+      rows: 'Rows',
+      totalFilesSuffix: 'files'
+    },
+    state: {
+      loading: 'Loading media...',
+      retry: 'Retry',
+      noFilesInFolder: 'No files in this folder',
+      noMediaFilesFound: 'No media files found',
+      adjustSearch: 'Try adjusting your search',
+      uploadOrGoBack: 'Upload files or go back to all media.',
+      uploadFirstFile: 'Upload your first file to get started',
+      uploadFiles: 'Upload Files'
+    },
+    table: {
+      preview: 'Preview',
+      name: 'Name',
+      type: 'Type',
+      size: 'Size',
+      date: 'Date',
+      actions: 'Actions',
+      folder: 'Folder',
+      image: 'Image',
+      video: 'Video',
+      pdf: 'PDF',
+      document: 'Document'
+    },
+    createFolder: {
+      title: 'Create Folder',
+      description: 'Enter a folder name to organize your media files.',
+      folderName: 'Folder Name',
+      folderNamePlaceholder: 'Example: Reports 2026',
+      required: 'Folder name is required',
+      cancel: 'Cancel',
+      create: 'Create',
+      creating: 'Creating...'
+    },
+    upload: {
+      title: 'Upload Files',
+      description: 'Drag and drop files here or click to browse.',
+      descriptionInFolder: 'Files will be uploaded to this folder.',
+      dropHere: 'Drop files here',
+      dragAndDrop: 'Drag and drop files here',
+      or: 'or',
+      browseFiles: 'Browse Files',
+      done: 'Done',
+      failed: 'Failed',
+      idleHint: 'Choose files to start uploading.',
+      uploadingState: 'Uploading...',
+      completeState: 'Upload complete.',
+      uploaded: 'uploaded',
+      uploadFailed: 'Failed to upload file',
+      retry: 'Retry',
+      clearCompleted: 'Clear completed',
+      close: 'Close'
+    },
+    preview: {
+      copied: 'URL copied',
+      copyFailed: 'Failed to copy URL',
+      pdfThumbnailUnavailable: 'PDF thumbnail not available',
+      videoPreview: 'Video preview',
+      previewUnavailable: 'Preview not available',
+      fileTypeSuffix: 'File',
+      fileDetails: 'File Details',
+      type: 'Type',
+      size: 'Size',
+      copyUrl: 'Copy URL',
+      delete: 'Delete'
+    },
+    toast: {
+      deleted: 'Media deleted successfully',
+      deleteFailed: 'Failed to delete media',
+      foldersDeleted: 'Folders deleted successfully',
+      deleteFolderFailed: 'Failed to delete folder',
+      folderCreated: 'Folder created successfully',
+      createFolderFailed: 'Failed to create folder'
+    }
+  },
+  menu: {
+    title: 'Menus',
+    description: 'Create and manage navigation menus',
+    addNew: 'Add New',
+    table: {
+      name: 'Name',
+      slug: 'Slug',
+      items: 'Items',
+      status: 'Status',
+      created: 'Created',
+      actions: 'Actions',
+      searchName: 'Search name...',
+      active: 'Active',
+      inactive: 'Inactive',
+      loading: 'Loading menus...',
+      loadFailed: 'Failed to load menus.'
+    },
+    dialogs: {
+      createMenuTitle: 'Create New Menu',
+      createMenuDescription:
+        'Enter a slug identifier for the new navigation menu.',
+      menuSlug: 'Menu Slug',
+      menuSlugPlaceholder: 'main-nav or footer-links',
+      menuSlugHint: 'Lowercase with hyphens, e.g.',
+      createMenuButton: 'Create Menu',
+      rename: 'Rename',
+      renameMenuTitle: 'Rename Menu',
+      renameMenuDescription: 'Update the display name for this menu.',
+      menuName: 'Menu Name',
+      menuNamePlaceholder: 'Quick link',
+      saveName: 'Save Name',
+      createItemTitle: 'Add Menu Item',
+      createItemDescriptionPrefix: 'Create a new item in the',
+      createItemDescriptionSuffix: 'menu.',
+      editItemTitle: 'Edit Menu Item',
+      editItemDescription: 'Update the label, URL, or parent of this item.',
+      labelEn: 'Label (EN)',
+      labelKm: 'Label (KM)',
+      labelRequired: 'Please enter at least one label (EN or KM).',
+      url: 'URL',
+      urlPlaceholder: '/page-url or https://external.com',
+      urlEditPlaceholder: '/resources/policy-updates',
+      urlRequired: 'URL is required.',
+      urlInvalid: 'URL must start with "/" or "http(s)://".',
+      parentItem: 'Parent Item',
+      noParent: 'No parent (top level)',
+      addItem: 'Add Item',
+      cancel: 'Cancel',
+      save: 'Save',
+      saving: 'Saving...'
+    },
+    panel: {
+      sidebarTitle: 'Menus',
+      noMenusYet: 'No menus yet',
+      noItemsTitle: 'No menu items yet',
+      noItemsDescription:
+        'Add your first menu item to start building the navigation structure',
+      itemsSuffix: 'items',
+      hidden: 'Hidden',
+      opensInNewTab: 'Opens in new tab',
+      edit: 'Edit',
+      delete: 'Delete',
+      hide: 'Hide',
+      show: 'Show',
+      refreshing: 'Refreshing...'
+    },
+    toast: {
+      slugRequired: 'Menu slug is required',
+      created: 'Menu created',
+      createFailed: 'Failed to create menu',
+      nameUpdated: 'Menu name updated',
+      nameUpdateFailed: 'Failed to update menu name',
+      itemCreated: 'Menu item created',
+      itemCreateFailed: 'Failed to create menu item',
+      itemUpdated: 'Menu item updated',
+      itemUpdateFailed: 'Failed to update menu item',
+      itemDeleted: 'Menu item deleted',
+      itemDeleteFailed: 'Failed to delete menu item',
+      deleted: 'Menu deleted',
+      deleteFailed: 'Failed to delete menu',
+      orderUpdated: 'Menu order updated',
+      reorderFailed: 'Failed to reorder items',
+      detailLoadFailed:
+        'Failed to load menu. Please check the slug and try again.'
+    }
   }
 } as const;

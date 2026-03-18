@@ -7,23 +7,16 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import {
   GripVertical,
-  MoreVertical,
   Edit,
   Trash2,
   EyeOff,
-  Eye,
   ExternalLink,
   ChevronRight,
   ChevronDown
 } from 'lucide-react';
 import { MenuItem, getMenuLabelText } from '@/features/menu/types';
+import { useTranslate } from '@/hooks/use-translate';
 import { Draggable } from '@hello-pangea/dnd';
 
 export interface FlatMenuItem {
@@ -39,7 +32,6 @@ interface MenuItemRowProps {
   isExpanded: boolean;
   onToggleExpand: (itemId: string) => void;
   onEdit?: (itemId: string) => void;
-  onToggleVisibility?: (itemId: string) => void;
   onDelete?: (itemId: string) => void;
 }
 
@@ -49,10 +41,10 @@ export function MenuItemRow({
   isExpanded,
   onToggleExpand,
   onEdit,
-  onToggleVisibility,
   onDelete
 }: MenuItemRowProps) {
   const { item, level, isLast, hasChildren } = flat;
+  const { t } = useTranslate();
 
   return (
     <Draggable draggableId={item.id} index={index}>
@@ -130,7 +122,9 @@ export function MenuItemRow({
                     <TooltipTrigger asChild>
                       <EyeOff className='text-muted-foreground h-3 w-3 shrink-0' />
                     </TooltipTrigger>
-                    <TooltipContent side='top'>Hidden</TooltipContent>
+                    <TooltipContent side='top'>
+                      {t('menu.panel.hidden')}
+                    </TooltipContent>
                   </Tooltip>
                 )}
                 {item.openInNewTab && (
@@ -138,7 +132,9 @@ export function MenuItemRow({
                     <TooltipTrigger asChild>
                       <ExternalLink className='text-muted-foreground h-3 w-3 shrink-0' />
                     </TooltipTrigger>
-                    <TooltipContent side='top'>Opens in new tab</TooltipContent>
+                    <TooltipContent side='top'>
+                      {t('menu.panel.opensInNewTab')}
+                    </TooltipContent>
                   </Tooltip>
                 )}
                 <span className='text-muted-foreground hidden max-w-[200px] truncate font-mono text-xs sm:inline'>
@@ -160,7 +156,9 @@ export function MenuItemRow({
                         <Edit className='h-3.5 w-3.5' />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side='top'>Edit</TooltipContent>
+                    <TooltipContent side='top'>
+                      {t('menu.panel.edit')}
+                    </TooltipContent>
                   </Tooltip>
                 )}
                 {onDelete && (
@@ -175,52 +173,12 @@ export function MenuItemRow({
                         <Trash2 className='h-3.5 w-3.5' />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side='top'>Delete</TooltipContent>
+                    <TooltipContent side='top'>
+                      {t('menu.panel.delete')}
+                    </TooltipContent>
                   </Tooltip>
                 )}
               </div>
-
-              {/* Dropdown fallback */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='text-muted-foreground h-7 w-7 p-0 opacity-0 group-hover:opacity-100'
-                  >
-                    <MoreVertical className='h-3.5 w-3.5' />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align='end'>
-                  {onEdit && (
-                    <DropdownMenuItem onClick={() => onEdit(item.id)}>
-                      <Edit className='mr-2 h-4 w-4' />
-                      Edit
-                    </DropdownMenuItem>
-                  )}
-                  {onToggleVisibility && (
-                    <DropdownMenuItem
-                      onClick={() => onToggleVisibility(item.id)}
-                    >
-                      {item.isVisible ? (
-                        <EyeOff className='mr-2 h-4 w-4' />
-                      ) : (
-                        <Eye className='mr-2 h-4 w-4' />
-                      )}
-                      {item.isVisible ? 'Hide' : 'Show'}
-                    </DropdownMenuItem>
-                  )}
-                  {onDelete && (
-                    <DropdownMenuItem
-                      onClick={() => onDelete(item.id)}
-                      variant='destructive'
-                    >
-                      <Trash2 className='mr-2 h-4 w-4' />
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </div>

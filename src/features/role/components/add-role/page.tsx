@@ -18,12 +18,14 @@ import type { RoleResourceDefinition } from '@/features/role/type/role';
 import { PermissionsTable } from './PermissionsTable';
 import { RoleInfoSection } from './RoleInfoSection';
 import type { PermissionSelection } from './types';
+import { useTranslate } from '@/hooks/use-translate';
 
 const ROLES_QUERY_KEY = ['roles'] as const;
 
 export default function AddRolePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useTranslate();
 
   const resourcesQuery = useResources();
   const resources = useMemo<RoleResourceDefinition[]>(
@@ -37,13 +39,24 @@ export default function AddRolePage() {
   const [description, setDescription] = useState('');
   const [permissions, setPermissions] = useState<PermissionSelection[]>([]);
 
+  const readRoleErrorMessage = (error: unknown, fallback: string) => {
+    const message =
+      (error as any)?.message ?? (error as any)?.response?.data?.message;
+
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+
+    return fallback;
+  };
+
   useEffect(() => {
     if (resourcesError) {
       const message =
-        resourcesError.message || 'Failed to load available resources';
+        resourcesError.message || t('role.permissions.loadResourcesFailed');
       toast.error(message);
     }
-  }, [resourcesError]);
+  }, [resourcesError, t]);
 
   useEffect(() => {
     setPermissions((prev) => {
@@ -97,16 +110,12 @@ export default function AddRolePage() {
       return await createRole(payload);
     },
     onSuccess: () => {
-      toast.success('Role created successfully');
+      toast.success(t('role.toast.created'));
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
       router.push('/admin/roles');
     },
     onError: (error: unknown) => {
-      const message =
-        (error as any)?.message ??
-        (error as any)?.response?.data?.message ??
-        'Failed to create role';
-      toast.error(message);
+      toast.error(readRoleErrorMessage(error, t('role.toast.createFailed')));
     }
   });
 
@@ -267,7 +276,7 @@ export default function AddRolePage() {
     const trimmedDescription = description.trim();
 
     if (!trimmedName) {
-      toast.error('Role name is required');
+      toast.error(t('role.permissions.roleNameRequired'));
       return;
     }
 
@@ -315,7 +324,7 @@ export default function AddRolePage() {
 
             {resourcesLoading ? (
               <div className='text-muted-foreground text-sm'>
-                Loading available resources...
+                {t('role.permissions.loadingResources')}
               </div>
             ) : (
               <>
@@ -344,10 +353,12 @@ export default function AddRolePage() {
               onClick={handleCancel}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('role.form.cancel')}
             </Button>
             <Button type='submit' disabled={isSubmitDisabled}>
-              {isSubmitting ? 'Creating...' : 'Create role'}
+              {isSubmitting
+                ? t('role.form.creating')
+                : t('role.form.createSubmit')}
             </Button>
           </CardFooter>
         </Card>

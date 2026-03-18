@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -50,10 +51,12 @@ export function PostImagesCard({
                 key={image.id}
                 className='relative h-24 w-full overflow-hidden rounded-md border'
               >
-                <img
+                <Image
                   src={image.src}
                   alt='Uploaded preview'
-                  className='h-full w-full object-cover'
+                  fill
+                  unoptimized
+                  className='object-cover'
                 />
               </div>
             ))}

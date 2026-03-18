@@ -32,6 +32,7 @@ import {
   createEmptySocialLink,
   type SiteSocialLink
 } from '@/features/site-setting/types/site-setting-types';
+import { useTranslate } from '@/hooks/use-translate';
 
 type SocialIconOption = {
   value: string;
@@ -62,6 +63,7 @@ export function SiteSocialLinksBlock({
   value,
   onChange
 }: SiteSocialLinksBlockProps) {
+  const { t } = useTranslate();
   const updateRow = (
     index: number,
     key: keyof SiteSocialLink,
@@ -85,25 +87,24 @@ export function SiteSocialLinksBlock({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className='text-base font-semibold'>Social Links</CardTitle>
+        <CardTitle className='text-base font-semibold'>
+          {t('siteSetting.socialLinks.title')}
+        </CardTitle>
         <CardDescription>
-          Add social links shown in footer or contact section.
+          {t('siteSetting.socialLinks.description')}
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
         <div className='flex justify-end'>
           <Button type='button' variant='outline' size='sm' onClick={addRow}>
             <Plus className='mr-2 h-4 w-4' />
-            Add Link
+            {t('siteSetting.socialLinks.addLink')}
           </Button>
         </div>
 
         {value.map((item, index) => {
           const activeOption = getIconOption(item.icon);
           const selectedIconValue = activeOption?.value ?? 'website';
-          const previewOption =
-            activeOption ?? getIconOption('website') ?? SOCIAL_ICON_OPTIONS[0];
-          const PreviewIcon = previewOption.Icon;
 
           return (
             <div
@@ -112,7 +113,7 @@ export function SiteSocialLinksBlock({
             >
               <div className='grid gap-3 md:grid-cols-[180px_1fr_1fr_auto] md:items-end'>
                 <div className='space-y-1'>
-                  <Label>Icon</Label>
+                  <Label>{t('siteSetting.socialLinks.icon')}</Label>
                   <Select
                     value={selectedIconValue}
                     onValueChange={(nextValue) =>
@@ -120,7 +121,11 @@ export function SiteSocialLinksBlock({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder='Select icon from library' />
+                      <SelectValue
+                        placeholder={t(
+                          'siteSetting.socialLinks.selectIconFromLibrary'
+                        )}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {SOCIAL_ICON_OPTIONS.map((option) => (
@@ -136,24 +141,24 @@ export function SiteSocialLinksBlock({
                 </div>
 
                 <div className='space-y-1'>
-                  <Label>Title</Label>
+                  <Label>{t('siteSetting.socialLinks.linkTitle')}</Label>
                   <Input
                     value={item.title}
                     onChange={(event) =>
                       updateRow(index, 'title', event.target.value)
                     }
-                    placeholder='Facebook'
+                    placeholder={t('siteSetting.socialLinks.titlePlaceholder')}
                   />
                 </div>
 
                 <div className='space-y-1'>
-                  <Label>URL</Label>
+                  <Label>{t('siteSetting.socialLinks.url')}</Label>
                   <Input
                     value={item.url}
                     onChange={(event) =>
                       updateRow(index, 'url', event.target.value)
                     }
-                    placeholder='https://example.com'
+                    placeholder={t('siteSetting.socialLinks.urlPlaceholder')}
                   />
                 </div>
 

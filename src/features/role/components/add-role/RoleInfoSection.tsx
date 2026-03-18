@@ -1,5 +1,8 @@
+'use client';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslate } from '@/hooks/use-translate';
 
 type RoleInfoSectionProps = {
   name: string;
@@ -16,13 +19,15 @@ export function RoleInfoSection({
   onDescriptionChange,
   disabled = false
 }: RoleInfoSectionProps) {
+  const { t } = useTranslate();
+
   return (
     <div className='grid gap-6 sm:grid-cols-2'>
       <div className='space-y-2'>
-        <Label htmlFor='role-name'>Role name</Label>
+        <Label htmlFor='role-name'>{t('role.form.roleName')}</Label>
         <Input
           id='role-name'
-          placeholder='Enter role name'
+          placeholder={t('role.form.roleNamePlaceholder')}
           value={name}
           disabled={disabled}
           onChange={(event) => onNameChange(event.target.value)}
@@ -30,10 +35,10 @@ export function RoleInfoSection({
       </div>
 
       <div className='space-y-2'>
-        <Label htmlFor='role-description'>Description</Label>
+        <Label htmlFor='role-description'>{t('role.form.description')}</Label>
         <Input
           id='role-description'
-          placeholder='short description about this role'
+          placeholder={t('role.form.descriptionPlaceholder')}
           value={description}
           disabled={disabled}
           onChange={(event) => onDescriptionChange(event.target.value)}

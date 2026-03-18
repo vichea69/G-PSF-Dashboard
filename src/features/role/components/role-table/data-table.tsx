@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Can } from '@/context/permission-context';
 import { RoleAPI } from '@/features/role/type/role';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
+import { useTranslate } from '@/hooks/use-translate';
 
 interface DataTableProps {
   data: RoleAPI[];
@@ -25,6 +26,7 @@ interface DataTableProps {
 
 export function DataTable({ data, columns, onCreate }: DataTableProps) {
   const router = useRouter();
+  const { t } = useTranslate();
 
   const table = useReactTable({
     data,
@@ -57,7 +59,7 @@ export function DataTable({ data, columns, onCreate }: DataTableProps) {
             action={adminRoutePermissions.roles.create.action}
           >
             <Button size='sm' className='gap-1.5' onClick={handleCreate}>
-              New Role
+              {t('role.addNew')}
             </Button>
           </Can>
         </DataTableToolbar>

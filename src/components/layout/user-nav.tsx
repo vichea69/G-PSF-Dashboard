@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { IconLogout, IconUserCircle } from '@tabler/icons-react';
-import { PaletteIcon } from 'lucide-react';
 import { useAuthUser } from '@/hooks/use-auth-user';
 
 export function UserNav() {

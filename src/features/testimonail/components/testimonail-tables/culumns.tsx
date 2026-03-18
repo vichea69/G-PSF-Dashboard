@@ -9,7 +9,6 @@ import { IconCircleCheck, IconCircleX } from '@tabler/icons-react';
 import {
   getInitials,
   getLocalizedText,
-  limitWords,
   type LocalizedText
 } from '@/lib/helpers';
 import { type Language } from '@/context/language-context';
@@ -104,11 +103,10 @@ export const getTestimonialColumns = (
         title={t('testimonial.columns.title')}
       />
     ),
-    cell: ({ cell, row }) => {
+    cell: ({ cell }) => {
       const value =
         (cell.getValue<string>() ?? '').toString() ||
         t('testimonial.state.untitled');
-      const quote = getLocalizedText(row.original.quote ?? '', language);
       return (
         <div className='space-y-1'>
           <TruncatedTooltipCell
@@ -118,11 +116,6 @@ export const getTestimonialColumns = (
             minLength={12}
             fallback={t('testimonial.state.untitled')}
           />
-          {quote ? (
-            <div className='text-muted-foreground line-clamp-2 max-w-[360px] text-xs'>
-              “{limitWords(quote, 6)}”
-            </div>
-          ) : null}
         </div>
       );
     },
@@ -157,9 +150,7 @@ export const getTestimonialColumns = (
             fallback={t('testimonial.state.unknown')}
           />
           {subtitle ? (
-            <div className='text-muted-foreground text-xs'>
-              {limitWords(subtitle)}
-            </div>
+            <div className='text-muted-foreground text-xs'>{subtitle}</div>
           ) : null}
         </div>
       );
@@ -173,9 +164,6 @@ export const getTestimonialColumns = (
       if (!rating) {
         return <span className='text-muted-foreground'>-</span>;
       }
-      const display = Number.isInteger(rating)
-        ? rating.toString()
-        : rating.toFixed(1);
       return (
         <div className='flex items-center gap-1'>
           <div className='flex items-center gap-0.5'>
@@ -190,9 +178,6 @@ export const getTestimonialColumns = (
               />
             ))}
           </div>
-          <span className='text-muted-foreground text-xs'>
-            {display} {t('testimonial.state.outOfFive')}
-          </span>
         </div>
       );
     }
