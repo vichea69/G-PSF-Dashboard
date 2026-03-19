@@ -52,6 +52,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { PostContent } from '@/server/action/post/types';
 import type { MediaFile } from '@/features/media/types/media-type';
+import { contentHasKhmerCharacters } from '@/lib/khmer-text';
 
 type EditorContentValue = PostContent | string;
 
@@ -192,6 +193,9 @@ export function PostContentEditor({
   const isTextOnlyMode = mode === 'text';
   const [isImageSelected, setIsImageSelected] = React.useState(false);
   const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
+  const [hasKhmerText, setHasKhmerText] = React.useState(() =>
+    contentHasKhmerCharacters(lastSyncedContent.current)
+  );
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -247,6 +251,7 @@ export function PostContentEditor({
     onUpdate: ({ editor }) => {
       const json = editor.getJSON();
       lastSyncedContent.current = json;
+      setHasKhmerText(contentHasKhmerCharacters(json));
       onChange?.(json);
     }
   });
@@ -528,6 +533,7 @@ export function PostContentEditor({
     const nextContent = normalizeContent(value);
     if (isSameContent(nextContent, lastSyncedContent.current)) return;
     lastSyncedContent.current = nextContent;
+    setHasKhmerText(contentHasKhmerCharacters(nextContent));
     editor.commands.setContent(nextContent, {
       emitUpdate: false,
       parseOptions: {
@@ -668,7 +674,14 @@ export function PostContentEditor({
           ) : null}
         </Toolbar>
 
-        <div className='post-content-editor__content px-3 py-3'>
+        <div
+          className={cn(
+            'post-content-editor__content px-3 py-3',
+            // Keep Khmer content readable in the editor even while the admin UI stays English.
+            hasKhmerText &&
+              '[&_.post-content-editor__body]:[font-family:var(--font-kantumruy-pro),system-ui,sans-serif]'
+          )}
+        >
           <EditorContent editor={editor} />
         </div>
       </EditorContext.Provider>

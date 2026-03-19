@@ -10,6 +10,7 @@ import { type Language } from '@/context/language-context';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
 import { TruncatedTooltipCell } from '@/components/ui/truncated-tooltip-cell';
 import type { Option } from '@/types/data-table';
+import { cn } from '@/lib/utils';
 type TranslateFn = (key: string) => string;
 
 export type PostRow = {
@@ -42,6 +43,19 @@ export type PostRow = {
 
 const readString = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
+
+function usesKhmerTitleFallback(title: PostRow['title']): boolean {
+  if (!title || typeof title !== 'object') return false;
+
+  const englishTitle = readString(title.en);
+  const khmerTitle = readString(title.km);
+
+  return !englishTitle && Boolean(khmerTitle);
+}
+
+function containsKhmerText(value: string): boolean {
+  return /[\u1780-\u17FF]/.test(value);
+}
 
 const parseMaybeJson = (value: unknown): unknown => {
   if (typeof value !== 'string') return value;
@@ -214,14 +228,30 @@ export const getPostColumns = (
     header: ({ column }: { column: Column<PostRow, unknown> }) => (
       <DataTableColumnHeader column={column} title={t('post.columns.title')} />
     ),
-    cell: ({ cell }) => (
-      <TruncatedTooltipCell
-        text={String(cell.getValue() ?? '')}
-        widthClassName='block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]'
-        tooltipClassName='max-w-[24rem] break-words'
-        minLength={12}
-      />
-    ),
+    cell: ({ cell, row }) => {
+      const titleText = String(cell.getValue() ?? '');
+      const showKhmerFont =
+        containsKhmerText(titleText) ||
+        usesKhmerTitleFallback(row.original.title);
+
+      return (
+        <TruncatedTooltipCell
+          text={titleText}
+          // Keep Khmer titles readable even when the admin UI language stays English.
+          widthClassName={cn(
+            'block w-[8rem] truncate sm:w-[11rem] lg:w-[16rem]',
+            showKhmerFont &&
+              '[font-family:var(--font-kantumruy-pro),system-ui,sans-serif]'
+          )}
+          tooltipClassName={cn(
+            'max-w-[24rem] break-words',
+            showKhmerFont &&
+              '[font-family:var(--font-kantumruy-pro),system-ui,sans-serif]'
+          )}
+          minLength={12}
+        />
+      );
+    },
     enableColumnFilter: true,
     meta: {
       label: t('post.filters.titleLabel'),

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { containsKhmerCharacters } from '@/lib/khmer-text';
 
 // Use the shared app font token so text inputs switch fonts with the active language.
 const inputVariants = cva(
@@ -125,13 +126,32 @@ function Input({
   className,
   type,
   variant,
+  style,
   ...props
 }: React.ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
+  const currentValue =
+    typeof props.value === 'string'
+      ? props.value
+      : typeof props.defaultValue === 'string'
+        ? props.defaultValue
+        : '';
+
+  const showKhmerFont = containsKhmerCharacters(currentValue);
+
   return (
     <input
       data-slot='input'
       type={type}
       className={cn(inputVariants({ variant }), className)}
+      // Inline fontFamily is stronger for native input text rendering.
+      style={{
+        ...style,
+        ...(showKhmerFont
+          ? {
+              fontFamily: 'var(--font-kantumruy-pro), system-ui, sans-serif'
+            }
+          : {})
+      }}
       {...props}
     />
   );
