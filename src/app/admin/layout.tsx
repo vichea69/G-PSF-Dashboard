@@ -25,21 +25,18 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
   return (
-    <KBar>
-      <SidebarProvider defaultOpen={defaultOpen}>
-        <LanguageProvider>
-          <PermissionProvider
-            user={access.user}
-            permissions={access.permissions}
-          >
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <LanguageProvider>
+        <PermissionProvider user={access.user} permissions={access.permissions}>
+          <KBar>
             <AppSidebar />
             <SidebarInset>
               <Header />
               {children}
             </SidebarInset>
-          </PermissionProvider>
-        </LanguageProvider>
-      </SidebarProvider>
-    </KBar>
+          </KBar>
+        </PermissionProvider>
+      </LanguageProvider>
+    </SidebarProvider>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
-import { navItems } from '@/constants/data';
 import {
+  type Action,
   KBarAnimator,
   KBarPortal,
   KBarPositioner,
@@ -11,48 +11,83 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import RenderResults from './render-result';
 import useThemeSwitching from './use-theme-switching';
+import { usePermissions } from '@/context/permission-context';
+import { useTranslate } from '@/hooks/use-translate';
+import {
+  filterNavItemsByPermission,
+  getAdminNavItemLabel,
+  getAdminNavigationGroups
+} from '@/lib/admin-navigation';
+import type { NavItem } from '@/types';
 
 export default function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { can } = usePermissions();
+  const { t } = useTranslate();
 
-  // These action are for the navigation
+  const visibleGroups = useMemo(() => {
+    return getAdminNavigationGroups()
+      .map((group) => ({
+        ...group,
+        label: t(group.labelKey),
+        items: filterNavItemsByPermission(group.items, can)
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [can, t]);
+
   const actions = useMemo(() => {
-    // Define navigateTo inside the useMemo callback to avoid dependency array issues
     const navigateTo = (url: string) => {
       router.push(url);
     };
 
-    return navItems.flatMap((navItem) => {
-      // Only include base action if the navItem has a real URL and is not just a container
-      const baseAction =
-        navItem.url !== '#'
-          ? {
-              id: `${navItem.title.toLowerCase()}Action`,
-              name: navItem.title,
-              shortcut: navItem.shortcut,
-              keywords: navItem.title.toLowerCase(),
-              section: 'Navigation',
-              subtitle: `Go to ${navItem.title}`,
-              perform: () => navigateTo(navItem.url)
-            }
-          : null;
+    const buildActions = (
+      items: NavItem[],
+      sectionId: string,
+      sectionLabel: string,
+      parentLabels: string[] = [],
+      parentIds: string[] = []
+    ): Action[] => {
+      return items.flatMap((item) => {
+        const itemLabel = getAdminNavItemLabel(item.title, t);
+        const breadcrumb = [...parentLabels, itemLabel];
+        const stablePath = [...parentIds, item.title];
 
-      // Map child items into actions
-      const childActions =
-        navItem.items?.map((childItem) => ({
-          id: `${childItem.title.toLowerCase()}Action`,
-          name: childItem.title,
-          shortcut: childItem.shortcut,
-          keywords: childItem.title.toLowerCase(),
-          section: navItem.title,
-          subtitle: `Go to ${childItem.title}`,
-          perform: () => navigateTo(childItem.url)
-        })) ?? [];
+        const baseAction =
+          item.url !== '#'
+            ? {
+                id: `${sectionId}-${stablePath.join('-')}`
+                  .toLowerCase()
+                  .replace(/[^a-z0-9-]+/g, '-')
+                  .replace(/-+/g, '-'),
+                name: itemLabel,
+                shortcut: item.shortcut,
+                keywords: [item.title, itemLabel, sectionLabel, ...breadcrumb]
+                  .join(' ')
+                  .toLowerCase(),
+                section: sectionLabel,
+                subtitle: `${t('commandBar.goTo')} ${breadcrumb.join(' > ')}`,
+                perform: () => navigateTo(item.url)
+              }
+            : null;
 
-      // Return only valid actions (ignoring null base actions for containers)
-      return baseAction ? [baseAction, ...childActions] : childActions;
-    });
-  }, [router]);
+        const childActions = item.items?.length
+          ? buildActions(
+              item.items,
+              sectionId,
+              sectionLabel,
+              breadcrumb,
+              stablePath
+            )
+          : [];
+
+        return baseAction ? [baseAction, ...childActions] : childActions;
+      });
+    };
+
+    return visibleGroups.flatMap((group) =>
+      buildActions(group.items, group.id, group.label)
+    );
+  }, [router, t, visibleGroups]);
 
   return (
     <KBarProvider actions={actions}>
@@ -62,6 +97,7 @@ export default function KBar({ children }: { children: React.ReactNode }) {
 }
 const KBarComponent = ({ children }: { children: React.ReactNode }) => {
   useThemeSwitching();
+  const { t } = useTranslate();
 
   return (
     <>
@@ -69,7 +105,10 @@ const KBarComponent = ({ children }: { children: React.ReactNode }) => {
         <KBarPositioner className='bg-background/80 fixed inset-0 z-99999 p-0! backdrop-blur-sm'>
           <KBarAnimator className='bg-card text-card-foreground relative mt-64! w-full max-w-[600px] -translate-y-12! overflow-hidden rounded-lg border shadow-lg'>
             <div className='bg-card border-border sticky top-0 z-10 border-b'>
-              <KBarSearch className='bg-card w-full border-none px-6 py-4 text-lg outline-hidden focus:ring-0 focus:ring-offset-0 focus:outline-hidden' />
+              <KBarSearch
+                placeholder={t('commandBar.searchPlaceholder')}
+                className='bg-card w-full border-none px-6 py-4 text-lg outline-hidden focus:ring-0 focus:ring-offset-0 focus:outline-hidden'
+              />
             </div>
             <div className='max-h-[400px]'>
               <RenderResults />

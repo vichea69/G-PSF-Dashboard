@@ -55,6 +55,22 @@ export const kh = {
       activityLog: 'កំណត់ហេតុសកម្មភាព'
     }
   },
+  commandBar: {
+    triggerLabel: 'ស្វែងរក...',
+    searchPlaceholder: 'ស្វែងរកម៉ឺនុយ និងសកម្មភាព...',
+    goTo: 'ចូលទៅកាន់',
+    sections: {
+      theme: 'រូបរាង'
+    },
+    theme: {
+      toggleTheme: 'ប្ដូររូបរាង',
+      toggleThemeDescription: 'ប្ដូររវាងរូបរាងភ្លឺ និងងងឹត',
+      setLightTheme: 'កំណត់រូបរាងភ្លឺ',
+      setLightThemeDescription: 'ប្រើរូបរាងភ្លឺ',
+      setDarkTheme: 'កំណត់រូបរាងងងឹត',
+      setDarkThemeDescription: 'ប្រើរូបរាងងងឹត'
+    }
+  },
   userNav: {
     profileSettings: 'ប្រវត្តិរូប និងការកំណត់',
     logout: 'ចាកចេញ'

@@ -55,6 +55,22 @@ export const en = {
       activityLog: 'Activity Log'
     }
   },
+  commandBar: {
+    triggerLabel: 'Search...',
+    searchPlaceholder: 'Search navigation and actions...',
+    goTo: 'Go to',
+    sections: {
+      theme: 'Theme'
+    },
+    theme: {
+      toggleTheme: 'Toggle Theme',
+      toggleThemeDescription: 'Switch between light and dark theme',
+      setLightTheme: 'Set Light Theme',
+      setLightThemeDescription: 'Use the light theme',
+      setDarkTheme: 'Set Dark Theme',
+      setDarkThemeDescription: 'Use the dark theme'
+    }
+  },
   userNav: {
     profileSettings: 'Profile & Setting',
     logout: 'Log out'
