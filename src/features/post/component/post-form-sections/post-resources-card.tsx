@@ -146,7 +146,7 @@ function DocumentPreview({
             {documentName || selectedDocumentLabel}
           </p>
           {thumbnailPreviewUrl ? (
-            <div className='relative h-40 w-full max-w-xs overflow-hidden rounded border'>
+            <div className='relative mx-auto h-40 w-full max-w-xs overflow-hidden rounded'>
               <Image
                 src={thumbnailPreviewUrl}
                 alt={`${label} thumbnail`}
@@ -332,14 +332,17 @@ export function PostResourcesCard({
                 <ImageIcon className='h-3.5 w-3.5' />
                 {coverImageName || t('post.resources.coverImageSelected')}
               </div>
-              <div className='relative h-40 w-full max-w-xs'>
-                <Image
-                  src={coverPreviewUrl}
-                  alt='Cover image preview'
-                  fill
-                  unoptimized
-                  className='object-cover'
-                />
+              <div className='p-3'>
+                {/* Keep the whole image visible, but make the preview panel smaller. */}
+                <div className='bg-background relative mx-auto aspect-[16/9] w-full max-w-sm overflow-hidden rounded-md'>
+                  <Image
+                    src={coverPreviewUrl}
+                    alt='Cover image preview'
+                    fill
+                    unoptimized
+                    className='object-contain p-2'
+                  />
+                </div>
               </div>
             </div>
           ) : (

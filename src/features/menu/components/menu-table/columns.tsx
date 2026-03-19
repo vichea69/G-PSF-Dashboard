@@ -18,9 +18,7 @@ export function getMenuColumns(t: TranslateFn): ColumnDef<MenuGroup>[] {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('menu.table.name')} />
       ),
-      cell: ({ row }) => (
-        <span className='font-medium'>{row.getValue('name')}</span>
-      ),
+      cell: ({ row }) => <span>{row.getValue('name')}</span>,
       enableColumnFilter: true,
       meta: {
         label: t('menu.table.name'),
