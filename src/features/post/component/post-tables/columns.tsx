@@ -278,13 +278,12 @@ export const getPostColumns = (
       />
     ),
     enableColumnFilter: true,
-    meta: categoryOptions.length
-      ? {
-          label: t('post.filters.categoryLabel'),
-          variant: 'select',
-          options: categoryOptions
-        }
-      : undefined
+    meta: {
+      // Keep the filter button visible even before async options finish loading.
+      label: t('post.filters.categoryLabel'),
+      variant: 'select',
+      options: categoryOptions
+    }
   },
   {
     id: 'section',
@@ -319,13 +318,12 @@ export const getPostColumns = (
       />
     ),
     enableColumnFilter: true,
-    meta: sectionOptions.length
-      ? {
-          label: t('post.filters.sectionLabel'),
-          variant: 'select',
-          options: sectionOptions
-        }
-      : undefined
+    meta: {
+      // Keep the filter button visible even before async options finish loading.
+      label: t('post.filters.sectionLabel'),
+      variant: 'select',
+      options: sectionOptions
+    }
   },
   {
     id: 'page',
@@ -341,13 +339,12 @@ export const getPostColumns = (
       />
     ),
     enableColumnFilter: true,
-    meta: pageOptions.length
-      ? {
-          label: t('post.filters.pageLabel'),
-          variant: 'select',
-          options: pageOptions
-        }
-      : undefined
+    meta: {
+      // Keep the filter button visible even before async options finish loading.
+      label: t('post.filters.pageLabel'),
+      variant: 'select',
+      options: pageOptions
+    }
   },
   {
     id: 'featured',

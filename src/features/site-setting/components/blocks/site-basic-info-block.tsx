@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Image as ImageIcon } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { FileModal } from '@/components/modal/file-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslate } from '@/hooks/use-translate';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
+import { handleImageUpload } from '@/lib/tiptap-utils';
 import type { MediaFile } from '@/features/media/types/media-type';
 import type {
   LocaleKey,
@@ -45,6 +48,22 @@ type MediaPickerFieldProps = {
   onClear: () => void;
 };
 
+const getFileNameFromUrl = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const withoutParams = trimmed.split('?')[0].split('#')[0];
+  const fileName = withoutParams.split('/').filter(Boolean).at(-1) ?? '';
+
+  if (!fileName) return trimmed;
+
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
+};
+
 function MediaPickerField({
   label,
   value,
@@ -53,6 +72,7 @@ function MediaPickerField({
 }: MediaPickerFieldProps) {
   const { t } = useTranslate();
   const previewUrl = useMemo(() => resolveApiAssetUrl(value), [value]);
+  const fileName = useMemo(() => getFileNameFromUrl(value), [value]);
 
   return (
     <div className='space-y-2'>
@@ -71,14 +91,23 @@ function MediaPickerField({
       </div>
 
       {previewUrl ? (
-        <div className='relative h-60 w-full max-w-md overflow-hidden rounded-md border'>
-          <Image
-            src={previewUrl}
-            alt={`${label} ${t('siteSetting.basicInfo.previewAltSuffix')}`}
-            fill
-            unoptimized
-            className='object-cover'
-          />
+        <div className='overflow-hidden rounded-md border'>
+          <div className='bg-muted flex items-center gap-2 border-b px-3 py-2 text-xs font-medium'>
+            <ImageIcon className='h-3.5 w-3.5' />
+            {fileName || label}
+          </div>
+          <div className='p-3'>
+            {/* Keep the whole image visible and centered, like the post cover preview. */}
+            <div className='bg-background relative aspect-[16/9] w-full max-w-sm overflow-hidden rounded-md'>
+              <Image
+                src={previewUrl}
+                alt={`${label} ${t('siteSetting.basicInfo.previewAltSuffix')}`}
+                fill
+                unoptimized
+                className='object-contain p-2'
+              />
+            </div>
+          </div>
         </div>
       ) : (
         <div className='text-muted-foreground bg-muted/30 flex h-40 w-full max-w-md items-center justify-center rounded-md border border-dashed text-sm'>
@@ -102,7 +131,9 @@ export function SiteBasicInfoBlock({
   onMediaChange
 }: SiteBasicInfoBlockProps) {
   const { t } = useTranslate();
+  const queryClient = useQueryClient();
   const [pickerTarget, setPickerTarget] = useState<PickerTarget>(null);
+  const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
 
   const localeSuffix = activeLocale === 'en' ? 'EN' : 'KM';
   const titleValue = activeLocale === 'en' ? title.en : title.km;
@@ -114,6 +145,42 @@ export function SiteBasicInfoBlock({
   const handleSelectMedia = (file: MediaFile) => {
     if (!pickerTarget) return;
     onMediaChange(pickerTarget, file.url);
+  };
+
+  const handleUploadFromDevice = async (
+    files: File[],
+    folderId?: string | null
+  ) => {
+    const firstFile = files[0];
+    if (!firstFile || !pickerTarget) return;
+
+    setUploadingFromDevice(true);
+
+    try {
+      // Reuse the existing media upload helper so the uploaded image
+      // goes to the same Media Manager flow as the rest of the app.
+      const result = await handleImageUpload(
+        firstFile,
+        undefined,
+        undefined,
+        String(folderId ?? '').trim() || undefined
+      );
+
+      if (!result?.url) {
+        throw new Error(t('siteSetting.basicInfo.uploadMissingUrl'));
+      }
+
+      onMediaChange(pickerTarget, result.url);
+      await queryClient.invalidateQueries({
+        queryKey: ['media'],
+        exact: false
+      });
+      toast.success(t('siteSetting.basicInfo.uploadSuccess'));
+    } catch (error: any) {
+      toast.error(error?.message ?? t('siteSetting.basicInfo.uploadFailed'));
+    } finally {
+      setUploadingFromDevice(false);
+    }
   };
 
   return (
@@ -209,6 +276,8 @@ export function SiteBasicInfoBlock({
         isOpen={pickerTarget !== null}
         onClose={() => setPickerTarget(null)}
         onSelect={handleSelectMedia}
+        onUploadFromDevice={handleUploadFromDevice}
+        loading={uploadingFromDevice}
         title={
           pickerTarget === 'logo'
             ? t('siteSetting.basicInfo.selectLogoImage')
@@ -217,7 +286,7 @@ export function SiteBasicInfoBlock({
         description={t('siteSetting.basicInfo.chooseImageDescription')}
         types={['image']}
         accept='image/*'
-        allowUploadFromDevice={false}
+        allowUploadFromDevice
       />
     </>
   );

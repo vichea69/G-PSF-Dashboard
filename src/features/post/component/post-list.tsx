@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { useLanguage } from '@/context/language-context';
 import { usePost } from '@/hooks/use-post';
-import { useCategories } from '@/hooks/use-category';
+import { extractCategoryRows, useCategories } from '@/hooks/use-category';
 import { extractPageRows, usePage } from '@/hooks/use-page';
 import { useDebounce } from '@/hooks/use-debounce';
 import { getLocalizedText } from '@/lib/helpers';
@@ -86,7 +86,7 @@ export default function PostsListPage() {
       );
   }, [language, sectionsData]);
   const categoryOptions = useMemo(() => {
-    const raw = (categoriesData?.data ?? categoriesData ?? []) as any[];
+    const raw = extractCategoryRows(categoriesData);
 
     return raw
       .map((category) => {

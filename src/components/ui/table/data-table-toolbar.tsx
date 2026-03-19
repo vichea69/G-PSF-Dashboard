@@ -26,10 +26,11 @@ export function DataTableToolbar<TData>({
   const { t } = useTranslate();
   const isFiltered = table.getState().columnFilters.length > 0;
 
-  const columns = React.useMemo(
-    () => table.getAllColumns().filter((column) => column.getCanFilter()),
-    [table]
-  );
+  // Re-read the current table columns on each render.
+  // The table instance can stay stable while column metadata changes later.
+  const columns = table
+    .getAllColumns()
+    .filter((column) => column.getCanFilter());
 
   const onReset = React.useCallback(() => {
     table.resetColumnFilters();
