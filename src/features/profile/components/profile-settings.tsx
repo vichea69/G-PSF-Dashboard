@@ -148,7 +148,8 @@ export default function ProfileSettings({ profile }: ProfileSettingsProps) {
   };
 
   const handleCancel = () => {
-    setFormData(createFormValues(profile));
+    // Keep cancel simple: leave the profile form and go back to the admin overview page.
+    router.push('/admin/overview');
   };
 
   const handleSelectImageFromMedia = (file: MediaFile) => {

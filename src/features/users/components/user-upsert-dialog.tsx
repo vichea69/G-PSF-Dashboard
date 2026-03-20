@@ -120,7 +120,7 @@ export function UserUpsertDialog({
   const qc = useQueryClient();
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const { t } = useTranslate();
-  const rolesQuery = useRole();
+  const rolesQuery = useRole({ enabled: open });
   const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
   const resolvedInitialRole = useMemo(
     () => resolveRoleValue(initialData?.role, roles),
@@ -145,6 +145,10 @@ export function UserUpsertDialog({
   });
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     form.reset({
       username: initialData?.username ?? '',
       email: initialData?.email ?? '',
@@ -160,6 +164,7 @@ export function UserUpsertDialog({
     initialData?.id,
     initialData?.image,
     initialData?.username,
+    open,
     resolvedInitialRole
   ]);
 

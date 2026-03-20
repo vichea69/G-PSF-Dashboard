@@ -383,9 +383,9 @@ export const kh = {
       clearDate: 'សម្អាតកាលបរិច្ឆេទ',
       featured: 'សំខាន់',
       page: 'ទំព័រ',
-      pagePlaceholder: 'ភ្ជាប់ទៅទំព័រ (ស្រេចចិត្ត)',
+      pagePlaceholder: 'ភ្ជាប់ទៅទំព័រ',
       section: 'ផ្នែក',
-      sectionPlaceholder: 'ភ្ជាប់ទៅផ្នែក (ស្រេចចិត្ត)',
+      sectionPlaceholder: 'ភ្ជាប់ទៅផ្នែក',
       category: 'ប្រភេទ',
       categoryPlaceholder: 'ជ្រើសរើសប្រភេទ',
       blockType: 'ប្រភេទប្លុក',
@@ -414,9 +414,9 @@ export const kh = {
       selectedDocument: 'ឯកសារដែលបានជ្រើស',
       previewNotAvailable: 'មិនមានការមើលជាមុនទេ',
       openDocument: 'បើកឯកសារ',
-      noDocumentSelected: 'មិនទាន់បានជ្រើសឯកសារ (ស្រេចចិត្ត)',
+      noDocumentSelected: 'មិនទាន់បានជ្រើសឯកសារ មិនមានក៏បាន',
       link: 'តំណភ្ជាប់',
-      linkPlaceholder: 'https://example.com (ស្រេចចិត្ត)',
+      linkPlaceholder: 'https://example.com មិនមានក៏បាន',
       selectCoverImage: 'ជ្រើសរូបភាពគម្រប',
       selectDocument: 'ជ្រើសឯកសារ',
       chooseFromMediaDescription: 'ជ្រើសឯកសារពី Media Manager ។',
@@ -833,6 +833,7 @@ export const kh = {
     actions: {
       menuLabel: 'សកម្មភាព',
       openMenu: 'បើកម៉ឺនុយ',
+      view: 'មើល',
       edit: 'កែប្រែ',
       delete: 'លុប'
     },
@@ -952,7 +953,7 @@ export const kh = {
       passwordPlaceholder: '********',
       email: 'អ៊ីមែល',
       emailPlaceholder: 'john@example.com',
-      bioOptional: 'ជីវប្រវត្តិ (ស្រេចចិត្ត)',
+      bioOptional: 'ជីវប្រវត្តិ មិនមានក៍បាន',
       bioPlaceholder: 'ជីវប្រវត្តិខ្លី...',
       imageOptional: 'រូបភាព (ស្រេចចិត្ត)',
       selectFromMedia: 'ជ្រើសពី Media',
@@ -1044,7 +1045,10 @@ export const kh = {
       roleNotFoundDescription: 'មិនអាចផ្ទុកតួនាទីដែលបានជ្រើសបានទេ។',
       unableToLoadRole: 'មិនអាចផ្ទុកតួនាទីបានទេ',
       loadRoleDataFailed: 'បរាជ័យក្នុងការផ្ទុកទិន្នន័យតួនាទី',
-      noChangesToSave: 'មិនមានការកែប្រែសម្រាប់រក្សាទុកទេ'
+      noChangesToSave: 'មិនមានការកែប្រែសម្រាប់រក្សាទុកទេ',
+      superAdminProtectedTitle: 'តួនាទី super-admin ត្រូវបានការពារ',
+      superAdminProtectedDescription:
+        'តួនាទីពិសេសនេះមិនអាចកែប្រែ ប្ដូរសិទ្ធិ ឬលុបបានទេ។'
     },
     type: {
       system: 'ប្រព័ន្ធ',

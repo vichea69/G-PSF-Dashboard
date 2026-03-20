@@ -12,6 +12,7 @@ interface ResourceSummaryProps {
   totalGranted: number;
   isAllSelected: boolean;
   onToggleAll: () => void;
+  disabled?: boolean;
 }
 
 export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
@@ -19,7 +20,8 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   totalPermissions,
   totalGranted,
   isAllSelected,
-  onToggleAll
+  onToggleAll,
+  disabled = false
 }) => {
   const { t } = useTranslate();
 
@@ -43,17 +45,19 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
             {t('role.permissions.permissionsActiveSuffix')}
           </span>
         </div>
-        <Button
-          // Important: this lives inside a form, so it must not submit.
-          type='button'
-          variant={isAllSelected ? 'secondary' : 'outline'}
-          size='sm'
-          onClick={onToggleAll}
-        >
-          {isAllSelected
-            ? t('role.permissions.deselectAll')
-            : t('role.permissions.selectAll')}
-        </Button>
+        {!disabled ? (
+          <Button
+            // Important: this lives inside a form, so it must not submit.
+            type='button'
+            variant={isAllSelected ? 'secondary' : 'outline'}
+            size='sm'
+            onClick={onToggleAll}
+          >
+            {isAllSelected
+              ? t('role.permissions.deselectAll')
+              : t('role.permissions.selectAll')}
+          </Button>
+        ) : null}
       </div>
     </div>
   );

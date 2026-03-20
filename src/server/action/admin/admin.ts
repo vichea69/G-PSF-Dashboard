@@ -2,6 +2,8 @@
 'use server';
 import 'server-only';
 import { api } from '@/lib/api';
+import { getAdminAccess } from '@/lib/admin-access';
+import { isSuperAdminRole } from '@/lib/super-admin';
 import { AdminUserCreate, AdminUserUpdate } from './types';
 import { getAuthHeaders } from '../userAuth/user';
 
@@ -45,6 +47,28 @@ export async function updateAdminUser(adminUser: AdminUserUpdate) {
 export async function deleteAdminUser(id: string) {
   const headers = await getAuthHeaders();
   try {
+    const access = await getAdminAccess();
+    const currentUserId = String((access.user as any)?.id ?? '').trim();
+
+    if (currentUserId && currentUserId === String(id).trim()) {
+      throw new Error('You cannot delete your own account.');
+    }
+
+    const userResponse = await api.get(`/users/${id}`, {
+      headers,
+      withCredentials: true
+    });
+    const userPayload = userResponse?.data as any;
+    const userRecord =
+      userPayload?.data?.user ??
+      userPayload?.data ??
+      userPayload?.user ??
+      userPayload;
+
+    if (isSuperAdminRole(userRecord?.role)) {
+      throw new Error('The super-admin user cannot be deleted.');
+    }
+
     const res = await api.delete(`/users/${id}`, {
       headers,
       withCredentials: true

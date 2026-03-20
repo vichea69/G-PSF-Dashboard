@@ -1,5 +1,6 @@
 'use server';
 import { api } from '@/lib/api';
+import { isSuperAdminRole } from '@/lib/super-admin';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 import type {
   CreateRole,
@@ -44,17 +45,40 @@ export async function getRoleResourceDefinitions() {
   return res.data;
 }
 
+function extractRoleRecord(payload: unknown) {
+  const raw = payload as any;
+  const data = raw?.data ?? raw ?? {};
+  return (data?.role ?? data) as Record<string, unknown>;
+}
+
+async function assertRoleCanBeManaged(id: string | number) {
+  const payload = await getRoleById(id);
+  const role = extractRoleRecord(payload);
+
+  if (isSuperAdminRole(role)) {
+    throw new Error('The super-admin role cannot be updated or deleted.');
+  }
+}
+
 // Delete role and permission
 export async function DeleteRole(id: number) {
   const headers = await getAuthHeaders();
   try {
+    await assertRoleCanBeManaged(id);
     const res = await api.delete(`/roles/${id}`, {
       headers,
       withCredentials: true
     });
     return res.data;
-  } catch (error) {
-    throw 'Failed to delete role.';
+  } catch (error: any) {
+    const detail = error?.response?.data;
+    const message =
+      detail?.message ||
+      detail?.error ||
+      (typeof detail === 'string' ? detail : undefined) ||
+      error?.message ||
+      'Failed to delete role.';
+    throw new Error(message);
   }
 }
 //Create role and permission
@@ -82,6 +106,7 @@ export async function EditRole(id: number, payload: UpdateRolePermissions) {
   const headers = await getAuthHeaders();
 
   try {
+    await assertRoleCanBeManaged(id);
     const res = await api.put(`/roles/${id}/permissions`, payload, {
       headers,
       withCredentials: true
@@ -103,6 +128,7 @@ export async function UpdateRoleInfoById(id: number, payload: UpdateRoleInfo) {
   const headers = await getAuthHeaders();
 
   try {
+    await assertRoleCanBeManaged(id);
     const res = await api.put(`/roles/${id}`, payload, {
       headers,
       withCredentials: true

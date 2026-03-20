@@ -11,7 +11,10 @@ export const useUser = () => {
       const headers = await getAuthHeaders();
       const response = await api.get('/users', { headers });
       return response.data;
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false
   });
 };
 //fecth user by id from api

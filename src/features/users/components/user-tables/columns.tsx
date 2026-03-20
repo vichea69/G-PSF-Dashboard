@@ -19,7 +19,14 @@ export type UserRow = {
 
 type TranslateFn = (key: string) => string;
 
-export function getUserColumns(t: TranslateFn): ColumnDef<UserRow>[] {
+type UserColumnOptions = {
+  onEdit: (user: UserRow) => void;
+};
+
+export function getUserColumns(
+  t: TranslateFn,
+  options: UserColumnOptions
+): ColumnDef<UserRow>[] {
   return [
     {
       accessorKey: 'image',
@@ -74,7 +81,7 @@ export function getUserColumns(t: TranslateFn): ColumnDef<UserRow>[] {
         const role = raw.toLowerCase();
 
         const variant =
-          role === 'admin'
+          role === 'super-admin' || role === 'admin'
             ? ('destructive' as const)
             : role === 'editor'
               ? ('info' as const)
@@ -100,7 +107,9 @@ export function getUserColumns(t: TranslateFn): ColumnDef<UserRow>[] {
     {
       id: 'actions',
       header: '',
-      cell: ({ row }) => <UsersCellAction data={row.original} />,
+      cell: ({ row }) => (
+        <UsersCellAction data={row.original} onEdit={options.onEdit} />
+      ),
       enableHiding: false
     }
   ];

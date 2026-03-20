@@ -16,12 +16,14 @@ export function UserAvatarProfile({
   showInfo = false,
   user
 }: UserAvatarProfileProps) {
-  const imageSrc = resolveApiAssetUrl(user?.imageUrl || '');
+  const imageSrc = resolveApiAssetUrl(user?.imageUrl);
 
   return (
     <div className='flex items-center gap-2'>
       <Avatar className={className}>
-        <AvatarImage src={imageSrc} alt={user?.fullName || ''} />
+        {imageSrc ? (
+          <AvatarImage src={imageSrc} alt={user?.fullName || ''} />
+        ) : null}
         <AvatarFallback className='rounded-lg'>
           {user?.fullName?.slice(0, 2)?.toUpperCase() || 'CN'}
         </AvatarFallback>

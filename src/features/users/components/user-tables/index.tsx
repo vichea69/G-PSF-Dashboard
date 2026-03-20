@@ -13,16 +13,35 @@ import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { Can } from '@/context/permission-context';
 import { getUserColumns, type UserRow } from './columns';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { UserUpsertDialog } from '../user-upsert-dialog';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { useTranslate } from '@/hooks/use-translate';
 
 export function UsersTable({ data }: { data: UserRow[] }) {
   const [openCreate, setOpenCreate] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserRow | undefined>();
+  const [openEdit, setOpenEdit] = useState(false);
   const { t } = useTranslate();
+  const handleEditUser = useCallback((user: UserRow) => {
+    setEditingUser(user);
+    setOpenEdit(true);
+  }, []);
+  const handleEditDialogChange = useCallback((nextOpen: boolean) => {
+    setOpenEdit(nextOpen);
+
+    if (!nextOpen) {
+      setEditingUser(undefined);
+    }
+  }, []);
   // Rebuild columns when the language changes so labels stay in sync.
-  const columns = useMemo(() => getUserColumns(t), [t]);
+  const columns = useMemo(
+    () =>
+      getUserColumns(t, {
+        onEdit: handleEditUser
+      }),
+    [handleEditUser, t]
+  );
   const table = useReactTable({
     data,
     columns,
@@ -50,6 +69,12 @@ export function UsersTable({ data }: { data: UserRow[] }) {
         mode='create'
         open={openCreate}
         onOpenChange={setOpenCreate}
+      />
+      <UserUpsertDialog
+        mode='edit'
+        open={openEdit}
+        onOpenChange={handleEditDialogChange}
+        initialData={editingUser}
       />
     </DataTable>
   );

@@ -15,12 +15,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconEye,
+  IconTrash
+} from '@tabler/icons-react';
 
 import { DeleteRole } from '@/server/action/admin/role';
 import { RoleAPI } from '@/features/role/type/role';
 import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 import { useTranslate } from '@/hooks/use-translate';
+import { isSuperAdminRole } from '@/lib/super-admin';
 
 interface RoleCellActionProps {
   role: RoleAPI;
@@ -36,6 +42,10 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
   const { can } = usePermissions();
   const editHref = useMemo(() => getRoleEditHref(role), [role]);
   const [openDelete, setOpenDelete] = useState(false);
+  const canReadRole = can(
+    adminRoutePermissions.roles.list.resource,
+    adminRoutePermissions.roles.list.action
+  );
   const canUpdateRole = can(
     adminRoutePermissions.roles.update.resource,
     adminRoutePermissions.roles.update.action
@@ -44,6 +54,11 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
     adminRoutePermissions.roles.delete.resource,
     adminRoutePermissions.roles.delete.action
   );
+  const isProtectedRole = isSuperAdminRole(role);
+  const canManageRole = canUpdateRole && !isProtectedRole;
+  const canRemoveRole = canDeleteRole && !isProtectedRole;
+  // Protected roles still need a way to open the read-only details screen.
+  const canViewRole = canReadRole && isProtectedRole;
 
   const deleteMutation = useMutation({
     mutationFn: async (roleId: number) => {
@@ -76,7 +91,7 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
     router.push(editHref);
   }, [editHref, router]);
 
-  if (!canUpdateRole && !canDeleteRole) {
+  if (!canManageRole && !canRemoveRole && !canViewRole) {
     return null;
   }
 
@@ -98,13 +113,19 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>{t('role.actions.menuLabel')}</DropdownMenuLabel>
-          {canUpdateRole ? (
+          {canViewRole ? (
+            <DropdownMenuItem onClick={onManage}>
+              <IconEye className='mr-2 h-4 w-4 text-blue-500' />
+              <span className='text-blue-500'>{t('table.view')}</span>
+            </DropdownMenuItem>
+          ) : null}
+          {canManageRole ? (
             <DropdownMenuItem onClick={onManage}>
               <IconEdit className='mr-2 h-4 w-4 text-blue-500' />
               <span className='text-blue-500'>{t('role.actions.edit')}</span>
             </DropdownMenuItem>
           ) : null}
-          {canDeleteRole ? (
+          {canRemoveRole ? (
             <DropdownMenuItem onClick={() => setOpenDelete(true)}>
               <IconTrash className='mr-2 h-4 w-4 text-red-500' />
               <span className='text-red-500'>{t('role.actions.delete')}</span>

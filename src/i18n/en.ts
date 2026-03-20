@@ -836,6 +836,7 @@ export const en = {
     actions: {
       menuLabel: 'Actions',
       openMenu: 'Open menu',
+      view: 'View',
       edit: 'Edit',
       delete: 'Delete'
     },
@@ -1047,7 +1048,10 @@ export const en = {
       roleNotFoundDescription: 'The selected role could not be loaded.',
       unableToLoadRole: 'Unable to load role',
       loadRoleDataFailed: 'Failed to load role data',
-      noChangesToSave: 'No changes to save'
+      noChangesToSave: 'No changes to save',
+      superAdminProtectedTitle: 'Super-admin role is protected',
+      superAdminProtectedDescription:
+        'This special role cannot be edited, have permissions changed, or be deleted.'
     },
     type: {
       system: 'System',

@@ -15,21 +15,21 @@ import { useState } from 'react';
 import type { UserRow } from './columns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { UserUpsertDialog } from '../user-upsert-dialog';
 import { deleteAdminUser } from '@/server/action/admin/admin';
 import { useTranslate } from '@/hooks/use-translate';
+import { isSuperAdminRole, readEntityId } from '@/lib/super-admin';
 
 interface CellActionProps {
   data: UserRow;
+  onEdit: (user: UserRow) => void;
 }
 
-export function UsersCellAction({ data }: CellActionProps) {
+export function UsersCellAction({ data, onEdit }: CellActionProps) {
   const [openDelete, setOpenDelete] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
   const qc = useQueryClient();
   const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
-  const { can } = usePermissions();
+  const { can, user } = usePermissions();
   const canUpdateUser = can(
     adminRoutePermissions.users.update.resource,
     adminRoutePermissions.users.update.action
@@ -38,6 +38,11 @@ export function UsersCellAction({ data }: CellActionProps) {
     adminRoutePermissions.users.delete.resource,
     adminRoutePermissions.users.delete.action
   );
+  const isCurrentUser = readEntityId(user?.id) === readEntityId(data.id);
+  // Nobody should edit the super-admin row from the users table.
+  const canEditUser = canUpdateUser && !isSuperAdminRole(data.role);
+  const isProtectedUser = isCurrentUser || isSuperAdminRole(data.role);
+  const canRemoveUser = canDeleteUser && !isProtectedUser;
 
   const deleteMutation = useMutation({
     mutationFn: async () => deleteAdminUser(String(data.id)),
@@ -63,7 +68,7 @@ export function UsersCellAction({ data }: CellActionProps) {
     setOpenDelete(false);
   };
 
-  if (!canUpdateUser && !canDeleteUser) {
+  if (!canEditUser && !canRemoveUser) {
     return null;
   }
 
@@ -76,13 +81,6 @@ export function UsersCellAction({ data }: CellActionProps) {
         loading={deleteMutation.isPending}
       />
 
-      <UserUpsertDialog
-        mode='edit'
-        open={openEdit}
-        onOpenChange={setOpenEdit}
-        initialData={data}
-      />
-
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
@@ -92,14 +90,14 @@ export function UsersCellAction({ data }: CellActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>{t('user.actions.menuLabel')}</DropdownMenuLabel>
-          {canUpdateUser ? (
-            <DropdownMenuItem onClick={() => setOpenEdit(true)}>
+          {canEditUser ? (
+            <DropdownMenuItem onClick={() => onEdit(data)}>
               <IconEdit className='mr-2 h-4 w-4 text-fuchsia-500' />
               <span className='text-fuchsia-500'>{t('user.actions.edit')}</span>
             </DropdownMenuItem>
           ) : null}
 
-          {canDeleteUser ? (
+          {canRemoveUser ? (
             <DropdownMenuItem onClick={() => setOpenDelete(true)}>
               <IconTrash className='mr-2 h-4 w-4 text-red-500' />
               <span className='text-red-500'>{t('user.actions.delete')}</span>

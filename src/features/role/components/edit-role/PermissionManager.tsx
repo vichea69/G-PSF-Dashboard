@@ -24,6 +24,7 @@ import type {
   UpdateRolePermissions
 } from '@/server/action/admin/types';
 import { useTranslate } from '@/hooks/use-translate';
+import { isSuperAdminRole } from '@/lib/super-admin';
 
 const ROLES_QUERY_KEY = ['roles'] as const;
 
@@ -141,6 +142,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
     [roleQuery.data?.matrix]
   );
   const resolvedRoleId = role?.id ? String(role.id) : String(roleId).trim();
+  const isProtectedRole = isSuperAdminRole(role);
 
   const resources = useMemo(() => {
     return buildResourcesFromMatrix(matrix);
@@ -253,6 +255,10 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
     action: string,
     checked: boolean
   ) => {
+    if (isProtectedRole) {
+      return;
+    }
+
     const resourceDefinition = resources.find(
       (resource) => resource.resource === resourceId
     );
@@ -295,6 +301,10 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
   };
 
   const handleToggleAllForResource = (resourceId: string, checked: boolean) => {
+    if (isProtectedRole) {
+      return;
+    }
+
     const resourceDefinition = resources.find(
       (resource) => resource.resource === resourceId
     );
@@ -330,6 +340,10 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
   };
 
   const handleToggleAllPermissions = () => {
+    if (isProtectedRole) {
+      return;
+    }
+
     const shouldGrantAll = !isAllSelected;
 
     setPermissions(() =>
@@ -346,6 +360,11 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
     event.preventDefault();
 
     if (editRoleMutation.isPending) {
+      return;
+    }
+
+    if (isProtectedRole) {
+      toast.error(t('role.permissions.superAdminProtectedDescription'));
       return;
     }
 
@@ -424,18 +443,33 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
   }
 
   const isSubmitDisabled =
-    editRoleMutation.isPending || name.trim().length === 0 || !resolvedRoleId;
+    editRoleMutation.isPending ||
+    isProtectedRole ||
+    name.trim().length === 0 ||
+    !resolvedRoleId;
 
   return (
     <section className='space-y-6'>
       <form onSubmit={handleSubmit}>
         <Card>
           <CardContent className='space-y-6'>
+            {isProtectedRole ? (
+              <div className='text-muted-foreground rounded-lg border border-dashed p-4 text-sm'>
+                <p className='font-medium'>
+                  {t('role.permissions.superAdminProtectedTitle')}
+                </p>
+                <p className='mt-1'>
+                  {t('role.permissions.superAdminProtectedDescription')}
+                </p>
+              </div>
+            ) : null}
+
             <RoleInfoSection
               name={name}
               description={description}
               onNameChange={setName}
               onDescriptionChange={setDescription}
+              disabled={isProtectedRole}
             />
 
             <Separator />
@@ -446,6 +480,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
               totalGranted={totalGranted}
               isAllSelected={isAllSelected}
               onToggleAll={handleToggleAllPermissions}
+              disabled={isProtectedRole}
             />
 
             <PermissionsTable
@@ -453,6 +488,7 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
               selected={permissions}
               onToggleAction={handleToggleAction}
               onToggleAll={handleToggleAllForResource}
+              disabled={isProtectedRole}
             />
           </CardContent>
 
@@ -465,11 +501,13 @@ export const PermissionManager = ({ roleId }: { roleId: string }) => {
             >
               {t('role.form.cancel')}
             </Button>
-            <Button type='submit' disabled={isSubmitDisabled}>
-              {editRoleMutation.isPending
-                ? t('role.form.saving')
-                : t('role.form.saveChanges')}
-            </Button>
+            {!isProtectedRole ? (
+              <Button type='submit' disabled={isSubmitDisabled}>
+                {editRoleMutation.isPending
+                  ? t('role.form.saving')
+                  : t('role.form.saveChanges')}
+              </Button>
+            ) : null}
           </CardFooter>
         </Card>
       </form>

@@ -13,6 +13,7 @@ type PermissionsTableProps = {
   selected: PermissionSelection[];
   onToggleAction: (resource: string, action: string, checked: boolean) => void;
   onToggleAll: (resource: string, checked: boolean) => void;
+  disabled?: boolean;
 };
 
 type CheckboxState = boolean | 'indeterminate';
@@ -26,7 +27,8 @@ export function PermissionsTable({
   resources,
   selected,
   onToggleAction,
-  onToggleAll
+  onToggleAll,
+  disabled = false
 }: PermissionsTableProps) {
   const { t } = useTranslate();
   const selectedMap = useMemo(() => {
@@ -68,6 +70,7 @@ export function PermissionsTable({
             selectedActions={selectedMap.get(resource.resource) ?? []}
             onToggleAction={onToggleAction}
             onToggleAll={onToggleAll}
+            disabled={disabled}
           />
         ))}
       </div>
@@ -102,6 +105,7 @@ type PermissionRowProps = {
   selectedActions: string[];
   onToggleAction: (resource: string, action: string, checked: boolean) => void;
   onToggleAll: (resource: string, checked: boolean) => void;
+  disabled: boolean;
 };
 
 function PermissionRow({
@@ -109,7 +113,8 @@ function PermissionRow({
   actionColumns,
   selectedActions,
   onToggleAction,
-  onToggleAll
+  onToggleAll,
+  disabled
 }: PermissionRowProps) {
   const { t } = useTranslate();
   const availableActions = resource.actions.map((action) => action.action);
@@ -121,6 +126,7 @@ function PermissionRow({
       <div className='col-span-2 flex items-start gap-3'>
         <Checkbox
           checked={selectAllState}
+          disabled={disabled}
           onCheckedChange={(checked) =>
             onToggleAll(resource.resource, checked === true)
           }
@@ -148,7 +154,7 @@ function PermissionRow({
             <Checkbox
               aria-label={`${t('role.permissions.allow')} ${column.label || column.action} ${t('role.permissions.on')} ${resource.label || resource.resource}`}
               checked={isChecked}
-              disabled={!isAvailable}
+              disabled={disabled || !isAvailable}
               onCheckedChange={(checked) => {
                 if (!isAvailable) {
                   return;

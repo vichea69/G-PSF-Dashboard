@@ -85,13 +85,17 @@ function extractRolePermissions(payload: unknown): RolePermissionInput[] {
 }
 
 // All role reads go through server actions so production requests keep auth headers.
-export const useRole = () => {
+export const useRole = ({ enabled = true }: { enabled?: boolean } = {}) => {
   return useQuery<RoleAPI[]>({
+    enabled,
     queryKey: ['roles'],
     queryFn: async () => {
       const response = await getRoles();
       return extractRoles(response);
-    }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false
   });
 };
 

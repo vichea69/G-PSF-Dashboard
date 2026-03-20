@@ -13,6 +13,7 @@ export default function RolesTablePage() {
   const { t } = useTranslate();
   // Rebuild columns when the language changes so labels stay translated.
   const tableColumns = React.useMemo(() => getRoleColumns(t), [t]);
+  const rows = React.useMemo(() => data ?? [], [data]);
 
   if (isLoading)
     return <DataTableSkeleton columnCount={6} filterCount={6} rowCount={8} />;
@@ -20,5 +21,5 @@ export default function RolesTablePage() {
     return <div className='text-destructive'>{t('role.toast.loadFailed')}</div>;
   }
 
-  return <DataTable columns={tableColumns} data={data ?? []} />;
+  return <DataTable columns={tableColumns} data={rows} />;
 }
