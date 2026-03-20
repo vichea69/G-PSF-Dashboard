@@ -1074,6 +1074,7 @@ export const en = {
       createFailed: 'Failed to create role',
       updateFailed: 'Failed to update role',
       deleteFailed: 'Failed to delete role',
+      systemRoleDeleteBlocked: 'System roles cannot be deleted.',
       idMissing: 'Role id is missing',
       loadFailed: 'Failed to load roles'
     }

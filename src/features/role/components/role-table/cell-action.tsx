@@ -34,6 +34,34 @@ interface RoleCellActionProps {
 
 const ROLES_QUERY_KEY = ['roles'] as const;
 
+function readRoleDeleteErrorMessage(
+  error: unknown,
+  t: (key: string) => string
+) {
+  const message =
+    typeof error === 'string'
+      ? error
+      : ((error as any)?.response?.data?.message ??
+        (error as Error)?.message ??
+        '');
+
+  const normalizedMessage = String(message).trim().toLowerCase();
+
+  // Convert known backend strings into translated UI messages.
+  if (
+    normalizedMessage === 'system roles cannot be deleted.' ||
+    normalizedMessage === 'system roles cannot be deleted'
+  ) {
+    return t('role.toast.systemRoleDeleteBlocked');
+  }
+
+  if (typeof message === 'string' && message.trim()) {
+    return message;
+  }
+
+  return t('role.toast.deleteFailed');
+}
+
 export function RoleCellAction({ role }: RoleCellActionProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -55,26 +83,29 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
     adminRoutePermissions.roles.delete.action
   );
   const isProtectedRole = isSuperAdminRole(role);
+  const isSystemRole = Boolean(role.isSystem);
   const canManageRole = canUpdateRole && !isProtectedRole;
-  const canRemoveRole = canDeleteRole && !isProtectedRole;
+  // System roles are readable/editable by permission, but they cannot be deleted.
+  const canRemoveRole = canDeleteRole && !isProtectedRole && !isSystemRole;
   // Protected roles still need a way to open the read-only details screen.
   const canViewRole = canReadRole && isProtectedRole;
 
   const deleteMutation = useMutation({
     mutationFn: async (roleId: number) => {
-      await DeleteRole(roleId);
+      return DeleteRole(roleId);
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (!result?.success) {
+        toast.error(readRoleDeleteErrorMessage(result.error, t));
+        return;
+      }
+
       toast.success(t('role.toast.deleted'));
       setOpenDelete(false);
       queryClient.invalidateQueries({ queryKey: ROLES_QUERY_KEY });
     },
     onError: (error: unknown) => {
-      const message =
-        (error as any)?.response?.data?.message ??
-        (error as Error)?.message ??
-        t('role.toast.deleteFailed');
-      toast.error(message);
+      toast.error(readRoleDeleteErrorMessage(error, t));
     }
   });
 
@@ -84,8 +115,13 @@ export function RoleCellAction({ role }: RoleCellActionProps) {
       return;
     }
 
+    if (role.isSystem) {
+      toast.error(t('role.toast.systemRoleDeleteBlocked'));
+      return;
+    }
+
     deleteMutation.mutate(Number(role.id));
-  }, [deleteMutation, role.id, t]);
+  }, [deleteMutation, role.id, role.isSystem, t]);
 
   const onManage = useCallback(() => {
     router.push(editHref);

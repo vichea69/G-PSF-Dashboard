@@ -1071,6 +1071,7 @@ export const kh = {
       createFailed: 'បរាជ័យក្នុងការបង្កើតតួនាទី',
       updateFailed: 'បរាជ័យក្នុងការកែប្រែតួនាទី',
       deleteFailed: 'បរាជ័យក្នុងការលុបតួនាទី',
+      systemRoleDeleteBlocked: 'តួនាទីប្រព័ន្ធមិនអាចលុបបានទេ។',
       idMissing: 'មិនមានលេខសម្គាល់តួនាទី',
       loadFailed: 'បរាជ័យក្នុងការផ្ទុកតួនាទី'
     }

@@ -69,7 +69,10 @@ export async function DeleteRole(id: number) {
       headers,
       withCredentials: true
     });
-    return res.data;
+    return {
+      success: true,
+      data: res.data
+    };
   } catch (error: any) {
     const detail = error?.response?.data;
     const message =
@@ -78,7 +81,10 @@ export async function DeleteRole(id: number) {
       (typeof detail === 'string' ? detail : undefined) ||
       error?.message ||
       'Failed to delete role.';
-    throw new Error(message);
+    return {
+      success: false,
+      error: message
+    };
   }
 }
 //Create role and permission
