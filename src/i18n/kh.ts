@@ -1090,6 +1090,9 @@ export const kh = {
       saveChanges: 'រក្សាទុកការកែប្រែ'
     },
     basicInfo: {
+      sectionTitle: 'ព័ត៌មានមូលដ្ឋាន',
+      sectionDescription:
+        'គ្រប់គ្រងមាតិកាគេហទំព័រចម្បង ឡូហ្គោ និងផ្ទៃខាងក្រោយបាតទំព័រ។',
       siteTitle: 'ចំណងជើងគេហទំព័រ',
       siteDescription: 'ពិពណ៌នាគេហទំព័រ',
       siteLogo: 'ឡូហ្គោគេហទំព័រ',

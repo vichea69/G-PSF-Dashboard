@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -28,6 +28,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { useRouter } from 'next/navigation';
 import { loginAction } from '@/server/action/userAuth/user';
 import { toast } from 'sonner';
+import { useSiteSetting } from '@/features/site-setting/hook/use-site-setting';
+import { FALLBACK_SITE_LOGO, getSiteBranding } from '@/lib/site-branding';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -35,6 +37,15 @@ export default function AdminLogin() {
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const { data: siteSetting, isError: isSiteSettingError } = useSiteSetting();
+  const { displayName, logoSrc, isRemoteLogo } = useMemo(() => {
+    return getSiteBranding(siteSetting, { hasError: isSiteSettingError });
+  }, [siteSetting, isSiteSettingError]);
+
+  React.useEffect(() => {
+    setLogoError(false);
+  }, [logoSrc]);
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -83,11 +94,13 @@ export default function AdminLogin() {
             <div className='relative'>
               <div className='flex items-center justify-center rounded-2xl p-2'>
                 <Image
-                  src='/assets/gpsf_logo.png'
-                  alt='G-PSF logo'
+                  src={logoError ? FALLBACK_SITE_LOGO : logoSrc}
+                  alt={`${displayName} logo`}
                   width={150}
                   height={150}
                   className='h-full w-full object-contain'
+                  onError={() => setLogoError(true)}
+                  {...(isRemoteLogo ? { unoptimized: true } : {})}
                 />
               </div>
             </div>

@@ -9,28 +9,18 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar';
 import { useSiteSetting } from '@/features/site-setting/hook/use-site-setting';
-
-const FALLBACK_LOGO = '/assets/gpsf_logo.png';
-const FALLBACK_NAME = 'G-PSF Dashboard';
+import {
+  FALLBACK_SITE_LOGO,
+  FALLBACK_SITE_NAME,
+  getSiteBranding
+} from '@/lib/site-branding';
 
 export function OrgSwitcher() {
   const { data: siteSetting, isLoading, isError } = useSiteSetting();
   const [logoError, setLogoError] = useState(false);
 
   const { displayName, logoSrc, isRemoteLogo } = useMemo(() => {
-    const siteName = !isError
-      ? siteSetting?.title?.en?.trim() || siteSetting?.title?.km?.trim()
-      : undefined;
-    const siteLogo = !isError ? siteSetting?.logo?.trim() : undefined;
-
-    const name = siteName && siteName.length > 0 ? siteName : FALLBACK_NAME;
-    const logo = siteLogo && siteLogo.length > 0 ? siteLogo : FALLBACK_LOGO;
-
-    return {
-      displayName: name,
-      logoSrc: logo,
-      isRemoteLogo: logo.startsWith('http')
-    };
+    return getSiteBranding(siteSetting, { hasError: isError });
   }, [siteSetting, isError]);
 
   useEffect(() => {
@@ -50,7 +40,7 @@ export function OrgSwitcher() {
                 <div className='bg-muted size-full animate-pulse' />
               ) : (
                 <Image
-                  src={logoError ? FALLBACK_LOGO : logoSrc}
+                  src={logoError ? FALLBACK_SITE_LOGO : logoSrc}
                   alt={`${displayName} logo`}
                   width={44}
                   height={44}
@@ -63,7 +53,7 @@ export function OrgSwitcher() {
           </Link>
           <div className='flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden'>
             <span className='font-semibold'>
-              {isLoading ? FALLBACK_NAME : displayName}
+              {isLoading ? FALLBACK_SITE_NAME : displayName}
             </span>
           </div>
         </SidebarMenuButton>

@@ -16,6 +16,12 @@ import {
 } from '@/features/site-setting/types/site-setting-types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslate } from '@/hooks/use-translate';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
 
 function trimSiteSettingPayload(values: SiteSettingFormValues) {
   return {
@@ -157,43 +163,100 @@ export default function SiteSetting() {
           </TabsList>
         </Tabs>
 
-        <div className='space-y-6'>
-          <SiteBasicInfoBlock
-            activeLocale={activeLocale}
-            title={formData.title}
-            description={formData.description}
-            address={formData.address}
-            openTime={formData.openTime}
-            logo={formData.logo}
-            footerBackground={formData.footerBackground}
-            onLocalizedChange={(field, locale, value) =>
-              setFormData((prev) => ({
-                ...prev,
-                [field]: {
-                  ...prev[field],
-                  [locale]: value
+        {/* Keep each site setting group in its own accordion item
+            so the form is easier to scan and edit. */}
+        <Accordion
+          type='multiple'
+          defaultValue={['basic-info']}
+          className='space-y-4'
+        >
+          <AccordionItem
+            value='basic-info'
+            className='rounded-xl border px-4 last:border-b'
+          >
+            <AccordionTrigger className='hover:no-underline'>
+              <div className='space-y-1'>
+                <p className='text-sm font-semibold'>
+                  {t('siteSetting.basicInfo.sectionTitle')}
+                </p>
+                <p className='text-muted-foreground text-sm'>
+                  {t('siteSetting.basicInfo.sectionDescription')}
+                </p>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className='pb-0'>
+              <SiteBasicInfoBlock
+                activeLocale={activeLocale}
+                title={formData.title}
+                description={formData.description}
+                address={formData.address}
+                openTime={formData.openTime}
+                logo={formData.logo}
+                footerBackground={formData.footerBackground}
+                onLocalizedChange={(field, locale, value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    [field]: {
+                      ...prev[field],
+                      [locale]: value
+                    }
+                  }))
                 }
-              }))
-            }
-            onMediaChange={(field, value) =>
-              setFormData((prev) => ({ ...prev, [field]: value }))
-            }
-          />
+                onMediaChange={(field, value) =>
+                  setFormData((prev) => ({ ...prev, [field]: value }))
+                }
+              />
+            </AccordionContent>
+          </AccordionItem>
 
-          <SiteContactBlock
-            value={formData.contact}
-            onChange={(next) =>
-              setFormData((prev) => ({ ...prev, contact: next }))
-            }
-          />
+          <AccordionItem
+            value='contact'
+            className='rounded-xl border px-4 last:border-b'
+          >
+            <AccordionTrigger className='hover:no-underline'>
+              <div className='space-y-1'>
+                <p className='text-sm font-semibold'>
+                  {t('siteSetting.contact.title')}
+                </p>
+                <p className='text-muted-foreground text-sm'>
+                  {t('siteSetting.contact.description')}
+                </p>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className='pb-0'>
+              <SiteContactBlock
+                value={formData.contact}
+                onChange={(next) =>
+                  setFormData((prev) => ({ ...prev, contact: next }))
+                }
+              />
+            </AccordionContent>
+          </AccordionItem>
 
-          <SiteSocialLinksBlock
-            value={formData.socialLinks}
-            onChange={(next) =>
-              setFormData((prev) => ({ ...prev, socialLinks: next }))
-            }
-          />
-        </div>
+          <AccordionItem
+            value='social-links'
+            className='rounded-xl border px-4 last:border-b'
+          >
+            <AccordionTrigger className='hover:no-underline'>
+              <div className='space-y-1'>
+                <p className='text-sm font-semibold'>
+                  {t('siteSetting.socialLinks.title')}
+                </p>
+                <p className='text-muted-foreground text-sm'>
+                  {t('siteSetting.socialLinks.description')}
+                </p>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className='pb-0'>
+              <SiteSocialLinksBlock
+                value={formData.socialLinks}
+                onChange={(next) =>
+                  setFormData((prev) => ({ ...prev, socialLinks: next }))
+                }
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         <div className='flex justify-end'>
           <Button type='submit' disabled={mutation.isPending}>

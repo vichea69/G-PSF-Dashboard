@@ -1093,6 +1093,9 @@ export const en = {
       saveChanges: 'Save changes'
     },
     basicInfo: {
+      sectionTitle: 'Basic Info',
+      sectionDescription:
+        'Manage the main site content, logo, and footer background.',
       siteTitle: 'Site Title',
       siteDescription: 'Site Description',
       siteLogo: 'Site Logo',
