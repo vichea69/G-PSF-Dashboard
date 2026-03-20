@@ -382,6 +382,7 @@ export const en = {
       expiredDate: 'Expired Date',
       pickExpiryDate: 'Pick an expiry date',
       clearDate: 'Clear date',
+      clearSelection: 'Clear',
       featured: 'Featured',
       page: 'Page',
       pagePlaceholder: 'Attach to a page (optional)',

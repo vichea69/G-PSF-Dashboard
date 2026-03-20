@@ -381,6 +381,7 @@ export const kh = {
       expiredDate: 'កាលបរិច្ឆេទផុតកំណត់',
       pickExpiryDate: 'ជ្រើសកាលបរិច្ឆេទផុតកំណត់',
       clearDate: 'សម្អាតកាលបរិច្ឆេទ',
+      clearSelection: 'សម្អាត',
       featured: 'សំខាន់',
       page: 'ទំព័រ',
       pagePlaceholder: 'ភ្ជាប់ទៅទំព័រ',

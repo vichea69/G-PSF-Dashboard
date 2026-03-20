@@ -228,7 +228,20 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='page'>{t('post.publishSettings.page')}</Label>
+          <div className='flex items-center justify-between gap-2'>
+            <Label htmlFor='page'>{t('post.publishSettings.page')}</Label>
+            {pageId ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='h-7 px-2 text-xs'
+                onClick={() => onPageChange('')}
+              >
+                {t('post.publishSettings.clearSelection')}
+              </Button>
+            ) : null}
+          </div>
           <Select
             value={(pageId ?? '').toString()}
             onValueChange={onPageChange}
@@ -249,7 +262,20 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='section'>{t('post.publishSettings.section')}</Label>
+          <div className='flex items-center justify-between gap-2'>
+            <Label htmlFor='section'>{t('post.publishSettings.section')}</Label>
+            {sectionId ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='h-7 px-2 text-xs'
+                onClick={() => onSectionChange('')}
+              >
+                {t('post.publishSettings.clearSelection')}
+              </Button>
+            ) : null}
+          </div>
           <Select
             value={(sectionId ?? '').toString()}
             onValueChange={onSectionChange}
@@ -309,7 +335,22 @@ export function PostPublishSettingsCard({
         </div>
 
         <div>
-          <Label htmlFor='category'>{t('post.publishSettings.category')}</Label>
+          <div className='flex items-center justify-between gap-2'>
+            <Label htmlFor='category'>
+              {t('post.publishSettings.category')}
+            </Label>
+            {categoryId ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='h-7 px-2 text-xs'
+                onClick={() => onCategoryChange('')}
+              >
+                {t('post.publishSettings.clearSelection')}
+              </Button>
+            ) : null}
+          </div>
           <Select
             value={(categoryId ?? '').toString()}
             onValueChange={onCategoryChange}
