@@ -51,7 +51,7 @@ export const kh = {
       role: 'តួនាទី',
       siteSetting: 'ការកំណត់គេហទំព័រ',
       mediaManager: 'គ្រប់គ្រងមេឌៀ',
-      menuAndFooter: 'ម៉ឺនុយ និងបាតទំព័រ',
+      menuAndFooter: 'ម៉ឺនុយ និង ទំព័រខាងក្រោម',
       activityLog: 'កំណត់ហេតុសកម្មភាព'
     }
   },
@@ -440,6 +440,7 @@ export const kh = {
         addImage: 'បន្ថែមរូបភាព',
         imageUrl: 'តំណរូបភាព',
         chooseFromMedia: 'ជ្រើសពី Media',
+        noImageSelected: 'មិនទាន់បានជ្រើសរូបភាពទេ។ សូមជ្រើសពី Media។',
         noImagesAdded: 'មិនទាន់មានរូបភាពទេ។ ចុច Add Image ដើម្បីចាប់ផ្តើម។',
         ctaButtons: 'ប៊ូតុង CTA',
         ctaDescription: 'គ្រប់គ្រងប៊ូតុងដែលបង្ហាញលើ banner ។',
@@ -451,7 +452,11 @@ export const kh = {
         enterButtonLabelEnglish: 'បញ្ចូលស្លាកប៊ូតុងជាភាសាអង់គ្លេស',
         linkUrl: 'តំណភ្ជាប់',
         selectBackgroundImage: 'ជ្រើសរូបភាពផ្ទៃខាងក្រោយ',
-        selectBackgroundImageDescription: 'ជ្រើសរូបភាពពី Media Manager ។'
+        selectBackgroundImageDescription: 'ជ្រើសរូបភាពពី Media Manager ។',
+        backgroundImageUploaded: 'បានផ្ទុករូបភាពផ្ទៃខាងក្រោយឡើងដោយជោគជ័យ',
+        backgroundImageUploadFailed: 'បរាជ័យក្នុងការផ្ទុករូបភាពផ្ទៃខាងក្រោយឡើង',
+        backgroundImageUploadMissingUrl:
+          'បានផ្ទុកឡើងជោគជ័យ ប៉ុន្តែមិនមានតំណរូបភាពត្រឡប់មកវិញ'
       },
       stats: {
         title: 'ធាតុស្ថិតិ',

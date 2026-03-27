@@ -442,6 +442,7 @@ export const en = {
         addImage: 'Add Image',
         imageUrl: 'Image URL',
         chooseFromMedia: 'Choose from Media',
+        noImageSelected: 'No image selected yet. Choose one from Media.',
         noImagesAdded: 'No images added. Click Add Image to start.',
         ctaButtons: 'CTA Buttons',
         ctaDescription: 'Manage the buttons displayed on the banner.',
@@ -453,7 +454,11 @@ export const en = {
         enterButtonLabelEnglish: 'Enter button label in English',
         linkUrl: 'Link URL',
         selectBackgroundImage: 'Select background image',
-        selectBackgroundImageDescription: 'Choose an image from Media Manager.'
+        selectBackgroundImageDescription: 'Choose an image from Media Manager.',
+        backgroundImageUploaded: 'Background image uploaded successfully',
+        backgroundImageUploadFailed: 'Failed to upload background image',
+        backgroundImageUploadMissingUrl:
+          'Upload succeeded but no image URL was returned'
       },
       stats: {
         title: 'Stat Items',

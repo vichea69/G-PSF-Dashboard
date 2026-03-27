@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   Card,
   CardAction,
@@ -18,6 +20,7 @@ import { FileModal } from '@/components/modal/file-modal';
 import { useTranslate } from '@/hooks/use-translate';
 import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
+import { handleImageUpload } from '@/lib/tiptap-utils';
 import { ImageIcon, Link2, Plus, X } from 'lucide-react';
 
 export interface HeroBannerData {
@@ -98,10 +101,12 @@ const normalizeBannerData = (value?: HeroBannerData): HeroBannerData => {
 
 export function BannerForm({ language, value, onChange }: BannerFormProps) {
   const { t } = useTranslate();
+  const qc = useQueryClient();
   const [formData, setFormData] = useState<HeroBannerData>(() =>
     normalizeBannerData(value)
   );
   const [imagePickerIndex, setImagePickerIndex] = useState<number | null>(null);
+  const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
   const lastValue = useRef<string>('');
   const pendingEmit = useRef<HeroBannerData | null>(null);
 
@@ -178,6 +183,44 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
     const selectedUrl = (file.url ?? '').trim();
     if (!selectedUrl) return;
     updateImage(imagePickerIndex, selectedUrl);
+  };
+
+  const handleUploadBackgroundFromDevice = async (
+    files: File[],
+    folderId?: string | null
+  ) => {
+    const firstFile = files[0];
+    const targetIndex = imagePickerIndex;
+    if (!firstFile || targetIndex === null) return;
+
+    setUploadingFromDevice(true);
+    try {
+      const normalizedFolderId = String(folderId ?? '').trim();
+      const result = await handleImageUpload(
+        firstFile,
+        undefined,
+        undefined,
+        normalizedFolderId || undefined
+      );
+      const uploadedUrl = (result?.url ?? '').trim();
+
+      if (!uploadedUrl) {
+        throw new Error(
+          t('post.blocks.heroBanner.backgroundImageUploadMissingUrl')
+        );
+      }
+
+      updateImage(targetIndex, uploadedUrl);
+      await qc.invalidateQueries({ queryKey: ['media'], exact: false });
+      toast.success(t('post.blocks.heroBanner.backgroundImageUploaded'));
+    } catch (error: any) {
+      toast.error(
+        error?.message ||
+          t('post.blocks.heroBanner.backgroundImageUploadFailed')
+      );
+    } finally {
+      setUploadingFromDevice(false);
+    }
   };
 
   const addCta = () => {
@@ -336,13 +379,9 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                     )}
                   </div>
                 </div>
-                <div className='flex flex-col gap-4 md:flex-row md:items-start'>
-                  <Input
-                    id={`backgroundImage-${index}`}
-                    value={image}
-                    onChange={(e) => updateImage(index, e.target.value)}
-                    placeholder='https://example.com/image.jpg'
-                  />
+                <div className='space-y-3'>
+                  {/* Keep hero banner images media-only so users do not need
+                      to paste raw URLs by hand. */}
                   {image ? (
                     <div className='bg-muted relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border'>
                       <Image
@@ -353,7 +392,13 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
                         className='object-cover'
                       />
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className='text-muted-foreground flex min-h-28 items-center justify-center rounded-lg border border-dashed text-sm'>
+                      {/* Show a simple empty state until the user picks an image
+                          from Media Manager or uploads one from the modal. */}
+                      {t('post.blocks.heroBanner.noImageSelected')}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -449,13 +494,15 @@ export function BannerForm({ language, value, onChange }: BannerFormProps) {
         isOpen={imagePickerIndex !== null}
         onClose={() => setImagePickerIndex(null)}
         onSelect={handleSelectBackgroundFromMedia}
+        onUploadFromDevice={handleUploadBackgroundFromDevice}
+        loading={uploadingFromDevice}
         title={t('post.blocks.heroBanner.selectBackgroundImage')}
         description={t(
           'post.blocks.heroBanner.selectBackgroundImageDescription'
         )}
         types={['image']}
         accept='image/*'
-        allowUploadFromDevice={false}
+        allowUploadFromDevice
       />
     </div>
   );
