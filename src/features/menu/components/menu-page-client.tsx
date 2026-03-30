@@ -1,16 +1,13 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { CreateMenuPayload } from '@/features/menu/components/CreateMenuDialog';
 import { MenuTableList } from '@/features/menu/components/menu-table';
-import { useCreateMenu } from '@/features/menu/hook/use-menu';
+import { useCreateMenu, useMenus } from '@/features/menu/hook/use-menu';
 import { useTranslate } from '@/hooks/use-translate';
-import { useMenu } from '@/hooks/use-menu';
-import { normalizeMenuTreeResponse } from '@/features/menu/utils/menu-normalizer';
 import type { MenuGroup } from '@/features/menu/types';
 import { toast } from 'sonner';
 
@@ -35,50 +32,37 @@ const readMenuErrorMessage = (
   return message;
 };
 
-export default function MenuPageClient() {
-  const qc = useQueryClient();
+interface MenuPageClientProps {
+  initialMenus?: MenuGroup[];
+}
+
+export default function MenuPageClient({ initialMenus }: MenuPageClientProps) {
   const { t } = useTranslate();
-  const { data: menusData, isLoading, isError } = useMenu();
+  const { menus, isLoading, isError } = useMenus(initialMenus);
   const createMenuMutation = useCreateMenu();
 
   useEffect(() => {
     document.title = t('menu.title');
   }, [t]);
 
-  const menus: MenuGroup[] = useMemo(() => {
-    // Normalize API responses into one stable table shape.
-    const raw = menusData?.data ?? menusData;
-    if (Array.isArray(raw)) {
-      return raw.map((item: unknown, index: number) =>
-        normalizeMenuTreeResponse(item, `menu-${index}`)
-      );
-    }
-    return [];
-  }, [menusData]);
-
-  const handleCreateMenu = (payload: CreateMenuPayload) => {
+  const handleCreateMenu = async (payload: CreateMenuPayload) => {
     const nextSlug = normalizeSlug(payload.name);
     if (!nextSlug) {
       toast.error(t('menu.toast.slugRequired'));
-      return;
+      throw new Error(t('menu.toast.slugRequired'));
     }
 
-    createMenuMutation.mutate(
-      { name: nextSlug },
-      {
-        onSuccess: () => {
-          toast.success(t('menu.toast.created'));
-          qc.invalidateQueries({ queryKey: ['menus'] });
-        },
-        onError: (error) => {
-          toast.error(
-            readMenuErrorMessage(error, t('menu.toast.createFailed'), [
-              'Failed to create menu'
-            ])
-          );
-        }
-      }
-    );
+    try {
+      await createMenuMutation.mutateAsync({ name: nextSlug });
+      toast.success(t('menu.toast.created'));
+    } catch (error) {
+      toast.error(
+        readMenuErrorMessage(error, t('menu.toast.createFailed'), [
+          'Failed to create menu'
+        ])
+      );
+      throw error;
+    }
   };
 
   return (
@@ -105,7 +89,11 @@ export default function MenuPageClient() {
         ) : null}
 
         {!isLoading && !isError ? (
-          <MenuTableList data={menus} onCreate={handleCreateMenu} />
+          <MenuTableList
+            data={menus}
+            onCreate={handleCreateMenu}
+            createLoading={createMenuMutation.isPending}
+          />
         ) : null}
       </div>
     </PageContainer>

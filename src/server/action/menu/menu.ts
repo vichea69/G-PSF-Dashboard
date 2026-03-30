@@ -56,6 +56,20 @@ export async function getMenuTreeBySlug(slug: string) {
   }
 }
 
+export async function getMenusTree() {
+  const headers = await getAuthHeaders();
+
+  try {
+    const res = await api.get('/menus/tree', {
+      headers,
+      withCredentials: true
+    });
+    return res.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, 'Failed to load menus'));
+  }
+}
+
 export async function createMenu(payload: CreateMenuPayload) {
   const headers = await getAuthHeaders();
 

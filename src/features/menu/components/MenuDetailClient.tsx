@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/layout/page-container';
 import { Heading } from '@/components/ui/heading';
@@ -29,17 +30,17 @@ import type { MenuItem, MenuGroup } from '@/features/menu/types';
 import { Trash2 } from 'lucide-react';
 import {
   useMenuTree,
+  useMenus,
   useCreateMenu,
   useCreateMenuItem,
   useDeleteMenu,
   useDeleteMenuItem,
   useUpdateMenu,
   useUpdateMenuItem,
+  menuQueryKeys,
   toNullableMenuId,
   toCreateMenuItemPayload
 } from '@/features/menu/hook/use-menu';
-import { useMenu } from '@/hooks/use-menu';
-import { normalizeMenuTreeResponse } from '@/features/menu/utils/menu-normalizer';
 import { useTranslate } from '@/hooks/use-translate';
 import { toast } from 'sonner';
 
@@ -68,13 +69,23 @@ type DeleteTarget = { type: 'menu' } | { type: 'item'; itemId: string } | null;
 
 interface MenuDetailClientProps {
   slug: string;
+  initialMenu?: MenuGroup | null;
+  initialMenus?: MenuGroup[];
 }
 
-export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
+export default function MenuDetailClient({
+  slug,
+  initialMenu,
+  initialMenus
+}: MenuDetailClientProps) {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { t } = useTranslate();
-  const { menu, isLoading, isError, isFetching } = useMenuTree(slug);
-  const { data: allMenusData } = useMenu();
+  const { menu, isLoading, isError, isFetching } = useMenuTree(
+    slug,
+    initialMenu
+  );
+  const { menus: allMenus } = useMenus(initialMenus);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
@@ -85,16 +96,6 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
   const deleteMenuItemMutation = useDeleteMenuItem();
   const deleteMenuMutation = useDeleteMenu();
 
-  const allMenus: MenuGroup[] = useMemo(() => {
-    const raw = allMenusData?.data ?? allMenusData;
-    if (Array.isArray(raw)) {
-      return raw.map((item: unknown, index: number) =>
-        normalizeMenuTreeResponse(item, `menu-${index}`)
-      );
-    }
-    return [];
-  }, [allMenusData]);
-
   const editingItem = useMemo(
     () => menu?.items.find((item) => item.id === editingItemId) ?? null,
     [menu?.items, editingItemId]
@@ -104,41 +105,37 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
     document.title = menu?.name || t('menu.title');
   }, [menu?.name, t]);
 
-  const handleCreateMenu = (payload: CreateMenuPayload) => {
+  const handleCreateMenu = async (payload: CreateMenuPayload) => {
     const nextSlug = normalizeSlug(payload.name);
     if (!nextSlug) {
       toast.error(t('menu.toast.slugRequired'));
-      return;
+      throw new Error(t('menu.toast.slugRequired'));
     }
 
-    createMenuMutation.mutate(
-      { name: nextSlug },
-      {
-        onSuccess: () => {
-          toast.success(t('menu.toast.created'));
-          router.push(`/admin/menu/${nextSlug}`);
-        },
-        onError: (error) => {
-          toast.error(
-            readMenuErrorMessage(error, t('menu.toast.createFailed'), [
-              'Failed to create menu'
-            ])
-          );
-        }
-      }
-    );
+    try {
+      await createMenuMutation.mutateAsync({ name: nextSlug });
+      toast.success(t('menu.toast.created'));
+      router.push(`/admin/menu/${nextSlug}`);
+    } catch (error) {
+      toast.error(
+        readMenuErrorMessage(error, t('menu.toast.createFailed'), [
+          'Failed to create menu'
+        ])
+      );
+      throw error;
+    }
   };
 
-  const handleCreateMenuItem = (payload: CreateMenuItemPayload) => {
-    if (!menu) return;
+  const handleCreateMenuItem = async (payload: CreateMenuItemPayload) => {
+    if (!menu) throw new Error('Menu not found');
 
     const targetParent = payload.parentId ?? undefined;
     const siblingCount = menu.items.filter(
       (item) => (item.parentId ?? undefined) === targetParent
     ).length;
 
-    createMenuItemMutation.mutate(
-      {
+    try {
+      await createMenuItemMutation.mutateAsync({
         menuId: menu.id,
         payload: toCreateMenuItemPayload(
           {
@@ -148,20 +145,16 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
           },
           siblingCount
         )
-      },
-      {
-        onSuccess: () => {
-          toast.success(t('menu.toast.itemCreated'));
-        },
-        onError: (error) => {
-          toast.error(
-            readMenuErrorMessage(error, t('menu.toast.itemCreateFailed'), [
-              'Failed to create menu item'
-            ])
-          );
-        }
-      }
-    );
+      });
+      toast.success(t('menu.toast.itemCreated'));
+    } catch (error) {
+      toast.error(
+        readMenuErrorMessage(error, t('menu.toast.itemCreateFailed'), [
+          'Failed to create menu item'
+        ])
+      );
+      throw error;
+    }
   };
 
   const requestDeleteMenuItem = (itemId: string) => {
@@ -300,40 +293,52 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
 
     if (changedItems.length === 0) return;
 
-    try {
-      await Promise.all(
-        changedItems.map((item) => {
-          const previous = previousById.get(item.id);
-          const payload: {
-            orderIndex: number;
-            parentId?: string | number | null;
-          } = {
-            orderIndex: item.order
-          };
+    const results = await Promise.allSettled(
+      changedItems.map((item) => {
+        const previous = previousById.get(item.id);
+        const payload: {
+          orderIndex: number;
+          parentId?: string | number | null;
+        } = {
+          orderIndex: item.order
+        };
 
-          if (
-            previous &&
-            toNullableMenuId(previous.parentId) !==
-              toNullableMenuId(item.parentId)
-          ) {
-            payload.parentId = toNullableMenuId(item.parentId);
+        if (
+          previous &&
+          toNullableMenuId(previous.parentId) !==
+            toNullableMenuId(item.parentId)
+        ) {
+          payload.parentId = toNullableMenuId(item.parentId);
+        }
+
+        return updateMenuItemMutation.mutateAsync({
+          menuId: menu.id,
+          itemId: item.id,
+          payload,
+          options: {
+            skipRefetch: true
           }
+        });
+      })
+    );
 
-          return updateMenuItemMutation.mutateAsync({
-            menuId: menu.id,
-            itemId: item.id,
-            payload
-          });
-        })
-      );
-      toast.success(t('menu.toast.orderUpdated'));
-    } catch (error) {
+    await queryClient.refetchQueries({
+      queryKey: menuQueryKeys.tree(slug),
+      type: 'active'
+    });
+
+    const rejected = results.find((result) => result.status === 'rejected');
+
+    if (rejected?.status === 'rejected') {
       toast.error(
-        readMenuErrorMessage(error, t('menu.toast.reorderFailed'), [
+        readMenuErrorMessage(rejected.reason, t('menu.toast.reorderFailed'), [
           'Failed to update menu item'
         ])
       );
+      return;
     }
+
+    toast.success(t('menu.toast.orderUpdated'));
   };
 
   return (
@@ -377,6 +382,7 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
               <CreateMenuItemDialog
                 selectedMenu={menu}
                 onCreate={handleCreateMenuItem}
+                loading={createMenuItemMutation.isPending}
               />
             )}
             {menu ? (
@@ -402,7 +408,10 @@ export default function MenuDetailClient({ slug }: MenuDetailClientProps) {
                   <h3 className='text-muted-foreground px-1 text-xs font-semibold tracking-wider uppercase'>
                     {t('menu.panel.sidebarTitle')}
                   </h3>
-                  <CreateMenuDialog onCreate={handleCreateMenu} />
+                  <CreateMenuDialog
+                    onCreate={handleCreateMenu}
+                    loading={createMenuMutation.isPending}
+                  />
                 </div>
                 <Separator className='mb-2' />
                 {allMenus.length > 0 ? (

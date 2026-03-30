@@ -13,6 +13,34 @@ export function setSequentialOrder(items: MenuItem[]) {
   return items.map((item, idx) => ({ ...item, order: idx }));
 }
 
+export function getDescendantIds(items: MenuItem[], itemId: string) {
+  const descendants = new Set<string>();
+  const stack = [itemId];
+
+  while (stack.length > 0) {
+    const currentId = stack.pop();
+    if (!currentId) continue;
+
+    items.forEach((item) => {
+      if (item.parentId !== currentId || descendants.has(item.id)) return;
+      descendants.add(item.id);
+      stack.push(item.id);
+    });
+  }
+
+  return descendants;
+}
+
+export function wouldCreateMenuCycle(
+  items: MenuItem[],
+  itemId: string,
+  nextParentId?: string | null
+) {
+  if (!nextParentId) return false;
+  if (nextParentId === itemId) return true;
+  return getDescendantIds(items, itemId).has(nextParentId);
+}
+
 export function reorderAll(
   all: MenuItem[],
   sourceParentId: string | undefined,

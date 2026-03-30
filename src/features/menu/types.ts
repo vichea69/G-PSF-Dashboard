@@ -6,6 +6,7 @@ export type LocalizedMenuLabel = {
 };
 
 export type MenuItemLabel = LocalizedMenuLabel | string;
+export type MenuLabelLocale = 'en' | 'km' | 'kh';
 
 export interface MenuItem {
   id: string;
@@ -39,6 +40,27 @@ const tryParseJson = (value: string): unknown => {
   }
 };
 
+const readLocalizedText = (value: unknown, depth: number): string => {
+  if (depth > 4) return '';
+
+  if (typeof value === 'string') {
+    const parsed = tryParseJson(value);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const nested = toLocalizedLabel(parsed, depth + 1);
+      return nested.en || nested.km || '';
+    }
+
+    return value;
+  }
+
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return '';
+  }
+
+  const nested = toLocalizedLabel(value, depth + 1);
+  return nested.en || nested.km || '';
+};
+
 export const toLocalizedLabel = (
   value: unknown,
   depth = 0
@@ -70,31 +92,21 @@ export const toLocalizedLabel = (
   }
 
   const raw = value as Record<string, unknown>;
-  const enNested =
-    typeof raw.en === 'string' && raw.en
-      ? toLocalizedLabel(raw.en, depth + 1)
-      : null;
-  const kmNested =
-    typeof raw.km === 'string' && raw.km
-      ? toLocalizedLabel(raw.km, depth + 1)
-      : null;
-
-  const enDirect =
-    typeof raw.en === 'string' && !(enNested?.en || enNested?.km) ? raw.en : '';
-  const kmDirect =
-    typeof raw.km === 'string' && !(kmNested?.en || kmNested?.km) ? raw.km : '';
+  const en = readLocalizedText(raw.en, depth);
+  const km = readLocalizedText(raw.km, depth);
 
   return {
-    en: enDirect || enNested?.en || kmNested?.en || '',
-    km: kmDirect || kmNested?.km || enNested?.km || ''
+    en: en || km || '',
+    km: km || en || ''
   };
 };
 
 export const getMenuLabelText = (
   label: MenuItemLabel,
-  locale: 'en' | 'km' = 'en'
+  locale: MenuLabelLocale = 'en'
 ) => {
+  const normalizedLocale = locale === 'kh' ? 'km' : locale;
   if (typeof label === 'string') return label;
-  if (locale === 'km') return label.km || label.en || '';
+  if (normalizedLocale === 'km') return label.km || label.en || '';
   return label.en || label.km || '';
 };

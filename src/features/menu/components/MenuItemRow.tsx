@@ -44,7 +44,7 @@ export function MenuItemRow({
   onDelete
 }: MenuItemRowProps) {
   const { item, level, isLast, hasChildren } = flat;
-  const { t } = useTranslate();
+  const { t, language } = useTranslate();
 
   return (
     <Draggable draggableId={item.id} index={index}>
@@ -115,7 +115,7 @@ export function MenuItemRow({
               {/* Label & URL */}
               <div className='flex min-w-0 flex-1 items-center gap-3'>
                 <span className='text-foreground truncate text-sm font-medium'>
-                  {getMenuLabelText(item.label)}
+                  {getMenuLabelText(item.label, language)}
                 </span>
                 {!item.isVisible && (
                   <Tooltip>

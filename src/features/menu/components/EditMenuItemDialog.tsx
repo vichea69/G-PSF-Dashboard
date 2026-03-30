@@ -24,6 +24,10 @@ import {
   getMenuLabelText,
   toLocalizedLabel
 } from '@/features/menu/types';
+import {
+  getDescendantIds,
+  wouldCreateMenuCycle
+} from '@/features/menu/utils/reorder';
 import { useTranslate } from '@/hooks/use-translate';
 import { toast } from 'sonner';
 
@@ -66,7 +70,7 @@ export function EditMenuItemDialog({
     url: '',
     parentId: null
   });
-  const { t } = useTranslate();
+  const { t, language } = useTranslate();
 
   useEffect(() => {
     if (!item) return;
@@ -83,7 +87,10 @@ export function EditMenuItemDialog({
 
   const availableParents = useMemo(() => {
     if (!item) return selectedMenu.items;
-    return selectedMenu.items.filter((menuItem) => menuItem.id !== item.id);
+    const blockedIds = getDescendantIds(selectedMenu.items, item.id);
+    return selectedMenu.items.filter(
+      (menuItem) => menuItem.id !== item.id && !blockedIds.has(menuItem.id)
+    );
   }, [item, selectedMenu.items]);
 
   const handleSubmit = () => {
@@ -107,6 +114,11 @@ export function EditMenuItemDialog({
     const isAbsoluteUrl = /^https?:\/\//i.test(url);
     if (!isInternalPath && !isAbsoluteUrl) {
       toast.error(t('menu.dialogs.urlInvalid'));
+      return;
+    }
+
+    if (wouldCreateMenuCycle(selectedMenu.items, item.id, form.parentId)) {
+      toast.error(t('menu.toast.invalidParent'));
       return;
     }
 
@@ -202,7 +214,7 @@ export function EditMenuItemDialog({
                 </SelectItem>
                 {availableParents.map((menuItem) => (
                   <SelectItem key={menuItem.id} value={menuItem.id}>
-                    {getMenuLabelText(menuItem.label)}
+                    {getMenuLabelText(menuItem.label, language)}
                   </SelectItem>
                 ))}
               </SelectContent>

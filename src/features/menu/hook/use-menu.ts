@@ -8,20 +8,31 @@ import {
   type UseQueryResult
 } from '@tanstack/react-query';
 import { toLocalizedLabel, type MenuGroup } from '@/features/menu/types';
-import { normalizeMenuTreeResponse } from '@/features/menu/utils/menu-normalizer';
+import {
+  normalizeMenusResponse,
+  normalizeMenuTreeResponse
+} from '@/features/menu/utils/menu-normalizer';
 import {
   createMenu as createMenuAction,
   createMenuItem as createMenuItemAction,
   deleteMenu as deleteMenuAction,
   deleteMenuItem as deleteMenuItemAction,
+  getMenusTree as getMenusTreeAction,
   getMenuTreeBySlug as getMenuTreeBySlugAction,
   updateMenu as updateMenuAction,
   updateMenuItem as updateMenuItemAction
 } from '@/server/action/menu/menu';
 import type { MenuItem } from '@/features/menu/types';
 
-const MENU_TREE_QUERY_KEY = 'menu-tree';
-const MENUS_QUERY_KEY = 'menus';
+export const MENU_TREE_QUERY_KEY = 'menu-tree';
+export const MENUS_QUERY_KEY = 'menus';
+const MENU_STALE_TIME = 30_000;
+
+export const menuQueryKeys = {
+  menus: [MENUS_QUERY_KEY] as const,
+  tree: (slug: string) => [MENU_TREE_QUERY_KEY, slug] as const,
+  trees: [MENU_TREE_QUERY_KEY] as const
+};
 
 const extractErrorMessage = (error: unknown, fallback: string) => {
   const detail = (error as any)?.response?.data;
@@ -67,6 +78,9 @@ type UpdateMenuItemRequest = {
     orderIndex?: number;
     parentId?: string | number | null;
   };
+  options?: {
+    skipRefetch?: boolean;
+  };
 };
 
 export const fetchMenuTreeBySlug = async (slug: string): Promise<MenuGroup> => {
@@ -74,13 +88,37 @@ export const fetchMenuTreeBySlug = async (slug: string): Promise<MenuGroup> => {
   return normalizeMenuTreeResponse(response, slug);
 };
 
+export const fetchMenus = async (): Promise<MenuGroup[]> => {
+  const response = await getMenusTreeAction();
+  return normalizeMenusResponse(response);
+};
+
+export const useMenus = (initialData?: MenuGroup[]) => {
+  const result = useQuery<MenuGroup[]>({
+    queryKey: menuQueryKeys.menus,
+    queryFn: fetchMenus,
+    retry: false,
+    staleTime: MENU_STALE_TIME,
+    ...(initialData ? { initialData } : {})
+  });
+
+  return {
+    menus: result.data ?? [],
+    isLoading: result.isLoading,
+    isFetching: result.isFetching,
+    isError: result.isError,
+    error: result.error
+  };
+};
+
 export const useMenuTrees = (slugs: string[]) => {
   const safeSlugs = slugs.filter((slug) => slug.trim().length > 0);
   const queryResults = useQueries({
     queries: safeSlugs.map((slug) => ({
-      queryKey: [MENU_TREE_QUERY_KEY, slug],
+      queryKey: menuQueryKeys.tree(slug),
       queryFn: () => fetchMenuTreeBySlug(slug),
-      retry: false
+      retry: false,
+      staleTime: MENU_STALE_TIME
     }))
   }) as UseQueryResult<MenuGroup>[];
 
@@ -102,12 +140,14 @@ export const useMenuTrees = (slugs: string[]) => {
   };
 };
 
-export const useMenuTree = (slug: string) => {
+export const useMenuTree = (slug: string, initialData?: MenuGroup | null) => {
   const result = useQuery<MenuGroup>({
-    queryKey: [MENU_TREE_QUERY_KEY, slug],
+    queryKey: menuQueryKeys.tree(slug),
     queryFn: () => fetchMenuTreeBySlug(slug),
     retry: false,
-    enabled: slug.trim().length > 0
+    enabled: slug.trim().length > 0,
+    staleTime: MENU_STALE_TIME,
+    ...(initialData ? { initialData } : {})
   });
 
   return {
@@ -131,8 +171,8 @@ export const useCreateMenu = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.trees });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.menus });
     }
   });
 };
@@ -149,8 +189,8 @@ export const useUpdateMenu = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.trees });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.menus });
     }
   });
 };
@@ -175,8 +215,8 @@ export const useCreateMenuItem = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.trees });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.menus });
     }
   });
 };
@@ -186,14 +226,14 @@ export const useUpdateMenuItem = () => {
 
   return useMutation({
     onMutate: async ({ itemId, payload }) => {
-      await queryClient.cancelQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+      await queryClient.cancelQueries({ queryKey: menuQueryKeys.trees });
 
       const previousEntries = queryClient.getQueriesData<MenuGroup>({
-        queryKey: [MENU_TREE_QUERY_KEY]
+        queryKey: menuQueryKeys.trees
       });
 
       queryClient.setQueriesData<MenuGroup>(
-        { queryKey: [MENU_TREE_QUERY_KEY] },
+        { queryKey: menuQueryKeys.trees },
         (current) => {
           if (!current) return current;
 
@@ -245,10 +285,11 @@ export const useUpdateMenuItem = () => {
         queryClient.setQueryData(queryKey, data);
       });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
+    onSettled: (_data, _error, variables) => {
+      if (variables.options?.skipRefetch) return;
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.trees });
       queryClient.refetchQueries({
-        queryKey: [MENU_TREE_QUERY_KEY],
+        queryKey: menuQueryKeys.trees,
         type: 'active'
       });
     }
@@ -275,8 +316,8 @@ export const useDeleteMenuItem = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.trees });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.menus });
     }
   });
 };
@@ -293,8 +334,8 @@ export const useDeleteMenu = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [MENU_TREE_QUERY_KEY] });
-      queryClient.invalidateQueries({ queryKey: [MENUS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.trees });
+      queryClient.invalidateQueries({ queryKey: menuQueryKeys.menus });
     }
   });
 };

@@ -16,9 +16,9 @@ export const blockTypes = [
   POST_LIST,
   ANNOUNCEMENT,
   WG_TEMPLATE,
-  'text_block',
-  WORKING_GROUP_CO_CHAIRS,
-  ANNUAL_REPORTS
+  'text_block'
+  //WORKING_GROUP_CO_CHAIRS,
+  //ANNUAL_REPORTS
   // ISSUES_RESPONSES
 ] as const;
 export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
@@ -27,9 +27,9 @@ export const blockTypeLabel: Record<(typeof blockTypes)[number], string> = {
   [POST_LIST]: 'Post List',
   [ANNOUNCEMENT]: 'Announcement',
   [WG_TEMPLATE]: 'WG Template',
-  text_block: 'Text Block',
-  [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs',
-  [ANNUAL_REPORTS]: 'Annual Reports'
+  text_block: 'Text Block'
+  // [WORKING_GROUP_CO_CHAIRS]: 'Working Group Co-Chairs',
+  // [ANNUAL_REPORTS]: 'Annual Reports'
   // [ISSUES_RESPONSES]: 'Issues & Responses'
 };
 

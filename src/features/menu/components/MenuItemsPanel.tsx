@@ -12,7 +12,11 @@ import {
   type FlatMenuItem
 } from '@/features/menu/components/MenuItemRow';
 import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
-import { setSequentialOrder } from '@/features/menu/utils/reorder';
+import {
+  setSequentialOrder,
+  wouldCreateMenuCycle
+} from '@/features/menu/utils/reorder';
+import { toast } from 'sonner';
 
 /* ------------------------------------------------------------------ */
 /*  Build a flat DFS list from the tree, skipping collapsed subtrees  */
@@ -24,16 +28,28 @@ function buildFlatList(
 ): FlatMenuItem[] {
   const result: FlatMenuItem[] = [];
   const norm = (p?: string) => p ?? '__root__';
+  const childrenMap = new Map<string, MenuItem[]>();
+  const parentIds = new Set<string>();
 
-  const childrenOf = (parentId?: string) =>
-    items
-      .filter((i) => norm(i.parentId) === norm(parentId))
-      .sort((a, b) => a.order - b.order);
+  items.forEach((item) => {
+    const key = norm(item.parentId);
+    const siblings = childrenMap.get(key);
+    if (siblings) siblings.push(item);
+    else childrenMap.set(key, [item]);
+
+    if (item.parentId) {
+      parentIds.add(item.parentId);
+    }
+  });
+
+  childrenMap.forEach((siblings) => {
+    siblings.sort((a, b) => a.order - b.order);
+  });
 
   const walk = (parentId: string | undefined, level: number) => {
-    const children = childrenOf(parentId);
+    const children = childrenMap.get(norm(parentId)) ?? [];
     children.forEach((item, idx) => {
-      const hasChildren = items.some((i) => i.parentId === item.id);
+      const hasChildren = parentIds.has(item.id);
       result.push({
         item,
         level,
@@ -120,6 +136,13 @@ export function MenuItemsPanel({
         newParentId = withoutDragged[adjustedDest].item.parentId;
       }
 
+      if (
+        wouldCreateMenuCycle(selectedMenu.items, draggedItem.id, newParentId)
+      ) {
+        toast.error(t('menu.toast.invalidParent'));
+        return;
+      }
+
       const targetKey = norm(newParentId);
 
       // Count same-parent siblings that appear above the drop position
@@ -167,7 +190,7 @@ export function MenuItemsPanel({
 
       onReorder(updatedItems);
     },
-    [flatItems, selectedMenu.items, onReorder]
+    [flatItems, selectedMenu.items, onReorder, t]
   );
 
   /* ---------- empty state ---------------------------------------------- */

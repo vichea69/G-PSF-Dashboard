@@ -23,10 +23,15 @@ import { adminRoutePermissions } from '@/lib/admin-route-permissions';
 
 interface MenuTableListProps {
   data: MenuGroup[];
-  onCreate?: (payload: CreateMenuPayload) => void;
+  onCreate?: (payload: CreateMenuPayload) => Promise<void>;
+  createLoading?: boolean;
 }
 
-export function MenuTableList({ data, onCreate }: MenuTableListProps) {
+export function MenuTableList({
+  data,
+  onCreate,
+  createLoading = false
+}: MenuTableListProps) {
   const router = useRouter();
   const { t } = useTranslate();
   // Read the shared permission context once, then hide actions the user should not see.
@@ -63,7 +68,7 @@ export function MenuTableList({ data, onCreate }: MenuTableListProps) {
     >
       <DataTableToolbar table={table}>
         {onCreate && canCreateMenu ? (
-          <CreateMenuDialog onCreate={onCreate} />
+          <CreateMenuDialog onCreate={onCreate} loading={createLoading} />
         ) : null}
       </DataTableToolbar>
     </DataTable>

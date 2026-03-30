@@ -20,27 +20,35 @@ export interface CreateMenuPayload {
 }
 
 interface CreateMenuDialogProps {
-  onCreate: (payload: CreateMenuPayload) => void;
+  onCreate: (payload: CreateMenuPayload) => Promise<void>;
+  loading?: boolean;
 }
 
-export function CreateMenuDialog({ onCreate }: CreateMenuDialogProps) {
+export function CreateMenuDialog({
+  onCreate,
+  loading = false
+}: CreateMenuDialogProps) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslate();
   const [form, setForm] = useState<CreateMenuPayload>({
     name: ''
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name.trim()) return;
-    onCreate({ name: form.name.trim() });
-    setForm({ name: '' });
-    setOpen(false);
+    try {
+      await onCreate({ name: form.name.trim() });
+      setForm({ name: '' });
+      setOpen(false);
+    } catch {
+      // Keep the dialog open so the user can fix and retry.
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='primary' size='sm'>
+        <Button variant='primary' size='sm' disabled={loading}>
           <Plus className='mr-1.5 h-3.5 w-3.5' />
           {t('menu.addNew')}
         </Button>
@@ -60,6 +68,7 @@ export function CreateMenuDialog({ onCreate }: CreateMenuDialogProps) {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder={t('menu.dialogs.menuSlugPlaceholder')}
+              disabled={loading}
             />
             <p className='text-muted-foreground text-xs'>
               {t('menu.dialogs.menuSlugHint')}{' '}
@@ -68,8 +77,10 @@ export function CreateMenuDialog({ onCreate }: CreateMenuDialogProps) {
               </code>
             </p>
           </div>
-          <Button onClick={handleSubmit} className='w-full'>
-            {t('menu.dialogs.createMenuButton')}
+          <Button onClick={handleSubmit} className='w-full' disabled={loading}>
+            {loading
+              ? t('menu.dialogs.saving')
+              : t('menu.dialogs.createMenuButton')}
           </Button>
         </div>
       </DialogContent>

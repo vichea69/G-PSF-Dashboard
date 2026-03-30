@@ -14,10 +14,10 @@ import { IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { CategoryRow } from './columns';
-import { api } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useTranslate } from '@/hooks/use-translate';
+import { deleteCategory } from '@/server/action/category/category';
 
 interface CellActionProps {
   data: CategoryRow;
@@ -41,11 +41,20 @@ export const CategoryCellAction: React.FC<CellActionProps> = ({ data }) => {
   );
 
   const deleteMutation = useMutation({
-    mutationFn: () => api.delete(`/categories/${data.id}`),
+    // Use the server action so delete goes through the same authenticated
+    // path as create and update in production.
+    mutationFn: () => deleteCategory(String(data.id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] });
       router.refresh();
       toast.success(t('category.toast.deleted'));
+    },
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t('category.toast.deleteFailed');
+      toast.error(message);
     }
   });
 

@@ -150,3 +150,16 @@ export const normalizeMenuTreeResponse = (
     )
   };
 };
+
+export const normalizeMenusResponse = (input: unknown): MenuGroup[] => {
+  const raw =
+    input && typeof input === 'object' && 'data' in (input as AnyRecord)
+      ? (input as AnyRecord).data
+      : input;
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw.map((item, index) =>
+    normalizeMenuTreeResponse(item, `menu-${index}`)
+  );
+};

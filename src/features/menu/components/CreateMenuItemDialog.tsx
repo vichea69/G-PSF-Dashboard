@@ -35,15 +35,17 @@ export interface CreateMenuItemPayload {
 
 interface CreateMenuItemDialogProps {
   selectedMenu: MenuGroup;
-  onCreate: (payload: CreateMenuItemPayload) => void;
+  onCreate: (payload: CreateMenuItemPayload) => Promise<void>;
+  loading?: boolean;
 }
 
 export function CreateMenuItemDialog({
   selectedMenu,
-  onCreate
+  onCreate,
+  loading = false
 }: CreateMenuItemDialogProps) {
   const [open, setOpen] = useState(false);
-  const { t } = useTranslate();
+  const { t, language } = useTranslate();
   const [form, setForm] = useState<CreateMenuItemPayload>({
     label: {
       en: '',
@@ -53,7 +55,7 @@ export function CreateMenuItemDialog({
     parentId: null
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const labelEn = form.label.en.trim();
     const labelKm = form.label.km.trim();
     const url = form.url.trim();
@@ -75,29 +77,33 @@ export function CreateMenuItemDialog({
       return;
     }
 
-    onCreate({
-      ...form,
-      label: {
-        en: labelEn,
-        km: labelKm
-      },
-      url
-    });
-    setForm({
-      label: {
-        en: '',
-        km: ''
-      },
-      url: '',
-      parentId: null
-    });
-    setOpen(false);
+    try {
+      await onCreate({
+        ...form,
+        label: {
+          en: labelEn,
+          km: labelKm
+        },
+        url
+      });
+      setForm({
+        label: {
+          en: '',
+          km: ''
+        },
+        url: '',
+        parentId: null
+      });
+      setOpen(false);
+    } catch {
+      // Keep the dialog open so the user can fix and retry.
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button disabled={loading}>
           <Plus className='mr-2 h-4 w-4' />
           {t('menu.dialogs.addItem')}
         </Button>
@@ -128,6 +134,7 @@ export function CreateMenuItemDialog({
                   })
                 }
                 placeholder='Home'
+                disabled={loading}
               />
             </div>
             <div className='space-y-1.5'>
@@ -145,6 +152,7 @@ export function CreateMenuItemDialog({
                   })
                 }
                 placeholder='ទំព័រដើម'
+                disabled={loading}
               />
             </div>
           </div>
@@ -155,6 +163,7 @@ export function CreateMenuItemDialog({
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
               placeholder={t('menu.dialogs.urlPlaceholder')}
+              disabled={loading}
             />
           </div>
           <div className='space-y-1.5'>
@@ -167,6 +176,7 @@ export function CreateMenuItemDialog({
                   parentId: value === '__none__' ? null : value
                 })
               }
+              disabled={loading}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t('menu.dialogs.noParent')} />
@@ -177,14 +187,14 @@ export function CreateMenuItemDialog({
                 </SelectItem>
                 {selectedMenu.items.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
-                    {getMenuLabelText(item.label)}
+                    {getMenuLabelText(item.label, language)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleSubmit} className='w-full'>
-            {t('menu.dialogs.addItem')}
+          <Button onClick={handleSubmit} className='w-full' disabled={loading}>
+            {loading ? t('menu.dialogs.saving') : t('menu.dialogs.addItem')}
           </Button>
         </div>
       </DialogContent>

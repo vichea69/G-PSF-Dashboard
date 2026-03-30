@@ -1336,6 +1336,8 @@ export const en = {
       deleteFailed: 'Failed to delete menu',
       orderUpdated: 'Menu order updated',
       reorderFailed: 'Failed to reorder items',
+      invalidParent:
+        'A menu item cannot be moved inside itself or its children.',
       detailLoadFailed:
         'Failed to load menu. Please check the slug and try again.'
     }
