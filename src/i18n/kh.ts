@@ -378,6 +378,7 @@ export const kh = {
       published: 'បានបោះផ្សាយ',
       publishDate: 'កាលបរិច្ឆេទបោះផ្សាយ',
       pickPublishDate: 'ជ្រើសកាលបរិច្ឆេទបោះផ្សាយ',
+      year: 'ឆ្នាំ',
       expiredDate: 'កាលបរិច្ឆេទផុតកំណត់',
       pickExpiryDate: 'ជ្រើសកាលបរិច្ឆេទផុតកំណត់',
       clearDate: 'សម្អាតកាលបរិច្ឆេទ',

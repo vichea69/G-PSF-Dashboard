@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -53,6 +53,133 @@ const toDateOnly = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+const CALENDAR_FROM_YEAR = 2000;
+
+const parseDateOnly = (value?: string) => {
+  if (!value) return undefined;
+  const parsed = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed;
+};
+
+const buildYearOptions = (fromYear: number, toYear: number) => {
+  return Array.from(
+    { length: Math.max(toYear - fromYear + 1, 1) },
+    (_, index) => fromYear + index
+  );
+};
+
+type PublishDateFieldProps = {
+  id: string;
+  label: string;
+  placeholder: string;
+  clearLabel: string;
+  yearLabel: string;
+  value?: string;
+  onChange: (value: string) => void;
+};
+
+function PublishDateField({
+  id,
+  label,
+  placeholder,
+  clearLabel,
+  yearLabel,
+  value,
+  onChange
+}: PublishDateFieldProps) {
+  const selectedDate = useMemo(() => parseDateOnly(value), [value]);
+  const currentYear = new Date().getFullYear();
+  const maxYear = Math.max(
+    currentYear,
+    selectedDate?.getFullYear() ?? currentYear
+  );
+  const yearOptions = useMemo(
+    () => buildYearOptions(CALENDAR_FROM_YEAR, maxYear),
+    [maxYear]
+  );
+  const [displayMonth, setDisplayMonth] = useState<Date>(
+    () => selectedDate ?? new Date()
+  );
+
+  useEffect(() => {
+    setDisplayMonth(selectedDate ?? new Date());
+  }, [selectedDate]);
+
+  const handleYearChange = (nextYear: string) => {
+    const parsedYear = Number(nextYear);
+    if (!Number.isFinite(parsedYear)) return;
+
+    setDisplayMonth((previousMonth) => {
+      return new Date(parsedYear, previousMonth.getMonth(), 1);
+    });
+  };
+
+  return (
+    <div className='space-y-2'>
+      <Label htmlFor={id}>{label}</Label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            id={id}
+            type='button'
+            variant='outline'
+            className='w-full justify-start text-left font-normal'
+          >
+            <CalendarIcon className='mr-2 h-4 w-4' />
+            {selectedDate ? formatDate(selectedDate) : placeholder}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className='w-auto p-0' align='start'>
+          <div className='border-b p-3 pb-2'>
+            <div className='space-y-1'>
+              <Label className='text-muted-foreground text-xs'>
+                {yearLabel}
+              </Label>
+              <Select
+                value={String(displayMonth.getFullYear())}
+                onValueChange={handleYearChange}
+              >
+                <SelectTrigger className='h-8 w-full min-w-32'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className='max-h-64'>
+                  {yearOptions.map((year) => (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Calendar
+            mode='single'
+            month={displayMonth}
+            onMonthChange={setDisplayMonth}
+            selected={selectedDate}
+            onSelect={(date) => onChange(date ? toDateOnly(date) : '')}
+            fromYear={CALENDAR_FROM_YEAR}
+            toYear={maxYear}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+      {value ? (
+        <Button
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='h-7 px-2 text-xs'
+          onClick={() => onChange('')}
+        >
+          {clearLabel}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 export function PostPublishSettingsCard({
   status,
   publishDate,
@@ -77,19 +204,6 @@ export function PostPublishSettingsCard({
   onSubmit
 }: PostPublishSettingsCardProps) {
   const { t } = useTranslate();
-  const selectedPublishDate = useMemo(() => {
-    if (!publishDate) return undefined;
-    const parsed = new Date(`${publishDate}T00:00:00`);
-    if (Number.isNaN(parsed.getTime())) return undefined;
-    return parsed;
-  }, [publishDate]);
-
-  const selectedExpiredDate = useMemo(() => {
-    if (!expiredDate) return undefined;
-    const parsed = new Date(`${expiredDate}T00:00:00`);
-    if (Number.isNaN(parsed.getTime())) return undefined;
-    return parsed;
-  }, [expiredDate]);
   const normalizedStatus =
     status?.toLowerCase() === 'published' ? 'published' : 'draft';
 
@@ -129,91 +243,27 @@ export function PostPublishSettingsCard({
         </div>
 
         {normalizedStatus === 'published' ? (
-          <div className='space-y-2'>
-            <Label htmlFor='publish-date'>
-              {t('post.publishSettings.publishDate')}
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id='publish-date'
-                  type='button'
-                  variant='outline'
-                  className='w-full justify-start text-left font-normal'
-                >
-                  <CalendarIcon className='mr-2 h-4 w-4' />
-                  {selectedPublishDate
-                    ? formatDate(selectedPublishDate)
-                    : t('post.publishSettings.pickPublishDate')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-auto p-0' align='start'>
-                <Calendar
-                  mode='single'
-                  selected={selectedPublishDate}
-                  onSelect={(date) =>
-                    onPublishDateChange(date ? toDateOnly(date) : '')
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            {publishDate ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='sm'
-                className='h-7 px-2 text-xs'
-                onClick={() => onPublishDateChange('')}
-              >
-                {t('post.publishSettings.clearDate')}
-              </Button>
-            ) : null}
-          </div>
+          <PublishDateField
+            id='publish-date'
+            label={t('post.publishSettings.publishDate')}
+            placeholder={t('post.publishSettings.pickPublishDate')}
+            clearLabel={t('post.publishSettings.clearDate')}
+            yearLabel={t('post.publishSettings.year')}
+            value={publishDate}
+            onChange={onPublishDateChange}
+          />
         ) : null}
 
         {selectedBlockType === 'announcement' && (
-          <div className='space-y-2'>
-            <Label htmlFor='expired-date'>
-              {t('post.publishSettings.expiredDate')}
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id='expired-date'
-                  type='button'
-                  variant='outline'
-                  className='w-full justify-start text-left font-normal'
-                >
-                  <CalendarIcon className='mr-2 h-4 w-4' />
-                  {selectedExpiredDate
-                    ? formatDate(selectedExpiredDate)
-                    : t('post.publishSettings.pickExpiryDate')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-auto p-0' align='start'>
-                <Calendar
-                  mode='single'
-                  selected={selectedExpiredDate}
-                  onSelect={(date) =>
-                    onExpiredDateChange(date ? toDateOnly(date) : '')
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            {expiredDate ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='sm'
-                className='h-7 px-2 text-xs'
-                onClick={() => onExpiredDateChange('')}
-              >
-                {t('post.publishSettings.clearDate')}
-              </Button>
-            ) : null}
-          </div>
+          <PublishDateField
+            id='expired-date'
+            label={t('post.publishSettings.expiredDate')}
+            placeholder={t('post.publishSettings.pickExpiryDate')}
+            clearLabel={t('post.publishSettings.clearDate')}
+            yearLabel={t('post.publishSettings.year')}
+            value={expiredDate}
+            onChange={onExpiredDateChange}
+          />
         )}
 
         <div className='flex items-center space-x-2'>

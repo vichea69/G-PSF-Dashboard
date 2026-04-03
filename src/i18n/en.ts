@@ -379,6 +379,7 @@ export const en = {
       published: 'Published',
       publishDate: 'Publish Date',
       pickPublishDate: 'Pick a publish date',
+      year: 'Year',
       expiredDate: 'Expired Date',
       pickExpiryDate: 'Pick an expiry date',
       clearDate: 'Clear date',
