@@ -39,6 +39,7 @@ import { resolveApiAssetUrl, toApiAssetPath } from '@/lib/asset-url';
 import { useRole } from '@/features/role/hook/use-role';
 import type { RoleAPI } from '@/features/role/type/role';
 import { useTranslate } from '@/hooks/use-translate';
+import { isSuperAdminRole } from '@/lib/super-admin';
 
 type FormValues = {
   username: string;
@@ -152,6 +153,10 @@ export function UserUpsertDialog({
   const { t } = useTranslate();
   const rolesQuery = useRole({ enabled: open });
   const roles = useMemo(() => rolesQuery.data ?? [], [rolesQuery.data]);
+  const assignableRoles = useMemo(
+    () => roles.filter((role) => !isSuperAdminRole(role)),
+    [roles]
+  );
   const resolvedInitialRole = useMemo(
     () => resolveRoleValue(initialData?.role, roles),
     [initialData?.role, roles]
@@ -463,7 +468,7 @@ export function UserUpsertDialog({
                         <SelectValue placeholder={t('user.form.selectRole')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {assignableRoles.map((role) => (
                           <SelectItem
                             key={role.id}
                             value={getRoleOptionValue(role)}
