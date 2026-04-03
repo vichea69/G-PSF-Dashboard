@@ -51,6 +51,10 @@ type FormValues = {
 
 type TranslateFn = (key: string) => string;
 
+type CreateMutationResult = {
+  profileSaveMessage: string | null;
+};
+
 function buildEditSchema(t: TranslateFn) {
   return z.object({
     username: z
@@ -104,6 +108,32 @@ function resolveRoleValue(value: unknown, roles: RoleAPI[]) {
   return matchedRole
     ? getRoleOptionValue(matchedRole)
     : String(value ?? '').trim();
+}
+
+function toOptionalNullableString(value?: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function extractCreatedUserId(result: unknown) {
+  const payload = result as
+    | {
+        id?: string | number;
+        user?: { id?: string | number };
+        data?: {
+          id?: string | number;
+          user?: { id?: string | number };
+        };
+      }
+    | undefined;
+
+  return (
+    payload?.data?.user?.id ??
+    payload?.user?.id ??
+    payload?.data?.id ??
+    payload?.id ??
+    null
+  );
 }
 
 export function UserUpsertDialog({
@@ -169,24 +199,56 @@ export function UserUpsertDialog({
   ]);
 
   const createMutation = useMutation({
-    mutationFn: async (payload: FormValues) => {
-      const base = {
-        username: payload.username,
-        email: payload.email,
-        role: payload.role,
-        password: payload.password!
-      } as const;
-      // Extend only if backend supports extra fields in create
-      const body = {
-        ...base,
-        ...(payload.bio ? { bio: payload.bio } : {}),
-        ...(payload.image ? { image: payload.image } : {})
-      } as any;
-      return await createAdminUser(body);
+    mutationFn: async (payload: FormValues): Promise<CreateMutationResult> => {
+      const createPayload = {
+        username: payload.username.trim(),
+        email: payload.email.trim(),
+        role: payload.role.trim(),
+        password: payload.password!.trim()
+      };
+
+      const createResult = await createAdminUser(createPayload);
+
+      const profilePayload = {
+        bio: toOptionalNullableString(payload.bio),
+        image: toOptionalNullableString(payload.image)
+      };
+
+      if (!profilePayload.bio && !profilePayload.image) {
+        return { profileSaveMessage: null };
+      }
+
+      const createdUserId = extractCreatedUserId(createResult);
+
+      if (!createdUserId) {
+        return {
+          profileSaveMessage: t('user.toast.profileSaveAfterCreateFailed')
+        };
+      }
+
+      try {
+        await updateAdminUser({
+          id: createdUserId,
+          username: createPayload.username,
+          email: createPayload.email,
+          role: createPayload.role,
+          ...profilePayload
+        });
+
+        return { profileSaveMessage: null };
+      } catch (error: any) {
+        return {
+          profileSaveMessage:
+            error?.message ?? t('user.toast.profileSaveAfterCreateFailed')
+        };
+      }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['users'] });
       toast.success(t('user.toast.created'));
+      if (result.profileSaveMessage) {
+        toast.error(result.profileSaveMessage);
+      }
       onOpenChange(false);
     },
     onError: (e: any) => {
@@ -208,8 +270,8 @@ export function UserUpsertDialog({
       } as const;
       const body = {
         ...userPayload,
-        bio: payload.bio?.trim() || null,
-        image: payload.image?.trim() || null
+        bio: toOptionalNullableString(payload.bio),
+        image: toOptionalNullableString(payload.image)
       };
 
       return await updateAdminUser(body);
@@ -421,8 +483,6 @@ export function UserUpsertDialog({
                 </FormItem>
               )}
             />
-            {/* Bio and Image fields are intentionally hidden to match backend schema */}
-
             <div className='flex justify-end gap-2 pt-2'>
               <Button
                 type='button'

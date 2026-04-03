@@ -998,6 +998,8 @@ export const en = {
       deleted: 'User deleted successfully',
       deleteFailed: 'Delete failed',
       createFailed: 'Create failed',
+      profileSaveAfterCreateFailed:
+        'User was created, but the profile image or bio could not be saved.',
       updateFailed: 'Update failed',
       selectedMediaInvalid: 'Selected media does not have a valid image URL',
       loadFailed: 'Failed to load users'
