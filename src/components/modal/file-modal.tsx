@@ -21,6 +21,7 @@ interface FileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (file: MediaFile) => void;
+  onSelectMultiple?: (files: MediaFile[]) => void;
   onUploadFromDevice?: (files: File[], folderId?: string | null) => void;
   loading?: boolean;
   title?: string;
@@ -35,6 +36,7 @@ export const FileModal: React.FC<FileModalProps> = ({
   isOpen,
   onClose,
   onSelect,
+  onSelectMultiple,
   onUploadFromDevice,
   loading = false,
   title = 'Insert file',
@@ -46,7 +48,7 @@ export const FileModal: React.FC<FileModalProps> = ({
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [mediaSearch, setMediaSearch] = useState('');
-  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
+  const [selectedMediaIds, setSelectedMediaIds] = useState<string[]>([]);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -70,7 +72,7 @@ export const FileModal: React.FC<FileModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setMediaSearch('');
-      setSelectedMediaId(null);
+      setSelectedMediaIds([]);
       setActiveFolderId(null);
       setPage(1);
     }
@@ -108,19 +110,29 @@ export const FileModal: React.FC<FileModalProps> = ({
     null;
 
   useEffect(() => {
-    if (!selectedMediaId) return;
-    const stillExists = filteredFiles.some(
-      (file) => file.id === selectedMediaId
+    if (selectedMediaIds.length === 0) return;
+    const visibleIds = new Set(filteredFiles.map((file) => file.id));
+    setSelectedMediaIds((currentIds) =>
+      currentIds.filter((id) => visibleIds.has(id))
     );
-    if (!stillExists) {
-      setSelectedMediaId(null);
-    }
-  }, [filteredFiles, selectedMediaId]);
+  }, [filteredFiles, selectedMediaIds.length]);
 
-  const selectedMedia = useMemo(() => {
-    if (!selectedMediaId) return null;
-    return filteredFiles.find((file) => file.id === selectedMediaId) ?? null;
-  }, [filteredFiles, selectedMediaId]);
+  const selectedMedia = useMemo(
+    () => filteredFiles.filter((file) => selectedMediaIds.includes(file.id)),
+    [filteredFiles, selectedMediaIds]
+  );
+
+  const toggleMediaSelection = (fileId: string) => {
+    setSelectedMediaIds((currentIds) => {
+      if (!multiple) {
+        return currentIds[0] === fileId ? [] : [fileId];
+      }
+
+      return currentIds.includes(fileId)
+        ? currentIds.filter((id) => id !== fileId)
+        : [...currentIds, fileId];
+    });
+  };
 
   const handleUploadFromDevice = () => {
     if (!allowUploadFromDevice) return;
@@ -137,19 +149,26 @@ export const FileModal: React.FC<FileModalProps> = ({
   };
 
   const handleInsertSelected = () => {
-    if (!selectedMedia) return;
-    onSelect(selectedMedia);
+    if (selectedMedia.length === 0) return;
+
+    if (multiple && onSelectMultiple) {
+      onSelectMultiple(selectedMedia);
+      onClose();
+      return;
+    }
+
+    onSelect(selectedMedia[0]);
     onClose();
   };
 
   const openFolder = (folder: MediaFolder) => {
     setActiveFolderId(folder.id);
-    setSelectedMediaId(null);
+    setSelectedMediaIds([]);
   };
 
   const backToAllMedia = () => {
     setActiveFolderId(null);
-    setSelectedMediaId(null);
+    setSelectedMediaIds([]);
   };
 
   if (!isMounted) {
@@ -247,10 +266,10 @@ export const FileModal: React.FC<FileModalProps> = ({
                       type='button'
                       className={cn(
                         'border-muted hover:border-primary flex h-[172px] w-full flex-col overflow-hidden rounded-md border text-left transition',
-                        selectedMediaId === file.id &&
+                        selectedMediaIds.includes(file.id) &&
                           'border-primary ring-primary/30 ring-2'
                       )}
-                      onClick={() => setSelectedMediaId(file.id)}
+                      onClick={() => toggleMediaSelection(file.id)}
                     >
                       {showThumbnail ? (
                         <div className='bg-muted relative h-[136px] w-full'>
@@ -281,6 +300,9 @@ export const FileModal: React.FC<FileModalProps> = ({
             <div className='flex flex-wrap items-center justify-between gap-2 pt-2'>
               <p className='text-muted-foreground text-xs'>
                 Total {total} file{total === 1 ? '' : 's'}
+                {selectedMediaIds.length > 0
+                  ? ` • ${selectedMediaIds.length} selected`
+                  : ''}
               </p>
               <div className='flex items-center gap-2'>
                 <Button
@@ -338,7 +360,7 @@ export const FileModal: React.FC<FileModalProps> = ({
         </Button>
         <Button
           onClick={handleInsertSelected}
-          disabled={loading || !selectedMedia}
+          disabled={loading || selectedMedia.length === 0}
         >
           Insert selected
         </Button>

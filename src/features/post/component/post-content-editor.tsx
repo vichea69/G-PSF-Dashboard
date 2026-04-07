@@ -104,6 +104,87 @@ function readThumbnailFromMetadata(metadata: unknown): string | undefined {
     : undefined;
 }
 
+function buildMediaInsertNodes(file: MediaFile): JSONContent[] {
+  const uploadedAt = file.uploadedAt
+    ? file.uploadedAt.toISOString()
+    : undefined;
+  const metadata = {
+    id: file.id,
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    url: file.url,
+    thumbnail: file.thumbnail,
+    uploadedAt,
+    source: 'media'
+  };
+
+  if (file.type === 'image') {
+    return [
+      {
+        type: 'image',
+        attrs: {
+          src: file.url,
+          alt: file.name,
+          title: file.name,
+          media: metadata
+        }
+      }
+    ];
+  }
+
+  if (file.type === 'pdf' && file.thumbnail) {
+    return [
+      {
+        type: 'image',
+        attrs: {
+          src: file.thumbnail,
+          alt: file.name,
+          title: file.name,
+          media: metadata
+        }
+      },
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: file.name,
+            marks: [
+              {
+                type: 'link',
+                attrs: {
+                  href: file.url
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ];
+  }
+
+  return [
+    {
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          text: file.name,
+          marks: [
+            {
+              type: 'link',
+              attrs: {
+                href: file.url
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ];
+}
+
 type PostContentEditorProps = {
   id?: string;
   value?: EditorContentValue;
@@ -429,101 +510,14 @@ export function PostContentEditor({
   );
 
   const handleInsertFromMedia = React.useCallback(
-    (file: MediaFile | null) => {
-      if (!editor || !file) return;
+    (files: MediaFile[]) => {
+      if (!editor || files.length === 0) return;
       setImageDialogOpen(false);
-      const uploadedAt = file.uploadedAt
-        ? file.uploadedAt.toISOString()
-        : undefined;
-      const metadata = {
-        id: file.id,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        url: file.url,
-        thumbnail: file.thumbnail,
-        uploadedAt,
-        source: 'media'
-      };
 
-      if (file.type === 'image') {
-        editor
-          .chain()
-          .focus()
-          .insertContent({
-            type: 'image',
-            attrs: {
-              src: file.url,
-              alt: file.name,
-              title: file.name,
-              media: metadata
-            }
-          })
-          .run();
-        return;
-      }
+      const contentNodes = files.flatMap(buildMediaInsertNodes);
+      if (contentNodes.length === 0) return;
 
-      if (file.type === 'pdf' && file.thumbnail) {
-        editor
-          .chain()
-          .focus()
-          .insertContent([
-            {
-              type: 'image',
-              attrs: {
-                src: file.thumbnail,
-                alt: file.name,
-                title: file.name,
-                media: metadata
-              }
-            },
-            {
-              type: 'paragraph',
-              content: [
-                {
-                  type: 'text',
-                  text: file.name,
-                  marks: [
-                    {
-                      type: 'link',
-                      attrs: {
-                        href: file.url
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ])
-          .run();
-        return;
-      }
-
-      // // Fallback for non-image files without thumbnail.
-      // if (file.type !== 'image') {
-      //   editor
-      //     .chain()
-      //     .focus()
-      //     .insertContent({
-      //       type: 'paragraph',
-      //       content: [
-      //         {
-      //           type: 'text',
-      //           text: file.name,
-      //           marks: [
-      //             {
-      //               type: 'link',
-      //               attrs: {
-      //                 href: file.url
-      //               }
-      //             }
-      //           ]
-      //         }
-      //       ]
-      //     })
-      //     .run();
-      //   return;
-      // }
+      editor.chain().focus().insertContent(contentNodes).run();
     },
     [editor]
   );
@@ -689,12 +683,14 @@ export function PostContentEditor({
       <FileModal
         isOpen={!isTextOnlyMode && imageDialogOpen}
         onClose={() => setImageDialogOpen(false)}
-        onSelect={handleInsertFromMedia}
+        onSelect={(file) => handleInsertFromMedia([file])}
+        onSelectMultiple={handleInsertFromMedia}
         onUploadFromDevice={handleUploadFromDevice}
         title='Insert media'
         description='Upload a new file or pick from Media Manager.'
         types={['image', 'video', 'pdf', 'document']}
         accept='*/*'
+        multiple
       />
     </div>
   );
