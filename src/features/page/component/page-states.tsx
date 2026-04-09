@@ -24,10 +24,6 @@ export function PageStats({ pages }: PageStatsProps) {
           <div className='text-foreground text-3xl font-bold'>
             {pages.length}
           </div>
-          <div className='text-muted-foreground mt-1 flex items-center text-xs'>
-            <TrendingUp className='mr-1 h-3 w-3 text-green-500' />
-            All pages created
-          </div>
         </CardContent>
       </Card>
 
@@ -42,10 +38,6 @@ export function PageStats({ pages }: PageStatsProps) {
           <div className='text-foreground text-3xl font-bold'>
             {publishedPages.length}
           </div>
-          <div className='text-muted-foreground mt-1 flex items-center text-xs'>
-            <TrendingUp className='mr-1 h-3 w-3 text-green-500' />
-            Live on website
-          </div>
         </CardContent>
       </Card>
 
@@ -59,10 +51,6 @@ export function PageStats({ pages }: PageStatsProps) {
         <CardContent>
           <div className='text-foreground text-3xl font-bold'>
             {draftPages.length}
-          </div>
-          <div className='text-muted-foreground mt-1 flex items-center text-xs'>
-            <TrendingUp className='mr-1 h-3 w-3 text-amber-500' />
-            Work in progress
           </div>
         </CardContent>
       </Card>
