@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Globe, TrendingUp, Edit, Eye } from 'lucide-react';
+import { Globe, Edit, Eye } from 'lucide-react';
 
 interface PageStatsProps {
   pages: any[];
