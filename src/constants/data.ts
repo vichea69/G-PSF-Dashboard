@@ -49,14 +49,14 @@ export const contentItems: NavItem[] = [
     permission: { resource: 'posts', action: 'read' },
     items: []
   },
-  {
-    title: 'Contact',
-    url: '/admin/contact',
-    icon: 'mail',
-    shortcut: ['p', 'p'],
-    isActive: true,
-    items: []
-  },
+  // {
+  //   title: 'Contact',
+  //   url: '/admin/contact',
+  //   icon: 'mail',
+  //   shortcut: ['p', 'p'],
+  //   isActive: true,
+  //   items: []
+  // },
   {
     title: 'Partner',
     url: '/admin/logo',
