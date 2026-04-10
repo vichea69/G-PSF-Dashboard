@@ -30,10 +30,20 @@ body {
 .theme-default-scaled {
   --primary: var(--color-neutral-900);
   --primary-foreground: var(--color-neutral-50);
+  --chart-1: var(--color-neutral-900);
+  --chart-2: var(--color-neutral-700);
+  --chart-3: var(--color-neutral-500);
+  --chart-4: var(--color-neutral-400);
+  --chart-5: var(--color-neutral-300);
 
   @variant dark {
     --primary: var(--color-neutral-50);
     --primary-foreground: var(--color-neutral-900);
+    --chart-1: var(--color-neutral-50);
+    --chart-2: var(--color-neutral-300);
+    --chart-3: var(--color-neutral-400);
+    --chart-4: var(--color-neutral-500);
+    --chart-5: var(--color-neutral-600);
   }
 }
 
@@ -41,10 +51,20 @@ body {
 .theme-blue-scaled {
   --primary: var(--color-blue-600);
   --primary-foreground: var(--color-blue-50);
+  --chart-1: var(--color-blue-600);
+  --chart-2: var(--color-blue-500);
+  --chart-3: var(--color-sky-500);
+  --chart-4: var(--color-cyan-500);
+  --chart-5: var(--color-indigo-500);
 
   @variant dark {
     --primary: var(--color-blue-500);
     --primary-foreground: var(--color-blue-50);
+    --chart-1: var(--color-blue-400);
+    --chart-2: var(--color-sky-400);
+    --chart-3: var(--color-cyan-400);
+    --chart-4: var(--color-indigo-400);
+    --chart-5: var(--color-blue-300);
   }
 }
 
@@ -52,10 +72,20 @@ body {
 .theme-green-scaled {
   --primary: var(--color-lime-600);
   --primary-foreground: var(--color-lime-50);
+  --chart-1: var(--color-lime-600);
+  --chart-2: var(--color-emerald-600);
+  --chart-3: var(--color-green-500);
+  --chart-4: var(--color-teal-500);
+  --chart-5: var(--color-lime-500);
 
   @variant dark {
     --primary: var(--color-lime-600);
     --primary-foreground: var(--color-lime-50);
+    --chart-1: var(--color-lime-400);
+    --chart-2: var(--color-emerald-400);
+    --chart-3: var(--color-green-400);
+    --chart-4: var(--color-teal-400);
+    --chart-5: var(--color-lime-300);
   }
 }
 
@@ -63,10 +93,20 @@ body {
 .theme-amber-scaled {
   --primary: var(--color-amber-600);
   --primary-foreground: var(--color-amber-50);
+  --chart-1: var(--color-amber-600);
+  --chart-2: var(--color-orange-500);
+  --chart-3: var(--color-yellow-500);
+  --chart-4: var(--color-amber-500);
+  --chart-5: var(--color-orange-400);
 
   @variant dark {
     --primary: var(--color-amber-500);
     --primary-foreground: var(--color-amber-50);
+    --chart-1: var(--color-amber-400);
+    --chart-2: var(--color-orange-400);
+    --chart-3: var(--color-yellow-400);
+    --chart-4: var(--color-amber-300);
+    --chart-5: var(--color-orange-300);
   }
 }
 
@@ -75,10 +115,20 @@ body {
   --font-sans: var(--font-mono);
   --primary: var(--color-neutral-600);
   --primary-foreground: var(--color-neutral-50);
+  --chart-1: var(--color-neutral-700);
+  --chart-2: var(--color-neutral-600);
+  --chart-3: var(--color-neutral-500);
+  --chart-4: var(--color-neutral-400);
+  --chart-5: var(--color-neutral-300);
 
   @variant dark {
     --primary: var(--color-neutral-500);
     --primary-foreground: var(--color-neutral-50);
+    --chart-1: var(--color-neutral-300);
+    --chart-2: var(--color-neutral-400);
+    --chart-3: var(--color-neutral-500);
+    --chart-4: var(--color-neutral-600);
+    --chart-5: var(--color-neutral-700);
   }
 
   .rounded-xs,

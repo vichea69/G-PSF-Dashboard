@@ -1,74 +1,84 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Card,
   CardHeader,
+  CardFooter,
   CardContent,
   CardTitle,
   CardDescription
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import type { AnalyticsTopPage } from '@/server/action/analytics/types';
+import { formatMetricValue } from '@/features/overview/lib/analytics-format';
 
-const salesData = [
-  {
-    name: 'Olivia Martin',
-    email: 'olivia.martin@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/1.png',
-    fallback: 'OM',
-    amount: '+$1,999.00'
-  },
-  {
-    name: 'Jackson Lee',
-    email: 'jackson.lee@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/2.png',
-    fallback: 'JL',
-    amount: '+$39.00'
-  },
-  {
-    name: 'Isabella Nguyen',
-    email: 'isabella.nguyen@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/3.png',
-    fallback: 'IN',
-    amount: '+$299.00'
-  },
-  {
-    name: 'William Kim',
-    email: 'will@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/4.png',
-    fallback: 'WK',
-    amount: '+$99.00'
-  },
-  {
-    name: 'Sofia Davis',
-    email: 'sofia.davis@email.com',
-    avatar: 'https://api.slingacademy.com/public/sample-users/5.png',
-    fallback: 'SD',
-    amount: '+$39.00'
-  }
-];
+type RecentSalesProps = {
+  pages: AnalyticsTopPage[];
+};
 
-export function RecentSales() {
+export function RecentSales({ pages }: RecentSalesProps) {
+  const totalVisitors = pages.reduce((sum, page) => sum + page.visitors, 0);
+  const visiblePages = pages.slice(0, 6);
+
   return (
-    <Card className='h-full'>
-      <CardHeader>
-        <CardTitle>Recent Sales</CardTitle>
-        <CardDescription>You made 265 sales this month.</CardDescription>
+    <Card className='h-full gap-0 overflow-hidden'>
+      <CardHeader className='border-b pb-4'>
+        <CardTitle>Top Pages</CardTitle>
+        <CardDescription>
+          {pages.length > 0
+            ? `${formatMetricValue(totalVisitors, 'number')} visits across your most viewed pages`
+            : 'No top pages data yet.'}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className='space-y-8'>
-          {salesData.map((sale, index) => (
-            <div key={index} className='flex items-center'>
-              <Avatar className='h-9 w-9'>
-                <AvatarImage src={sale.avatar} alt='Avatar' />
-                <AvatarFallback>{sale.fallback}</AvatarFallback>
-              </Avatar>
-              <div className='ml-4 space-y-1'>
-                <p className='text-sm leading-none font-medium'>{sale.name}</p>
-                <p className='text-muted-foreground text-sm'>{sale.email}</p>
-              </div>
-              <div className='ml-auto font-medium'>{sale.amount}</div>
-            </div>
-          ))}
-        </div>
+      <CardContent className='pt-6'>
+        {pages.length === 0 ? (
+          <div className='text-muted-foreground py-4 text-sm'>
+            Connect analytics traffic first, then your top pages will appear
+            here.
+          </div>
+        ) : (
+          <div className='flex flex-col gap-4'>
+            {visiblePages.map((page, index) => {
+              const share =
+                totalVisitors > 0 ? (page.visitors / totalVisitors) * 100 : 0;
+
+              return (
+                <div
+                  key={`${page.path}-${index}`}
+                  className='flex flex-col gap-2'
+                >
+                  <div className='flex items-start gap-3'>
+                    <Badge variant='outline' size='sm'>
+                      #{index + 1}
+                    </Badge>
+                    <div className='min-w-0 flex-1'>
+                      <p className='truncate text-sm font-medium'>
+                        {page.title}
+                      </p>
+                      <p className='text-muted-foreground truncate text-xs'>
+                        {page.path || 'No path provided'}
+                      </p>
+                    </div>
+                    <div className='text-right'>
+                      <p className='text-sm font-medium tabular-nums'>
+                        {formatMetricValue(page.visitors, 'number')}
+                      </p>
+                      <p className='text-muted-foreground text-xs'>
+                        {share.toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                  <Progress value={share} indicatorClassName='bg-primary' />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
+      <CardFooter className='text-muted-foreground text-sm'>
+        {pages.length > visiblePages.length
+          ? `Showing the top ${visiblePages.length} pages from your analytics data`
+          : 'Ranked by the highest visit counts'}
+      </CardFooter>
     </Card>
   );
 }

@@ -1,8 +1,7 @@
 'use client';
 
-import { IconTrendingUp } from '@tabler/icons-react';
+import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
-
 import {
   Card,
   CardContent,
@@ -17,116 +16,188 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 }
-];
+import type { AnalyticsTimelinePoint } from '@/server/action/analytics/types';
+import {
+  formatChangeValue,
+  formatAxisLabel,
+  formatLongDateLabel,
+  formatMetricValue,
+  getTrendDirection
+} from '@/features/overview/lib/analytics-format';
 
 const chartConfig = {
-  visitors: {
-    label: 'Visitors'
+  sessions: {
+    label: 'Sessions',
+    color: 'var(--chart-1)'
   },
-  desktop: {
-    label: 'Desktop',
-    color: 'var(--primary)'
-  },
-  mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)'
+  pageViews: {
+    label: 'Page Views',
+    color: 'var(--chart-2)'
   }
 } satisfies ChartConfig;
 
-export function AreaGraph() {
+type AreaGraphProps = {
+  data: AnalyticsTimelinePoint[];
+};
+
+function calculateTrend(data: AnalyticsTimelinePoint[]) {
+  if (data.length < 2) {
+    return null;
+  }
+
+  const first = data[0]?.sessions ?? 0;
+  const last = data[data.length - 1]?.sessions ?? 0;
+
+  if (first <= 0) {
+    return null;
+  }
+
+  return ((last - first) / first) * 100;
+}
+
+export function AreaGraph({ data }: AreaGraphProps) {
+  const trend = calculateTrend(data);
+  const direction = getTrendDirection(trend);
+  const trendLabel = formatChangeValue(trend);
+  const rangeLabel =
+    data.length > 1
+      ? `${formatLongDateLabel(data[0].label)} - ${formatLongDateLabel(
+          data[data.length - 1].label
+        )}`
+      : 'Waiting for more timeline data';
+  const totalSessions = data.reduce((sum, item) => sum + item.sessions, 0);
+  const totalPageViews = data.reduce((sum, item) => sum + item.pageViews, 0);
+
   return (
-    <Card className='@container/card'>
-      <CardHeader>
-        <CardTitle>Area Chart - Stacked</CardTitle>
+    <Card className='@container/card gap-0 overflow-hidden'>
+      <CardHeader className='border-b pb-4'>
+        <CardTitle>Overview</CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Sessions and page views over the selected analytics range
         </CardDescription>
       </CardHeader>
-      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
-        <ChartContainer
-          config={chartConfig}
-          className='aspect-auto h-[250px] w-full'
-        >
-          <AreaChart
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12
-            }}
-          >
-            <defs>
-              <linearGradient id='fillDesktop' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='5%'
-                  stopColor='var(--color-desktop)'
-                  stopOpacity={1.0}
+      <CardContent className='pt-6'>
+        <div className='flex flex-col gap-6'>
+          <div className='grid gap-4 sm:grid-cols-2'>
+            <div className='flex flex-col gap-1'>
+              <span className='text-muted-foreground text-xs tracking-wide uppercase'>
+                Sessions
+              </span>
+              <span className='text-2xl font-semibold tabular-nums'>
+                {formatMetricValue(totalSessions, 'number')}
+              </span>
+            </div>
+            <div className='flex flex-col gap-1'>
+              <span className='text-muted-foreground text-xs tracking-wide uppercase'>
+                Page Views
+              </span>
+              <span className='text-2xl font-semibold tabular-nums'>
+                {formatMetricValue(totalPageViews, 'number')}
+              </span>
+            </div>
+          </div>
+
+          {data.length === 0 ? (
+            <div className='text-muted-foreground flex h-[260px] items-center justify-center text-sm'>
+              No trend analytics data yet.
+            </div>
+          ) : (
+            <ChartContainer
+              config={chartConfig}
+              className='aspect-auto h-[260px] w-full'
+            >
+              <AreaChart
+                data={data}
+                margin={{
+                  left: 12,
+                  right: 12
+                }}
+              >
+                <defs>
+                  <linearGradient id='fillSessions' x1='0' y1='0' x2='0' y2='1'>
+                    <stop
+                      offset='5%'
+                      stopColor='var(--color-sessions)'
+                      stopOpacity={0.22}
+                    />
+                    <stop
+                      offset='95%'
+                      stopColor='var(--color-sessions)'
+                      stopOpacity={0.04}
+                    />
+                  </linearGradient>
+                  <linearGradient
+                    id='fillPageViews'
+                    x1='0'
+                    y1='0'
+                    x2='0'
+                    y2='1'
+                  >
+                    <stop
+                      offset='5%'
+                      stopColor='var(--color-pageViews)'
+                      stopOpacity={0.16}
+                    />
+                    <stop
+                      offset='95%'
+                      stopColor='var(--color-pageViews)'
+                      stopOpacity={0.03}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey='label'
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tickFormatter={formatAxisLabel}
                 />
-                <stop
-                  offset='95%'
-                  stopColor='var(--color-desktop)'
-                  stopOpacity={0.1}
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      indicator='dot'
+                      labelFormatter={formatLongDateLabel}
+                    />
+                  }
                 />
-              </linearGradient>
-              <linearGradient id='fillMobile' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='5%'
-                  stopColor='var(--color-mobile)'
-                  stopOpacity={0.8}
+                <Area
+                  dataKey='pageViews'
+                  type='monotone'
+                  fill='url(#fillPageViews)'
+                  stroke='var(--color-pageViews)'
+                  strokeWidth={2}
                 />
-                <stop
-                  offset='95%'
-                  stopColor='var(--color-mobile)'
-                  stopOpacity={0.1}
+                <Area
+                  dataKey='sessions'
+                  type='monotone'
+                  fill='url(#fillSessions)'
+                  stroke='var(--color-sessions)'
+                  strokeWidth={2}
                 />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey='month'
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator='dot' />}
-            />
-            <Area
-              dataKey='mobile'
-              type='natural'
-              fill='url(#fillMobile)'
-              stroke='var(--color-mobile)'
-              stackId='a'
-            />
-            <Area
-              dataKey='desktop'
-              type='natural'
-              fill='url(#fillDesktop)'
-              stroke='var(--color-desktop)'
-              stackId='a'
-            />
-          </AreaChart>
-        </ChartContainer>
+              </AreaChart>
+            </ChartContainer>
+          )}
+        </div>
       </CardContent>
       <CardFooter>
         <div className='flex w-full items-start gap-2 text-sm'>
           <div className='grid gap-2'>
             <div className='flex items-center gap-2 leading-none font-medium'>
-              Trending up by 5.2% this month{' '}
-              <IconTrendingUp className='h-4 w-4' />
+              {trendLabel === null
+                ? 'Trend will appear after more history is collected'
+                : `${trendLabel} compared with the start of this range`}
+              {trendLabel === null ||
+              direction === 'neutral' ? null : direction === 'down' ? (
+                <IconTrendingDown className='size-4' />
+              ) : (
+                <IconTrendingUp className='size-4' />
+              )}
             </div>
             <div className='text-muted-foreground flex items-center gap-2 leading-none'>
-              January - June 2024
+              {rangeLabel}
             </div>
           </div>
         </div>
