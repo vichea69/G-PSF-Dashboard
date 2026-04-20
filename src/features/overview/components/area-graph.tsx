@@ -38,6 +38,7 @@ const chartConfig = {
 
 type AreaGraphProps = {
   data: AnalyticsTimelinePoint[];
+  totalVisitors: number;
 };
 
 function calculateTrend(data: AnalyticsTimelinePoint[]) {
@@ -55,7 +56,7 @@ function calculateTrend(data: AnalyticsTimelinePoint[]) {
   return ((last - first) / first) * 100;
 }
 
-export function AreaGraph({ data }: AreaGraphProps) {
+export function AreaGraph({ data, totalVisitors }: AreaGraphProps) {
   const trend = calculateTrend(data);
   const direction = getTrendDirection(trend);
   const trendLabel = formatChangeValue(trend);
@@ -65,7 +66,6 @@ export function AreaGraph({ data }: AreaGraphProps) {
           data[data.length - 1].label
         )}`
       : 'Waiting for more timeline data';
-  const totalSessions = data.reduce((sum, item) => sum + item.sessions, 0);
   const totalPageViews = data.reduce((sum, item) => sum + item.pageViews, 0);
 
   return (
@@ -78,13 +78,13 @@ export function AreaGraph({ data }: AreaGraphProps) {
       </CardHeader>
       <CardContent className='pt-6'>
         <div className='flex flex-col gap-6'>
-          <div className='grid gap-4 sm:grid-cols-2'>
+          <div className='grid gap-4 sm:grid-cols-3'>
             <div className='flex flex-col gap-1'>
               <span className='text-muted-foreground text-xs tracking-wide uppercase'>
-                Sessions
+                Visitors
               </span>
               <span className='text-2xl font-semibold tabular-nums'>
-                {formatMetricValue(totalSessions, 'number')}
+                {formatMetricValue(totalVisitors, 'number')}
               </span>
             </div>
             <div className='flex flex-col gap-1'>
@@ -182,7 +182,7 @@ export function AreaGraph({ data }: AreaGraphProps) {
           )}
         </div>
       </CardContent>
-      <CardFooter>
+      {/* <CardFooter>
         <div className='flex w-full items-start gap-2 text-sm'>
           <div className='grid gap-2'>
             <div className='flex items-center gap-2 leading-none font-medium'>
@@ -201,7 +201,7 @@ export function AreaGraph({ data }: AreaGraphProps) {
             </div>
           </div>
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

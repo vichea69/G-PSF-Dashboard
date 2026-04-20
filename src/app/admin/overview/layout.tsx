@@ -5,12 +5,12 @@ import { getAnalyticsOverview } from '@/server/action/analytics/analytics';
 import { formatLongDateLabel } from '@/features/overview/lib/analytics-format';
 
 export default async function OverViewLayout({
-  sales,
+  top_page,
   pie_stats,
   bar_stats,
   area_stats
 }: {
-  sales: React.ReactNode;
+  top_page: React.ReactNode;
   pie_stats: React.ReactNode;
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
@@ -51,9 +51,9 @@ export default async function OverViewLayout({
         </div>
         <div className='grid grid-cols-1 gap-4 xl:grid-cols-12'>
           <div className='xl:col-span-8'>{area_stats}</div>
-          <div className='xl:col-span-4'>{sales}</div>
-          <div className='xl:col-span-6'>{bar_stats}</div>
+          <div className='xl:col-span-4'>{top_page}</div>
           <div className='xl:col-span-6'>{pie_stats}</div>
+          <div className='xl:col-span-6'>{bar_stats}</div>
         </div>
       </div>
     </PageContainer>
