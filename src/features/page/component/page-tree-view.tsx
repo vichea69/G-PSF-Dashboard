@@ -258,12 +258,11 @@ function AddLinkBadge({ href, label }: { href: string; label: string }) {
 }
 
 function AddPostLinkButton({ href, label }: { href: string; label: string }) {
-  const { t } = useTranslate();
   return (
     <Button asChild size='sm' className='shrink-0 gap-1'>
       <Link href={href} aria-label={label} title={label}>
         <Plus className='h-3 w-3' />
-        {t('page.tree.addPost')}
+        {label}
       </Link>
     </Button>
   );
@@ -484,7 +483,7 @@ function SectionTreeCard({
                       </div>
                       <AddPostLinkButton
                         href={`/admin/post/new?pageId=${encodeURIComponent(pageId)}&sectionId=${encodeURIComponent(String(section.id))}`}
-                        label={t('page.tree.addPost')}
+                        label={t('page.addNew')}
                       />
                     </div>
 
