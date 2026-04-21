@@ -517,6 +517,7 @@ export function PageTreeView({
   pageId: string;
   data: PageTreeData;
 }) {
+  const { can } = usePermissions();
   const { language } = useLanguage();
   const { t } = useTranslate();
   const page = data.page ?? {};
@@ -537,6 +538,10 @@ export function PageTreeView({
     categories: data.counts?.categories ?? categories.length
   };
 
+  const canCreateSection = can(
+    adminRoutePermissions.sections.create.resource,
+    adminRoutePermissions.sections.create.action
+  );
   const editPageId = String(page.id ?? pageId);
 
   return (
@@ -643,10 +648,12 @@ export function PageTreeView({
             </div>
 
             <div className='flex flex-wrap gap-2'>
-              <AddLinkBadge
-                href={`/admin/section/new?pageId=${encodeURIComponent(editPageId)}`}
-                label={t('page.tree.addSection')}
-              />
+              {canCreateSection ? (
+                <AddLinkBadge
+                  href={`/admin/section/new?pageId=${encodeURIComponent(editPageId)}`}
+                  label={t('page.tree.addSection')}
+                />
+              ) : null}
             </div>
           </div>
         </CardHeader>

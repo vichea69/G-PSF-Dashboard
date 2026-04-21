@@ -77,7 +77,7 @@ export default function SectionForm({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sections'] });
       toast.success(t('section.toast.updated'));
-      router.replace('/admin/section');
+      router.refresh();
     }
   });
 

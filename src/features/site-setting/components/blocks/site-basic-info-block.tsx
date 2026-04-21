@@ -230,12 +230,12 @@ export function SiteBasicInfoBlock({
               onClear={() => onMediaChange('logo', '')}
             />
 
-            <MediaPickerField
+            {/* <MediaPickerField
               label={t('siteSetting.basicInfo.footerBackground')}
               value={footerBackground}
               onChoose={() => setPickerTarget('footerBackground')}
               onClear={() => onMediaChange('footerBackground', '')}
-            />
+            /> */}
           </div>
 
           <div className='space-y-2'>
