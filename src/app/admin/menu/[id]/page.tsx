@@ -9,20 +9,36 @@ import { getMenusTree, getMenuTreeBySlug } from '@/server/action/menu/menu';
 
 type PageProps = { params: Promise<{ id: string }> };
 
-async function MenuDetailContent({ slug }: { slug: string }) {
+async function MenuDetailContent({ identifier }: { identifier: string }) {
   const [menuResponse, menusResponse] = await Promise.all([
-    getMenuTreeBySlug(slug).catch(() => null),
+    getMenuTreeBySlug(identifier).catch(() => null),
     getMenusTree().catch(() => [])
   ]);
 
-  const initialMenu = menuResponse
-    ? normalizeMenuTreeResponse(menuResponse, slug)
-    : null;
   const initialMenus = normalizeMenusResponse(menusResponse);
+  const matchedMenu =
+    initialMenus.find(
+      (menu) => menu.slug === identifier || menu.id === identifier
+    ) ?? null;
+  const resolvedSlug = matchedMenu?.slug || identifier;
+
+  let initialMenu = menuResponse
+    ? normalizeMenuTreeResponse(menuResponse, resolvedSlug)
+    : null;
+
+  if (!initialMenu && matchedMenu && matchedMenu.slug !== identifier) {
+    const resolvedMenuResponse = await getMenuTreeBySlug(resolvedSlug).catch(
+      () => null
+    );
+
+    initialMenu = resolvedMenuResponse
+      ? normalizeMenuTreeResponse(resolvedMenuResponse, resolvedSlug)
+      : matchedMenu;
+  }
 
   return (
     <MenuDetailClient
-      slug={slug}
+      slug={resolvedSlug}
       initialMenu={initialMenu}
       initialMenus={initialMenus}
     />
@@ -36,7 +52,7 @@ export default async function MenuDetailPage(props: PageProps) {
       resource={adminRoutePermissions.menu.update.resource}
       action={adminRoutePermissions.menu.update.action}
     >
-      <MenuDetailContent slug={params.id} />
+      <MenuDetailContent identifier={params.id} />
     </AdminPageGuard>
   );
 }

@@ -101,7 +101,12 @@ function buildAdminPathFromTarget(item: ActivityLogApiItem) {
     return rawUrl.replace('/testimonials/', '/admin/testimonial/');
   }
   if (rawUrl.startsWith('/menus/')) {
-    return rawUrl.replace('/menus/', '/admin/menu/');
+    const menuMatch = rawUrl.match(/^\/menus\/([^/]+)/);
+    if (menuMatch) {
+      return `/admin/menu/${menuMatch[1]}`;
+    }
+
+    return '/admin/menu';
   }
   if (rawUrl.startsWith('/users/')) {
     return '/admin/users';
