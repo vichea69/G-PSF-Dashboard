@@ -1,12 +1,9 @@
 'use client';
-
-import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
@@ -18,11 +15,9 @@ import {
 } from '@/components/ui/chart';
 import type { AnalyticsTimelinePoint } from '@/server/action/analytics/types';
 import {
-  formatChangeValue,
   formatAxisLabel,
   formatLongDateLabel,
-  formatMetricValue,
-  getTrendDirection
+  formatMetricValue
 } from '@/features/overview/lib/analytics-format';
 
 const chartConfig = {
@@ -41,35 +36,11 @@ type AreaGraphProps = {
   totalVisitors: number;
 };
 
-function calculateTrend(data: AnalyticsTimelinePoint[]) {
-  if (data.length < 2) {
-    return null;
-  }
-
-  const first = data[0]?.sessions ?? 0;
-  const last = data[data.length - 1]?.sessions ?? 0;
-
-  if (first <= 0) {
-    return null;
-  }
-
-  return ((last - first) / first) * 100;
-}
-
 export function AreaGraph({ data, totalVisitors }: AreaGraphProps) {
-  const trend = calculateTrend(data);
-  const direction = getTrendDirection(trend);
-  const trendLabel = formatChangeValue(trend);
-  const rangeLabel =
-    data.length > 1
-      ? `${formatLongDateLabel(data[0].label)} - ${formatLongDateLabel(
-          data[data.length - 1].label
-        )}`
-      : 'Waiting for more timeline data';
   const totalPageViews = data.reduce((sum, item) => sum + item.pageViews, 0);
 
   return (
-    <Card className='@container/card gap-0 overflow-hidden'>
+    <Card className='@container/card h-full gap-0 overflow-hidden'>
       <CardHeader className='border-b pb-4'>
         <CardTitle>Overview</CardTitle>
         <CardDescription>
@@ -182,26 +153,6 @@ export function AreaGraph({ data, totalVisitors }: AreaGraphProps) {
           )}
         </div>
       </CardContent>
-      <CardFooter>
-        <div className='flex w-full items-start gap-2 text-sm'>
-          <div className='grid gap-2'>
-            <div className='flex items-center gap-2 leading-none font-medium'>
-              {trendLabel === null
-                ? 'Trend will appear after more history is collected'
-                : `${trendLabel} compared with the start of this range`}
-              {trendLabel === null ||
-              direction === 'neutral' ? null : direction === 'down' ? (
-                <IconTrendingDown className='size-4' />
-              ) : (
-                <IconTrendingUp className='size-4' />
-              )}
-            </div>
-            <div className='text-muted-foreground flex items-center gap-2 leading-none'>
-              {rangeLabel}
-            </div>
-          </div>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

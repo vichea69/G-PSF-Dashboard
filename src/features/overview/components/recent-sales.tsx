@@ -1,7 +1,6 @@
 import {
   Card,
   CardHeader,
-  CardFooter,
   CardContent,
   CardTitle,
   CardDescription
@@ -74,11 +73,11 @@ export function RecentSales({ pages }: RecentSalesProps) {
           </div>
         )}
       </CardContent>
-      <CardFooter className='text-muted-foreground text-sm'>
+      {/* <CardFooter className='text-muted-foreground text-sm'>
         {pages.length > visiblePages.length
           ? `Showing the top ${visiblePages.length} pages from your analytics data`
           : 'Ranked by the highest visit counts'}
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }
