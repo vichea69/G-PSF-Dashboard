@@ -35,6 +35,10 @@ import {
   WgTemplateForm,
   type WgTemplateData
 } from '@/features/post/component/block/wg-template/wg-template-form';
+import {
+  DefaultTemplateForm,
+  type DefaultTemplateData
+} from '@/features/post/component/block/default-template/default-template-form';
 import type { PostContent } from '@/server/action/post/types';
 
 type PostContentCardProps = {
@@ -51,6 +55,7 @@ type PostContentCardProps = {
   isAnnualReportsSection: boolean;
   isIssuesResponsesSection: boolean;
   isWgTemplateSection: boolean;
+  isDefaultTemplateSection: boolean;
   isAddressSection: boolean;
   editorValue: PostContent | string;
   heroBannerValue: HeroBannerData;
@@ -60,6 +65,7 @@ type PostContentCardProps = {
   annualReportsValue: AnnualReportsData;
   issuesResponsesValue: IssuesResponsesData;
   wgTemplateValue: WgTemplateData;
+  defaultTemplateValue: DefaultTemplateData;
   onTitleEnChange: (value: string) => void;
   onTitleKmChange: (value: string) => void;
   onDescriptionEnChange: (value: string) => void;
@@ -72,6 +78,7 @@ type PostContentCardProps = {
   onAnnualReportsChange: (value: AnnualReportsData) => void;
   onIssuesResponsesChange: (value: IssuesResponsesData) => void;
   onWgTemplateChange: (value: WgTemplateData) => void;
+  onDefaultTemplateChange: (value: DefaultTemplateData) => void;
 };
 
 export function PostContentCard({
@@ -88,6 +95,7 @@ export function PostContentCard({
   isAnnualReportsSection,
   isIssuesResponsesSection,
   isWgTemplateSection,
+  isDefaultTemplateSection,
   isAddressSection,
   editorValue,
   heroBannerValue,
@@ -97,6 +105,7 @@ export function PostContentCard({
   annualReportsValue,
   issuesResponsesValue,
   wgTemplateValue,
+  defaultTemplateValue,
   onTitleEnChange,
   onTitleKmChange,
   onDescriptionEnChange,
@@ -108,7 +117,8 @@ export function PostContentCard({
   onWgCoChairsChange,
   onAnnualReportsChange,
   onIssuesResponsesChange,
-  onWgTemplateChange
+  onWgTemplateChange,
+  onDefaultTemplateChange
 }: PostContentCardProps) {
   const { t } = useTranslate();
 
@@ -258,6 +268,17 @@ export function PostContentCard({
               language={activeLanguage}
               value={wgTemplateValue}
               onChange={onWgTemplateChange}
+            />
+          </div>
+        ) : isDefaultTemplateSection ? (
+          <div className='space-y-2'>
+            <CardTitle className='text-sm font-medium'>
+              {t('post.contentCard.defaultTemplateContent')}
+            </CardTitle>
+            <DefaultTemplateForm
+              language={activeLanguage}
+              value={defaultTemplateValue}
+              onChange={onDefaultTemplateChange}
             />
           </div>
         ) : isAddressSection ? (

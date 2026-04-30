@@ -370,6 +370,7 @@ export const en = {
       annualReportsContent: 'Annual Reports',
       issuesResponsesContent: 'Issues & Responses',
       wgTemplateContent: 'WG Template',
+      defaultTemplateContent: 'Default Template',
       addressBlockPreview: 'Address Block Preview'
     },
     publishSettings: {
@@ -588,6 +589,29 @@ export const en = {
         progressSnapshot: 'Progress Snapshot',
         issuesResponses: 'Issues & Responses',
         submissionForm: 'Submission Form'
+      },
+      defaultTemplate: {
+        title: 'Default Template',
+        heroBanner: 'Hero Banner',
+        textBlock: 'Text Block',
+        imageShowcase: 'Framework Image',
+        titleKhmer: 'Title (Khmer)',
+        titleEnglish: 'Title (English)',
+        enterTitleKhmer: 'Enter title in Khmer',
+        enterTitleEnglish: 'Enter title in English',
+        descriptionKhmer: 'Description (Khmer)',
+        descriptionEnglish: 'Description (English)',
+        enterDescriptionKhmer: 'Enter description in Khmer',
+        enterDescriptionEnglish: 'Enter description in English',
+        image: 'Image',
+        chooseFromMedia: 'Choose from Media',
+        clear: 'Clear',
+        noImageSelected: 'No image selected yet. Choose one from Media.',
+        selectImage: 'Select image',
+        selectImageDescription: 'Choose an image from Media Manager.',
+        imageUploaded: 'Image uploaded successfully',
+        imageUploadFailed: 'Failed to upload image',
+        imageUploadMissingUrl: 'Upload succeeded but no image URL was returned'
       }
     },
     actions: {

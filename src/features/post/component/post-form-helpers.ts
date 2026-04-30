@@ -7,6 +7,7 @@ import type { WgCoChairsData } from '@/features/post/component/block/wg-co-chair
 import type { AnnualReportsData } from '@/features/post/component/block/annual-reports/annual-reports-form';
 import type { IssuesResponsesData } from '@/features/post/component/block/issues-responses/issues-responses-form';
 import type { WgTemplateData } from '@/features/post/component/block/wg-template/wg-template-form';
+import type { DefaultTemplateData } from '@/features/post/component/block/default-template/default-template-form';
 import type {
   DerivedPostFields,
   LocalizedPostDocuments,
@@ -88,7 +89,7 @@ export const normalizeImageUrl = (value: unknown) =>
 
 const parseContentValue = (
   value: unknown
-): PostContent | HeroBannerData | string => {
+): PostContent | HeroBannerData | DefaultTemplateData | string => {
   if (!value) return '';
 
   if (typeof value === 'string') {
@@ -290,6 +291,25 @@ export const isWgTemplateContent = (
   );
 };
 
+export const isDefaultTemplateContent = (
+  value: unknown
+): value is DefaultTemplateData => {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as DefaultTemplateData & {
+    heroBanner?: unknown;
+    textBlock?: unknown;
+    imageShowcase?: unknown;
+  };
+
+  return (
+    isHeroBannerContent(candidate.heroBanner) &&
+    isTextBlockContent(candidate.textBlock) &&
+    Boolean(candidate.imageShowcase) &&
+    typeof candidate.imageShowcase === 'object'
+  );
+};
+
 export const getLocalizedContent = (
   content: LocalizedPostContent | undefined,
   language: 'en' | 'km'
@@ -303,6 +323,7 @@ export const getLocalizedContent = (
   if (isAnnualReportsContent(value)) return '';
   if (isIssuesResponsesContent(value)) return '';
   if (isWgTemplateContent(value)) return '';
+  if (isDefaultTemplateContent(value)) return '';
   return value as PostContent | string;
 };
 

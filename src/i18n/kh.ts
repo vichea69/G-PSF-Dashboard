@@ -369,6 +369,7 @@ export const kh = {
       annualReportsContent: 'របាយការណ៍ប្រចាំឆ្នាំ',
       issuesResponsesContent: 'បញ្ហា និងការឆ្លើយតប',
       wgTemplateContent: 'គំរូ WG',
+      defaultTemplateContent: 'គំរូ Default',
       addressBlockPreview: 'មើលប្លុកអាសយដ្ឋាន'
     },
     publishSettings: {
@@ -586,6 +587,30 @@ export const kh = {
         progressSnapshot: 'សង្ខេបវឌ្ឍនភាព',
         issuesResponses: 'បញ្ហា និងការឆ្លើយតប',
         submissionForm: 'ទម្រង់បញ្ជូន'
+      },
+      defaultTemplate: {
+        title: 'គំរូ Default',
+        heroBanner: 'Hero Banner',
+        textBlock: 'ប្លុកអត្ថបទ',
+        imageShowcase: 'រូបភាពក្របខណ្ឌ',
+        titleKhmer: 'ចំណងជើង (ខ្មែរ)',
+        titleEnglish: 'ចំណងជើង (អង់គ្លេស)',
+        enterTitleKhmer: 'បញ្ចូលចំណងជើងជាភាសាខ្មែរ',
+        enterTitleEnglish: 'បញ្ចូលចំណងជើងជាភាសាអង់គ្លេស',
+        descriptionKhmer: 'ការពិពណ៌នា (ខ្មែរ)',
+        descriptionEnglish: 'ការពិពណ៌នា (អង់គ្លេស)',
+        enterDescriptionKhmer: 'បញ្ចូលការពិពណ៌នាជាភាសាខ្មែរ',
+        enterDescriptionEnglish: 'បញ្ចូលការពិពណ៌នាជាភាសាអង់គ្លេស',
+        image: 'រូបភាព',
+        chooseFromMedia: 'ជ្រើសពី Media',
+        clear: 'សម្អាត',
+        noImageSelected: 'មិនទាន់បានជ្រើសរូបភាពទេ។ ជ្រើសពី Media ។',
+        selectImage: 'ជ្រើសរូបភាព',
+        selectImageDescription: 'ជ្រើសរូបភាពពី Media Manager ។',
+        imageUploaded: 'បានផ្ទុករូបភាពដោយជោគជ័យ',
+        imageUploadFailed: 'បរាជ័យក្នុងការផ្ទុករូបភាព',
+        imageUploadMissingUrl:
+          'ការផ្ទុកបានជោគជ័យ ប៉ុន្តែមិនមាន URL រូបភាពត្រឡប់មកវិញ'
       }
     },
     actions: {

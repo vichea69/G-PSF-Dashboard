@@ -35,6 +35,10 @@ import {
   createEmptyWgTemplateData,
   type WgTemplateData
 } from '@/features/post/component/block/wg-template/wg-template-form';
+import {
+  createEmptyDefaultTemplateData,
+  type DefaultTemplateData
+} from '@/features/post/component/block/default-template/default-template-form';
 import { PostContentCard } from '@/features/post/component/post-form-sections/post-content-card';
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
@@ -46,7 +50,8 @@ import {
   isWgCoChairsContent,
   isAnnualReportsContent,
   isIssuesResponsesContent,
-  isWgTemplateContent
+  isWgTemplateContent,
+  isDefaultTemplateContent
 } from '@/features/post/component/post-form-helpers';
 import { usePostFormState } from '@/features/post/component/use-post-form-state';
 import type { PostFormData } from '@/features/post/component/post-form-types';
@@ -139,6 +144,8 @@ export default function PostForm({
   const isIssuesResponsesSection =
     selectedSection?.blockType === 'issues_responses';
   const isWgTemplateSection = selectedSection?.blockType === 'wg_template';
+  const isDefaultTemplateSection =
+    selectedSection?.blockType === 'default_template';
 
   const heroBannerValue = isHeroBannerContent(formData.content?.en)
     ? (formData.content?.en as HeroBannerData)
@@ -168,6 +175,10 @@ export default function PostForm({
     ? (formData.content?.en as WgTemplateData)
     : createEmptyWgTemplateData();
 
+  const defaultTemplateValue = isDefaultTemplateContent(formData.content?.en)
+    ? (formData.content?.en as DefaultTemplateData)
+    : createEmptyDefaultTemplateData();
+
   const editorValue =
     isHeroBannerContent(formData.content?.en) ||
     isStatsContent(formData.content?.en) ||
@@ -175,7 +186,8 @@ export default function PostForm({
     isWgCoChairsContent(formData.content?.en) ||
     isAnnualReportsContent(formData.content?.en) ||
     isIssuesResponsesContent(formData.content?.en) ||
-    isWgTemplateContent(formData.content?.en)
+    isWgTemplateContent(formData.content?.en) ||
+    isDefaultTemplateContent(formData.content?.en)
       ? ''
       : getLocalizedContent(formData.content, activeLanguage);
 
@@ -220,6 +232,7 @@ export default function PostForm({
         | AnnualReportsData
         | IssuesResponsesData
         | WgTemplateData
+        | DefaultTemplateData
         | string
         | undefined
     ) => {
@@ -260,12 +273,16 @@ export default function PostForm({
                   ? ({
                       en: wgTemplateValue
                     } as PostFormData['content'])
-                  : {
-                      en: normalizeContentEntry(formData.content?.en),
-                      km: formData.content?.km
-                        ? normalizeContentEntry(formData.content?.km)
-                        : undefined
-                    };
+                  : isDefaultTemplateSection
+                    ? ({
+                        en: defaultTemplateValue
+                      } as PostFormData['content'])
+                    : {
+                        en: normalizeContentEntry(formData.content?.en),
+                        km: formData.content?.km
+                          ? normalizeContentEntry(formData.content?.km)
+                          : undefined
+                      };
 
     onSave({
       ...formData,
@@ -310,6 +327,7 @@ export default function PostForm({
             isAnnualReportsSection={isAnnualReportsSection}
             isIssuesResponsesSection={isIssuesResponsesSection}
             isWgTemplateSection={isWgTemplateSection}
+            isDefaultTemplateSection={isDefaultTemplateSection}
             isAddressSection={isAddressSection}
             editorValue={editorValue}
             heroBannerValue={heroBannerValue}
@@ -319,6 +337,7 @@ export default function PostForm({
             annualReportsValue={annualReportsValue}
             issuesResponsesValue={issuesResponsesValue}
             wgTemplateValue={wgTemplateValue}
+            defaultTemplateValue={defaultTemplateValue}
             onTitleEnChange={(value) =>
               setFormData((prev) => ({ ...prev, titleEn: value }))
             }
@@ -404,6 +423,15 @@ export default function PostForm({
                 }
               }))
             }
+            onDefaultTemplateChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: {
+                  ...(prev.content ?? {}),
+                  en: value
+                }
+              }))
+            }
           />
 
           {!isHeroBannerSection &&
@@ -412,7 +440,8 @@ export default function PostForm({
             !isWgCoChairsSection &&
             !isAnnualReportsSection &&
             !isIssuesResponsesSection &&
-            !isWgTemplateSection && (
+            !isWgTemplateSection &&
+            !isDefaultTemplateSection && (
               <>
                 {/* <PostImagesCard
                 previewImages={previewImages}
