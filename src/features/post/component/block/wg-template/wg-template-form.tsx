@@ -420,34 +420,6 @@ function RepresentativeForm({
       <CardContent className='space-y-5 pt-6'>
         <div className='grid gap-4 md:grid-cols-2'>
           <div className='space-y-2'>
-            <Label htmlFor='sector-representative'>
-              {isKhmer
-                ? t('post.blocks.wgTemplate.sectorRepresentativeKh')
-                : t('post.blocks.wgTemplate.sectorRepresentativeEn')}
-            </Label>
-            <Input
-              id='sector-representative'
-              value={
-                isKhmer
-                  ? value.sectorRepresentative.km
-                  : value.sectorRepresentative.en
-              }
-              onChange={(event) =>
-                updateRepresentative('sectorRepresentative', event.target.value)
-              }
-              placeholder={
-                isKhmer
-                  ? t(
-                      'post.blocks.wgTemplate.sectorRepresentativePlaceholderKh'
-                    )
-                  : t(
-                      'post.blocks.wgTemplate.sectorRepresentativePlaceholderEn'
-                    )
-              }
-            />
-          </div>
-
-          <div className='space-y-2'>
             <Label htmlFor='government-representative'>
               {isKhmer
                 ? t('post.blocks.wgTemplate.governmentRepresentativeKh')
@@ -473,6 +445,34 @@ function RepresentativeForm({
                     )
                   : t(
                       'post.blocks.wgTemplate.governmentRepresentativePlaceholderEn'
+                    )
+              }
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='sector-representative'>
+              {isKhmer
+                ? t('post.blocks.wgTemplate.sectorRepresentativeKh')
+                : t('post.blocks.wgTemplate.sectorRepresentativeEn')}
+            </Label>
+            <Input
+              id='sector-representative'
+              value={
+                isKhmer
+                  ? value.sectorRepresentative.km
+                  : value.sectorRepresentative.en
+              }
+              onChange={(event) =>
+                updateRepresentative('sectorRepresentative', event.target.value)
+              }
+              placeholder={
+                isKhmer
+                  ? t(
+                      'post.blocks.wgTemplate.sectorRepresentativePlaceholderKh'
+                    )
+                  : t(
+                      'post.blocks.wgTemplate.sectorRepresentativePlaceholderEn'
                     )
               }
             />

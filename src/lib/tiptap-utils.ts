@@ -21,6 +21,18 @@ export type ImageUploadResult = {
   metadata?: ImageUploadMetadata;
 };
 
+function getClientAuthHeaders(): Record<string, string> {
+  if (typeof document === 'undefined') return {};
+
+  const accessTokenCookie = document.cookie
+    .split('; ')
+    .find((cookie) => cookie.startsWith('access_token='));
+  const encodedToken = accessTokenCookie?.split('=').slice(1).join('=');
+  const token = encodedToken ? decodeURIComponent(encodedToken) : '';
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export const MAC_SYMBOLS: Record<string, string> = {
   mod: '⌘',
   command: '⌘',
@@ -335,6 +347,7 @@ export const handleImageUpload = async (
   const response = await api.post(uploadEndpoint, formData, {
     withCredentials: true,
     headers: {
+      ...getClientAuthHeaders(),
       'Content-Type': 'multipart/form-data'
     },
     signal: abortSignal,
