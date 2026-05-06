@@ -584,6 +584,34 @@ export const kh = {
         title: 'គំរូ WG',
         heroBanner: 'Hero Banner',
         mandateScope: 'វិសាលភាព និងភារកិច្ច',
+        meetingDetails: 'តំណាង',
+        sectorRepresentativeKh: 'តំណាងវិស័យ (ខ្មែរ)',
+        sectorRepresentativeEn: 'តំណាងវិស័យ (អង់គ្លេស)',
+        sectorRepresentativePlaceholderKh: 'បញ្ចូលឈ្មោះតំណាងវិស័យជាភាសាខ្មែរ',
+        sectorRepresentativePlaceholderEn:
+          'បញ្ចូលឈ្មោះតំណាងវិស័យជាភាសាអង់គ្លេស',
+        governmentRepresentativeKh: 'តំណាងរដ្ឋាភិបាល (ខ្មែរ)',
+        governmentRepresentativeEn: 'តំណាងរដ្ឋាភិបាល (អង់គ្លេស)',
+        governmentRepresentativePlaceholderKh:
+          'បញ្ចូលឈ្មោះតំណាងរដ្ឋាភិបាលជាភាសាខ្មែរ',
+        governmentRepresentativePlaceholderEn:
+          'បញ្ចូលឈ្មោះតំណាងរដ្ឋាភិបាលជាភាសាអង់គ្លេស',
+        photos: 'រូបភាព',
+        photosHelp: 'បន្ថែមរូបភាពច្រើនសម្រាប់ផ្នែក WG Template នេះ។',
+        addPhoto: 'បន្ថែមរូបភាព',
+        photo: 'រូបភាព',
+        photoUrl: 'តំណរូបភាព',
+        photoUrlPlaceholder: 'https://example.com/photo.jpg',
+        chooseFromMedia: 'ជ្រើសពី Media',
+        noPhotoSelected: 'មិនទាន់បានជ្រើសរូបភាពទេ។ ជ្រើសពី Media ។',
+        noPhotosAdded:
+          'មិនទាន់បានបន្ថែមរូបភាពទេ។ ចុច បន្ថែមរូបភាព ដើម្បីចាប់ផ្តើម។',
+        selectPhoto: 'ជ្រើសរូបភាព',
+        selectPhotoDescription: 'ជ្រើសរូបភាពពី Media Manager ។',
+        photoUploaded: 'បានផ្ទុករូបភាពដោយជោគជ័យ',
+        photoUploadFailed: 'បរាជ័យក្នុងការផ្ទុករូបភាព',
+        photoUploadMissingUrl:
+          'ការផ្ទុកបានជោគជ័យ ប៉ុន្តែមិនមាន URL រូបភាពត្រឡប់មកវិញ',
         progressSnapshot: 'សង្ខេបវឌ្ឍនភាព',
         issuesResponses: 'បញ្ហា និងការឆ្លើយតប',
         submissionForm: 'ទម្រង់បញ្ជូន'

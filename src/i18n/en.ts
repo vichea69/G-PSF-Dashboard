@@ -586,6 +586,33 @@ export const en = {
         title: 'WG Template',
         heroBanner: 'Hero Banner',
         mandateScope: 'Mandate & Scope',
+        meetingDetails: 'Representative',
+        sectorRepresentativeKh: 'Sector Representative (Khmer)',
+        sectorRepresentativeEn: 'Sector Representative (English)',
+        sectorRepresentativePlaceholderKh:
+          'Enter sector representative name in Khmer',
+        sectorRepresentativePlaceholderEn:
+          'Enter sector representative name in English',
+        governmentRepresentativeKh: 'Government Representative (Khmer)',
+        governmentRepresentativeEn: 'Government Representative (English)',
+        governmentRepresentativePlaceholderKh:
+          'Enter government representative name in Khmer',
+        governmentRepresentativePlaceholderEn:
+          'Enter government representative name in English',
+        photos: 'Photos',
+        photosHelp: 'Add multiple photos for this WG template section.',
+        addPhoto: 'Add Photo',
+        photo: 'Photo',
+        photoUrl: 'Photo URL',
+        photoUrlPlaceholder: 'https://example.com/photo.jpg',
+        chooseFromMedia: 'Choose from Media',
+        noPhotoSelected: 'No photo selected yet. Choose one from Media.',
+        noPhotosAdded: 'No photos added yet. Click Add Photo to start.',
+        selectPhoto: 'Select photo',
+        selectPhotoDescription: 'Choose an image from Media Manager.',
+        photoUploaded: 'Photo uploaded successfully',
+        photoUploadFailed: 'Failed to upload photo',
+        photoUploadMissingUrl: 'Upload succeeded but no photo URL was returned',
         progressSnapshot: 'Progress Snapshot',
         issuesResponses: 'Issues & Responses',
         submissionForm: 'Submission Form'
