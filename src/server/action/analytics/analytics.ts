@@ -2,7 +2,7 @@
 import 'server-only';
 
 import { cache } from 'react';
-import { api } from '@/lib/api';
+import { baseAPI } from '@/lib/api';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
 import type {
   AnalyticsCountry,
@@ -367,13 +367,39 @@ function normalizeBrowsersResponse(payload: unknown): AnalyticsBrowser[] {
 }
 
 async function getAnalyticsResponse(endpoint: string) {
-  const headers = await getAuthHeaders();
-  const response = await api.get(endpoint, {
+  if (!baseAPI) {
+    throw new Error('NEXT_PUBLIC_API_URL is not configured');
+  }
+
+  const authHeaders = await getAuthHeaders();
+  const headers = new Headers();
+  if (authHeaders.Authorization) {
+    headers.set('Authorization', authHeaders.Authorization);
+  }
+  const url = new URL(endpoint, baseAPI);
+  const response = await fetch(url, {
     headers,
-    withCredentials: true
+    cache: 'no-store'
   });
 
-  return response.data;
+  let payload: unknown = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const detail =
+      payload && typeof payload === 'object' ? (payload as AnyRecord) : null;
+    const message =
+      readStringFromRecord(detail, ['message', 'error']) ||
+      `Failed to load analytics (${response.status})`;
+    throw new Error(message);
+  }
+
+  return payload;
 }
 
 export const getAnalyticsOverview = cache(async () => {
