@@ -1,12 +1,13 @@
 FROM node:20-alpine AS base
 
 # Install necessary dependencies and corepack
-RUN apk add --no-cache libc6-compat sqlite && \
-    npm install -g corepack
+RUN apk add --no-cache libc6-compat sqlite
 
-# Explicitly install pnpm v10
-RUN corepack enable pnpm@10 && \
-    pnpm -v  # Check pnpm version to confirm it's installed correctly
+# Install pnpm v10 explicitly using npm
+RUN npm install -g pnpm@10
+
+# Verify pnpm installation
+RUN pnpm -v
 
 # Dependencies stage
 FROM base AS deps
@@ -15,7 +16,7 @@ WORKDIR /app
 # Copy package and lock files
 COPY package.json pnpm-lock.yaml .npmrc* ./
 
-# Install pnpm dependencies
+# Install pnpm dependencies with frozen-lockfile
 RUN pnpm install --frozen-lockfile
 
 # Build stage
