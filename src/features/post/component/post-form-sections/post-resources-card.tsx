@@ -76,20 +76,24 @@ const normalizeDocumentEntry = (
 });
 
 const compactDocuments = (
-  value: NormalizedDocuments
+  value: NormalizedDocuments,
+  preserveEmptyLocale?: DocumentLocale
 ): LocalizedPostDocuments => {
-  const toPayload = (entry: DocumentEntry) => {
+  const toPayload = (entry: DocumentEntry, keepEmpty: boolean) => {
     const url = entry.url.trim();
     const thumbnailUrl = entry.thumbnailUrl.trim();
-    if (!url && !thumbnailUrl) return undefined;
+    if (!url && !thumbnailUrl) {
+      return keepEmpty ? { url: '', thumbnailUrl: '' } : undefined;
+    }
+
     return {
       ...(url ? { url } : {}),
       ...(thumbnailUrl ? { thumbnailUrl } : {})
     };
   };
 
-  const en = toPayload(value.en);
-  const km = toPayload(value.km);
+  const en = toPayload(value.en, preserveEmptyLocale === 'en');
+  const km = toPayload(value.km, preserveEmptyLocale === 'km');
 
   return {
     ...(en ? { en } : {}),
@@ -229,7 +233,14 @@ export function PostResourcesCard({
       [locale]: next
     };
 
-    onDocumentsChange?.(compactDocuments(nextDocuments));
+    const shouldPreserveClearedLocale = !next.url && !next.thumbnailUrl;
+
+    onDocumentsChange?.(
+      compactDocuments(
+        nextDocuments,
+        shouldPreserveClearedLocale ? locale : undefined
+      )
+    );
 
     if (locale === 'en') {
       onDocumentChange?.(next.url);

@@ -43,6 +43,7 @@ import { PostContentCard } from '@/features/post/component/post-form-sections/po
 import { PostResourcesCard } from '@/features/post/component/post-form-sections/post-resources-card';
 import { PostPublishSettingsCard } from '@/features/post/component/post-form-sections/post-publish-settings-card';
 import {
+  derivePostFields,
   getLocalizedContent,
   isHeroBannerContent,
   isStatsContent,
@@ -203,9 +204,13 @@ export default function PostForm({
       url?: string;
       thumbnailUrl?: string;
     }) => {
+      const hasEntry = entry !== undefined;
       const url = entry?.url?.trim() || '';
       const thumbnailUrl = entry?.thumbnailUrl?.trim() || '';
-      if (!url && !thumbnailUrl) return undefined;
+      if (!url && !thumbnailUrl) {
+        return hasEntry ? { url: '', thumbnailUrl: '' } : undefined;
+      }
+
       return {
         ...(url ? { url } : {}),
         ...(thumbnailUrl ? { thumbnailUrl } : {})
@@ -221,6 +226,22 @@ export default function PostForm({
       documents.en?.thumbnailUrl || formData.documentThumbnail?.trim() || '';
     const link = formData.link?.trim() || '';
     const title = titleEn || titleKm || formData.title?.trim() || '';
+    const originalFields = derivePostFields(editingPost);
+    const clearCoverImage = Boolean(
+      editingPost && originalFields.coverImage && !coverImage
+    );
+    const clearDocumentEn = Boolean(
+      editingPost &&
+        originalFields.documents.en?.url &&
+        formData.documents?.en !== undefined &&
+        !documents.en?.url
+    );
+    const clearDocumentKm = Boolean(
+      editingPost &&
+        originalFields.documents.km?.url &&
+        formData.documents?.km !== undefined &&
+        !documents.km?.url
+    );
 
     const normalizeContentEntry = (
       value:
@@ -293,15 +314,19 @@ export default function PostForm({
       descriptionKm,
       publishDate: publishDate || undefined,
       isFeatured,
-      coverImage: coverImage || undefined,
-      document: document || undefined,
-      documentThumbnail: documentThumbnail || undefined,
+      coverImage,
+      document,
+      documentThumbnail,
       documents: hasDocuments
         ? {
             ...(documents.en ? { en: documents.en } : {}),
             ...(documents.km ? { km: documents.km } : {})
           }
         : undefined,
+      clearCoverImage,
+      clearDocumentEn,
+      clearDocumentKm,
+      clearDocuments: clearDocumentEn && clearDocumentKm,
       link: link || undefined,
       content
     });

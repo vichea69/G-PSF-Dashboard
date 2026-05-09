@@ -122,9 +122,13 @@ export default function PostViewPage({
           url?: string;
           thumbnailUrl?: string;
         }) => {
+          const hasEntry = entry !== undefined;
           const url = entry?.url?.trim() || '';
           const thumbnailUrl = entry?.thumbnailUrl?.trim() || '';
-          if (!url && !thumbnailUrl) return undefined;
+          if (!url && !thumbnailUrl) {
+            return hasEntry ? { url: '', thumbnailUrl: '' } : undefined;
+          }
+
           return {
             ...(url ? { url } : {}),
             ...(thumbnailUrl ? { thumbnailUrl } : {})
@@ -137,6 +141,10 @@ export default function PostViewPage({
         const hasDocuments = Boolean(documents.en || documents.km);
         const document = documents.en?.url || formData.document?.trim() || '';
         const link = formData.link?.trim() || '';
+        const clearCoverImage = Boolean(formData.clearCoverImage);
+        const clearDocumentEn = Boolean(formData.clearDocumentEn);
+        const clearDocumentKm = Boolean(formData.clearDocumentKm);
+        const clearDocuments = Boolean(formData.clearDocuments);
         const payload = {
           title: titleJson,
           description: descriptionJson,
@@ -152,14 +160,18 @@ export default function PostViewPage({
           categoryId: categoryId ?? undefined,
           sectionId: sectionId ?? undefined,
           pageId: pageId ?? undefined,
-          coverImage: coverImage || undefined,
-          document: document || undefined,
+          coverImage,
+          document,
           documents: hasDocuments
             ? {
                 ...(documents.en ? { en: documents.en } : {}),
                 ...(documents.km ? { km: documents.km } : {})
               }
             : undefined,
+          clearCoverImage,
+          clearDocumentEn,
+          clearDocumentKm,
+          clearDocuments,
           link: link || undefined,
           existingImageIds: formData.existingImageIds?.length
             ? formData.existingImageIds
@@ -192,17 +204,29 @@ export default function PostViewPage({
         if (payload.pageId !== undefined) {
           fd.append('pageId', String(payload.pageId));
         }
-        if (payload.coverImage) {
-          fd.append('coverImage', payload.coverImage);
+        if (isEditing || payload.coverImage) {
+          fd.append('coverImage', payload.coverImage ?? '');
         }
-        if (payload.document) {
-          fd.append('document', payload.document);
+        if (isEditing || payload.document) {
+          fd.append('document', payload.document ?? '');
         }
-        if (payload.documents) {
-          fd.append('documents', JSON.stringify(payload.documents));
+        if (isEditing || payload.documents) {
+          fd.append('documents', JSON.stringify(payload.documents ?? {}));
         }
-        if (payload.link) {
-          fd.append('link', payload.link);
+        if (payload.clearCoverImage) {
+          fd.append('clearCoverImage', 'true');
+        }
+        if (payload.clearDocumentEn) {
+          fd.append('clearDocumentEn', 'true');
+        }
+        if (payload.clearDocumentKm) {
+          fd.append('clearDocumentKm', 'true');
+        }
+        if (payload.clearDocuments) {
+          fd.append('clearDocuments', 'true');
+        }
+        if (isEditing || payload.link) {
+          fd.append('link', payload.link ?? '');
         }
         if (payload.existingImageIds) {
           fd.append(

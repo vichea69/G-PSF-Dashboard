@@ -56,6 +56,10 @@ export type PostFormData = {
   document?: string;
   documentThumbnail?: string;
   documents?: LocalizedPostDocuments;
+  clearCoverImage?: boolean;
+  clearDocumentEn?: boolean;
+  clearDocumentKm?: boolean;
+  clearDocuments?: boolean;
   link?: string;
   status: 'published' | 'draft';
   content?: LocalizedPostContent;
