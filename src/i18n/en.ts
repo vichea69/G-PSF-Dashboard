@@ -589,16 +589,22 @@ export const en = {
         meetingDetails: 'Representative',
         sectorRepresentativeKh: 'Sector Representative (Khmer)',
         sectorRepresentativeEn: 'Sector Representative (English)',
-        sectorRepresentativePlaceholderKh:
-          'Enter sector representative name in Khmer',
-        sectorRepresentativePlaceholderEn:
-          'Enter sector representative name in English',
+        sectorRepresentativePlaceholderKh: 'Enter sector representative name',
+        sectorRepresentativePlaceholderEn: 'Enter sector representative name',
         governmentRepresentativeKh: 'Government Representative (Khmer)',
         governmentRepresentativeEn: 'Government Representative (English)',
         governmentRepresentativePlaceholderKh:
-          'Enter government representative name in Khmer',
+          'Enter government representative',
         governmentRepresentativePlaceholderEn:
-          'Enter government representative name in English',
+          'Enter government representative',
+        sectorDescriptionKh: 'Description',
+        sectorDescriptionEn: 'Description ',
+        sectorDescriptionPlaceholderKh: '',
+        sectorDescriptionPlaceholderEn: '',
+        governmentDescriptionKh: 'Description',
+        governmentDescriptionEn: 'Description',
+        governmentDescriptionPlaceholderKh: '',
+        governmentDescriptionPlaceholderEn: '',
         photos: 'Photos',
         photosHelp: 'Add multiple photos for this WG template section.',
         addPhoto: 'Add Photo',

@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { FileModal } from '@/components/modal/file-modal';
 import type { MediaFile } from '@/features/media/types/media-type';
 import { resolveApiAssetUrl } from '@/lib/asset-url';
@@ -60,7 +61,15 @@ export interface WgTemplateRepresentativeData {
     en: string;
     km: string;
   };
+  sectorRepresentativeDescription: {
+    en: string;
+    km: string;
+  };
   governmentRepresentative: {
+    en: string;
+    km: string;
+  };
+  governmentRepresentativeDescription: {
     en: string;
     km: string;
   };
@@ -73,7 +82,15 @@ export const createEmptyWgTemplateRepresentativeData =
       en: '',
       km: ''
     },
+    sectorRepresentativeDescription: {
+      en: '',
+      km: ''
+    },
     governmentRepresentative: {
+      en: '',
+      km: ''
+    },
+    governmentRepresentativeDescription: {
       en: '',
       km: ''
     },
@@ -96,9 +113,17 @@ const normalizeRepresentativeData = (
     en: value?.sectorRepresentative?.en ?? '',
     km: value?.sectorRepresentative?.km ?? ''
   },
+  sectorRepresentativeDescription: {
+    en: value?.sectorRepresentativeDescription?.en ?? '',
+    km: value?.sectorRepresentativeDescription?.km ?? ''
+  },
   governmentRepresentative: {
     en: value?.governmentRepresentative?.en ?? '',
     km: value?.governmentRepresentative?.km ?? ''
+  },
+  governmentRepresentativeDescription: {
+    en: value?.governmentRepresentativeDescription?.en ?? '',
+    km: value?.governmentRepresentativeDescription?.km ?? ''
   },
   photos: Array.isArray(value?.photos)
     ? value.photos.filter((item): item is string => typeof item === 'string')
@@ -311,7 +336,11 @@ function RepresentativeForm({
   const isKhmer = language === 'km';
 
   const updateRepresentative = (
-    key: 'sectorRepresentative' | 'governmentRepresentative',
+    key:
+      | 'sectorRepresentative'
+      | 'governmentRepresentative'
+      | 'sectorRepresentativeDescription'
+      | 'governmentRepresentativeDescription',
     text: string
   ) => {
     onChange({
@@ -475,6 +504,70 @@ function RepresentativeForm({
                       'post.blocks.wgTemplate.sectorRepresentativePlaceholderEn'
                     )
               }
+            />
+          </div>
+        </div>
+
+        <div className='grid gap-4 md:grid-cols-2'>
+          <div className='space-y-2'>
+            <Label htmlFor='government-representative-description'>
+              {isKhmer
+                ? t('post.blocks.wgTemplate.governmentDescriptionKh')
+                : t('post.blocks.wgTemplate.governmentDescriptionEn')}
+            </Label>
+            <Textarea
+              id='government-representative-description'
+              value={
+                isKhmer
+                  ? value.governmentRepresentativeDescription.km
+                  : value.governmentRepresentativeDescription.en
+              }
+              onChange={(event) =>
+                updateRepresentative(
+                  'governmentRepresentativeDescription',
+                  event.target.value
+                )
+              }
+              placeholder={
+                isKhmer
+                  ? t(
+                      'post.blocks.wgTemplate.governmentDescriptionPlaceholderKh'
+                    )
+                  : t(
+                      'post.blocks.wgTemplate.governmentDescriptionPlaceholderEn'
+                    )
+              }
+              rows={3}
+              className='resize-none'
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='sector-representative-description'>
+              {isKhmer
+                ? t('post.blocks.wgTemplate.sectorDescriptionKh')
+                : t('post.blocks.wgTemplate.sectorDescriptionEn')}
+            </Label>
+            <Textarea
+              id='sector-representative-description'
+              value={
+                isKhmer
+                  ? value.sectorRepresentativeDescription.km
+                  : value.sectorRepresentativeDescription.en
+              }
+              onChange={(event) =>
+                updateRepresentative(
+                  'sectorRepresentativeDescription',
+                  event.target.value
+                )
+              }
+              placeholder={
+                isKhmer
+                  ? t('post.blocks.wgTemplate.sectorDescriptionPlaceholderKh')
+                  : t('post.blocks.wgTemplate.sectorDescriptionPlaceholderEn')
+              }
+              rows={3}
+              className='resize-none'
             />
           </div>
         </div>
