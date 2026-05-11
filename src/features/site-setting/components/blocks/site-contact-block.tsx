@@ -32,7 +32,7 @@ export function SiteContactBlock({
 }: SiteContactBlockProps) {
   const { t } = useTranslate();
   const activeContact = value[activeLocale] ?? createEmptyContactLocale();
-  const phones = activeContact.phones;
+  const phones = activeContact.phones.length > 0 ? activeContact.phones : [''];
   const desks =
     activeContact.desks.length > 0
       ? activeContact.desks
@@ -53,7 +53,8 @@ export function SiteContactBlock({
   const updateActivePhones = (phones: string[]) => {
     updateActiveContact({
       ...activeContact,
-      phones
+      phones,
+      desks: activeLocale === 'km' ? [] : activeContact.desks
     });
   };
 
