@@ -1,10 +1,12 @@
 import {
   createEmptyContactDesk,
+  createEmptyContactLocale,
   createEmptySiteSetting,
   createEmptySocialLink,
   type LocalizedValue,
   type SiteContact,
   type SiteContactDesk,
+  type SiteContactLocale,
   type SiteSettingFormValues,
   type SiteSocialLink
 } from '@/features/site-setting/types/site-setting-types';
@@ -54,30 +56,52 @@ const normalizeDesk = (value: unknown): SiteContactDesk => {
   };
 };
 
+const normalizeContactLocale = (
+  value: unknown,
+  options: { includeEmptyDesk?: boolean } = {}
+): SiteContactLocale => {
+  if (!value || typeof value !== 'object') {
+    return createEmptyContactLocale(Boolean(options.includeEmptyDesk));
+  }
+
+  const record = value as Record<string, unknown>;
+  const phones = normalizeStringArray(record.phones, 1);
+  const desksRaw = Array.isArray(record.desks)
+    ? record.desks.map((desk) => normalizeDesk(desk))
+    : [];
+  const desks =
+    desksRaw.length > 0 || !options.includeEmptyDesk
+      ? desksRaw
+      : [createEmptyContactDesk()];
+
+  return { phones, desks };
+};
+
 const normalizeContact = (value: unknown): SiteContact => {
   if (!value || typeof value !== 'object') {
     return {
-      en: {
-        phones: [''],
-        desks: [createEmptyContactDesk()]
-      }
+      en: createEmptyContactLocale(true),
+      km: createEmptyContactLocale()
     };
   }
 
   const record = value as Record<string, unknown>;
+  const legacyContact =
+    Array.isArray(record.phones) || Array.isArray(record.desks);
   const enRaw =
     record.en && typeof record.en === 'object'
       ? (record.en as Record<string, unknown>)
       : {};
-
-  const phones = normalizeStringArray(enRaw.phones, 1);
-  const desksRaw = Array.isArray(enRaw.desks)
-    ? enRaw.desks.map((desk) => normalizeDesk(desk))
-    : [];
-  const desks = desksRaw.length > 0 ? desksRaw : [createEmptyContactDesk()];
+  const kmRaw =
+    record.km && typeof record.km === 'object'
+      ? (record.km as Record<string, unknown>)
+      : {};
 
   return {
-    en: { phones, desks }
+    en: normalizeContactLocale(legacyContact ? record : enRaw, {
+      includeEmptyDesk: true
+    }),
+    km: normalizeContactLocale(kmRaw)
   };
 };
 

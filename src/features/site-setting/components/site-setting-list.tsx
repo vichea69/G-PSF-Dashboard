@@ -11,6 +11,7 @@ import { SiteSocialLinksBlock } from '@/features/site-setting/components/blocks/
 import { SiteBasicInfoBlock } from '@/features/site-setting/components/blocks/site-basic-info-block';
 import {
   createEmptySiteSetting,
+  type SiteContactDesk,
   type LocaleKey,
   type SiteSettingFormValues
 } from '@/features/site-setting/types/site-setting-types';
@@ -22,6 +23,26 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion';
+
+const trimPhones = (phones: string[]) =>
+  phones.map((item) => item.trim()).filter(Boolean);
+
+const trimDesks = (desks: SiteContactDesk[]) =>
+  desks
+    .map((desk, index) => {
+      const title = desk.title.trim();
+      const emails = desk.emails.map((email) => email.trim()).filter(Boolean);
+
+      if (!title && emails.length === 0) return null;
+
+      return {
+        title: title || `Desk ${index + 1}`,
+        emails
+      };
+    })
+    .filter((desk): desk is { title: string; emails: string[] } =>
+      Boolean(desk)
+    );
 
 function trimSiteSettingPayload(values: SiteSettingFormValues) {
   return {
@@ -41,15 +62,12 @@ function trimSiteSettingPayload(values: SiteSettingFormValues) {
     },
     contact: {
       en: {
-        phones: values.contact.en.phones
-          .map((item) => item.trim())
-          .filter(Boolean),
-        desks: values.contact.en.desks
-          .map((desk) => ({
-            title: desk.title.trim(),
-            emails: desk.emails.map((email) => email.trim()).filter(Boolean)
-          }))
-          .filter((desk) => desk.title || desk.emails.length > 0)
+        phones: trimPhones(values.contact.en.phones),
+        desks: trimDesks(values.contact.en.desks)
+      },
+      km: {
+        phones: trimPhones(values.contact.km.phones),
+        desks: []
       }
     },
     openTime: {
@@ -225,6 +243,7 @@ export default function SiteSetting() {
             </AccordionTrigger>
             <AccordionContent className='pb-0'>
               <SiteContactBlock
+                activeLocale={activeLocale}
                 value={formData.contact}
                 onChange={(next) =>
                   setFormData((prev) => ({ ...prev, contact: next }))

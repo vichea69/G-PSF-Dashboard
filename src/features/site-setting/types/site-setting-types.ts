@@ -17,6 +17,7 @@ export type SiteContactLocale = {
 
 export type SiteContact = {
   en: SiteContactLocale;
+  km: SiteContactLocale;
 };
 
 export type SiteSocialLink = {
@@ -47,6 +48,13 @@ export const createEmptyContactDesk = (): SiteContactDesk => ({
   emails: ['']
 });
 
+export const createEmptyContactLocale = (
+  includeDesk = false
+): SiteContactLocale => ({
+  phones: [''],
+  desks: includeDesk ? [createEmptyContactDesk()] : []
+});
+
 export const createEmptySocialLink = (): SiteSocialLink => ({
   icon: '',
   title: '',
@@ -60,10 +68,8 @@ export const createEmptySiteSetting = (): SiteSettingFormValues => ({
   footerBackground: '',
   address: createEmptyLocalizedValue(),
   contact: {
-    en: {
-      phones: [''],
-      desks: [createEmptyContactDesk()]
-    }
+    en: createEmptyContactLocale(true),
+    km: createEmptyContactLocale()
   },
   openTime: createEmptyLocalizedValue(),
   socialLinks: [createEmptySocialLink()]
