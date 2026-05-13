@@ -585,11 +585,12 @@ export const kh = {
         heroBanner: 'Hero Banner',
         mandateScope: 'វិសាលភាព និងភារកិច្ច',
         meetingDetails: 'តំណាង',
-        sectorRepresentativeKh: 'តំណាងវិស័យ (ខ្មែរ)',
-        sectorRepresentativeEn: 'តំណាងវិស័យ (អង់គ្លេស)',
-        sectorRepresentativePlaceholderKh: 'បញ្ចូលឈ្មោះតំណាងវិស័យជាភាសាខ្មែរ',
+        sectorRepresentativeKh: 'តំណាងវិស័យឯកជន (ខ្មែរ)',
+        sectorRepresentativeEn: 'តំណាងវិស័យឯកជន (អង់គ្លេស)',
+        sectorRepresentativePlaceholderKh:
+          'បញ្ចូលឈ្មោះតំណាងវិស័យឯកជនជាភាសាខ្មែរ',
         sectorRepresentativePlaceholderEn:
-          'បញ្ចូលឈ្មោះតំណាងវិស័យជាភាសាអង់គ្លេស',
+          'បញ្ចូលឈ្មោះតំណាងវិស័យឯកជនជាភាសាអង់គ្លេស',
         governmentRepresentativeKh: 'តំណាងរដ្ឋាភិបាល (ខ្មែរ)',
         governmentRepresentativeEn: 'តំណាងរដ្ឋាភិបាល (អង់គ្លេស)',
         governmentRepresentativePlaceholderKh:
@@ -614,6 +615,7 @@ export const kh = {
         photoUrl: 'តំណរូបភាព',
         photoUrlPlaceholder: 'https://example.com/photo.jpg',
         chooseFromMedia: 'ជ្រើសពី Media',
+        clearPhoto: 'សម្អាតរូបភាព',
         noPhotoSelected: 'មិនទាន់បានជ្រើសរូបភាពទេ។ ជ្រើសពី Media ។',
         noPhotosAdded:
           'មិនទាន់បានបន្ថែមរូបភាពទេ។ ចុច បន្ថែមរូបភាព ដើម្បីចាប់ផ្តើម។',

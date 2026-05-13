@@ -587,10 +587,12 @@ export const en = {
         heroBanner: 'Hero Banner',
         mandateScope: 'Mandate & Scope',
         meetingDetails: 'Representative',
-        sectorRepresentativeKh: 'Sector Representative (Khmer)',
-        sectorRepresentativeEn: 'Sector Representative (English)',
-        sectorRepresentativePlaceholderKh: 'Enter sector representative name',
-        sectorRepresentativePlaceholderEn: 'Enter sector representative name',
+        sectorRepresentativeKh: 'Private Sector Representative (Khmer)',
+        sectorRepresentativeEn: 'Private Sector Representative (English)',
+        sectorRepresentativePlaceholderKh:
+          'Enter private sector representative name',
+        sectorRepresentativePlaceholderEn:
+          'Enter private sector representative name',
         governmentRepresentativeKh: 'Government Representative (Khmer)',
         governmentRepresentativeEn: 'Government Representative (English)',
         governmentRepresentativePlaceholderKh:
@@ -612,6 +614,7 @@ export const en = {
         photoUrl: 'Photo URL',
         photoUrlPlaceholder: 'https://example.com/photo.jpg',
         chooseFromMedia: 'Choose from Media',
+        clearPhoto: 'Clear photo',
         noPhotoSelected: 'No photo selected yet. Choose one from Media.',
         noPhotosAdded: 'No photos added yet. Click Add Photo to start.',
         selectPhoto: 'Select photo',

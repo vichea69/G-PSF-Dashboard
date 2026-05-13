@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ImageIcon, Plus, Users, X } from 'lucide-react';
+import { ImageIcon, Users, X } from 'lucide-react';
 import { useTranslate } from '@/hooks/use-translate';
 import {
   Accordion,
@@ -56,45 +56,40 @@ export interface WgTemplateData {
   representative: WgTemplateRepresentativeData;
 }
 
-export interface WgTemplateRepresentativeData {
-  sectorRepresentative: {
-    en: string;
-    km: string;
-  };
-  sectorRepresentativeDescription: {
-    en: string;
-    km: string;
-  };
-  governmentRepresentative: {
-    en: string;
-    km: string;
-  };
-  governmentRepresentativeDescription: {
-    en: string;
-    km: string;
-  };
-  photos: string[];
+type LocalizedTextValue = {
+  en: string;
+  km: string;
+};
+
+export interface WgTemplateRepresentativePersonData {
+  name: LocalizedTextValue;
+  description: LocalizedTextValue;
+  photo: string;
 }
+
+export interface WgTemplateRepresentativeData {
+  sectorRepresentative: WgTemplateRepresentativePersonData;
+  governmentRepresentative: WgTemplateRepresentativePersonData;
+}
+
+type RepresentativeKey = keyof WgTemplateRepresentativeData;
+
+const createEmptyLocalizedTextValue = (): LocalizedTextValue => ({
+  en: '',
+  km: ''
+});
+
+const createEmptyRepresentativePerson =
+  (): WgTemplateRepresentativePersonData => ({
+    name: createEmptyLocalizedTextValue(),
+    description: createEmptyLocalizedTextValue(),
+    photo: ''
+  });
 
 export const createEmptyWgTemplateRepresentativeData =
   (): WgTemplateRepresentativeData => ({
-    sectorRepresentative: {
-      en: '',
-      km: ''
-    },
-    sectorRepresentativeDescription: {
-      en: '',
-      km: ''
-    },
-    governmentRepresentative: {
-      en: '',
-      km: ''
-    },
-    governmentRepresentativeDescription: {
-      en: '',
-      km: ''
-    },
-    photos: []
+    sectorRepresentative: createEmptyRepresentativePerson(),
+    governmentRepresentative: createEmptyRepresentativePerson()
   });
 
 export const createEmptyWgTemplateData = (): WgTemplateData => ({
@@ -106,29 +101,61 @@ export const createEmptyWgTemplateData = (): WgTemplateData => ({
   representative: createEmptyWgTemplateRepresentativeData()
 });
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === 'object';
+
+const readString = (value: unknown) => (typeof value === 'string' ? value : '');
+
+const normalizeLocalizedTextValue = (value: unknown): LocalizedTextValue => {
+  if (!isRecord(value)) return createEmptyLocalizedTextValue();
+
+  return {
+    en: readString(value.en),
+    km: readString(value.km)
+  };
+};
+
+const normalizeRepresentativePerson = (
+  value: unknown,
+  legacyName: unknown,
+  legacyDescription: unknown,
+  legacyPhoto: unknown
+): WgTemplateRepresentativePersonData => {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    name: normalizeLocalizedTextValue(record.name ?? legacyName),
+    description: normalizeLocalizedTextValue(
+      record.description ?? legacyDescription
+    ),
+    photo: readString(record.photo ?? legacyPhoto)
+  };
+};
+
 const normalizeRepresentativeData = (
-  value?: WgTemplateRepresentativeData
-): WgTemplateRepresentativeData => ({
-  sectorRepresentative: {
-    en: value?.sectorRepresentative?.en ?? '',
-    km: value?.sectorRepresentative?.km ?? ''
-  },
-  sectorRepresentativeDescription: {
-    en: value?.sectorRepresentativeDescription?.en ?? '',
-    km: value?.sectorRepresentativeDescription?.km ?? ''
-  },
-  governmentRepresentative: {
-    en: value?.governmentRepresentative?.en ?? '',
-    km: value?.governmentRepresentative?.km ?? ''
-  },
-  governmentRepresentativeDescription: {
-    en: value?.governmentRepresentativeDescription?.en ?? '',
-    km: value?.governmentRepresentativeDescription?.km ?? ''
-  },
-  photos: Array.isArray(value?.photos)
+  value?: unknown
+): WgTemplateRepresentativeData => {
+  if (!isRecord(value)) return createEmptyWgTemplateRepresentativeData();
+
+  const legacyPhotos = Array.isArray(value.photos)
     ? value.photos.filter((item): item is string => typeof item === 'string')
-    : []
-});
+    : [];
+
+  return {
+    governmentRepresentative: normalizeRepresentativePerson(
+      value.governmentRepresentative,
+      value.governmentRepresentative,
+      value.governmentRepresentativeDescription,
+      legacyPhotos[0] ?? ''
+    ),
+    sectorRepresentative: normalizeRepresentativePerson(
+      value.sectorRepresentative,
+      value.sectorRepresentative,
+      value.sectorRepresentativeDescription,
+      legacyPhotos[1] ?? legacyPhotos[0] ?? ''
+    )
+  };
+};
 
 const normalizeWgTemplateData = (value?: WgTemplateData): WgTemplateData => {
   const fallback = createEmptyWgTemplateData();
@@ -328,103 +355,72 @@ function RepresentativeForm({
   const { t } = useTranslate();
   const qc = useQueryClient();
   const [isPhotoPickerOpen, setIsPhotoPickerOpen] = useState(false);
-  const [photoPickerIndex, setPhotoPickerIndex] = useState<number | null>(null);
-  const [photoPickerMode, setPhotoPickerMode] = useState<'append' | 'replace'>(
-    'append'
-  );
+  const [photoPickerTarget, setPhotoPickerTarget] =
+    useState<RepresentativeKey | null>(null);
   const [uploadingFromDevice, setUploadingFromDevice] = useState(false);
   const isKhmer = language === 'km';
 
-  const updateRepresentative = (
-    key:
-      | 'sectorRepresentative'
-      | 'governmentRepresentative'
-      | 'sectorRepresentativeDescription'
-      | 'governmentRepresentativeDescription',
+  const updateRepresentativeText = (
+    key: RepresentativeKey,
+    field: 'name' | 'description',
     text: string
   ) => {
     onChange({
       ...value,
       [key]: {
         ...value[key],
-        [language]: text
+        [field]: {
+          ...value[key][field],
+          [language]: text
+        }
       }
     });
   };
 
-  const appendPhotos = (photos: string[]) => {
-    if (!photos.length) return;
+  const updateRepresentativePhoto = (key: RepresentativeKey, photo: string) => {
     onChange({
       ...value,
-      photos: [...value.photos, ...photos]
+      [key]: {
+        ...value[key],
+        photo
+      }
     });
   };
 
-  const updatePhoto = (index: number, nextPhoto: string) => {
-    onChange({
-      ...value,
-      photos: value.photos.map((photo, photoIndex) =>
-        photoIndex === index ? nextPhoto : photo
-      )
-    });
-  };
-
-  const removePhoto = (index: number) => {
-    onChange({
-      ...value,
-      photos: value.photos.filter((_, photoIndex) => photoIndex !== index)
-    });
+  const openPhotoPicker = (key: RepresentativeKey) => {
+    setPhotoPickerTarget(key);
+    setIsPhotoPickerOpen(true);
   };
 
   const handleSelectPhoto = (file: MediaFile) => {
+    if (!photoPickerTarget) return;
+
     const selectedUrl = (file.url ?? '').trim();
     if (!selectedUrl) return;
 
-    if (photoPickerMode === 'replace' && photoPickerIndex !== null) {
-      updatePhoto(photoPickerIndex, selectedUrl);
-      return;
-    }
-
-    appendPhotos([selectedUrl]);
-  };
-
-  const handleSelectMultiplePhotos = (files: MediaFile[]) => {
-    const selectedUrls = files
-      .map((file) => (file.url ?? '').trim())
-      .filter(Boolean);
-
-    appendPhotos(selectedUrls);
+    updateRepresentativePhoto(photoPickerTarget, selectedUrl);
   };
 
   const handleUploadPhoto = async (files: File[], folderId?: string | null) => {
-    if (!files.length) return;
+    const firstFile = files[0];
+    if (!firstFile || !photoPickerTarget) return;
 
     setUploadingFromDevice(true);
     try {
       const normalizedFolderId = String(folderId ?? '').trim();
-      const uploadedUrls = (
-        await Promise.all(
-          files.map(async (file) => {
-            const result = await handleImageUpload(
-              file,
-              undefined,
-              undefined,
-              normalizedFolderId || undefined
-            );
-            return (result?.url ?? '').trim();
-          })
-        )
-      ).filter(Boolean);
+      const result = await handleImageUpload(
+        firstFile,
+        undefined,
+        undefined,
+        normalizedFolderId || undefined
+      );
+      const uploadedUrl = (result?.url ?? '').trim();
 
-      if (!uploadedUrls.length) {
+      if (!uploadedUrl) {
         throw new Error(t('post.blocks.wgTemplate.photoUploadMissingUrl'));
       }
 
-      if (photoPickerMode === 'replace' && photoPickerIndex !== null) {
-        updatePhoto(photoPickerIndex, uploadedUrls[0]);
-      } else {
-        appendPhotos(uploadedUrls);
-      }
+      updateRepresentativePhoto(photoPickerTarget, uploadedUrl);
 
       await qc.invalidateQueries({ queryKey: ['media'], exact: false });
       toast.success(t('post.blocks.wgTemplate.photoUploaded'));
@@ -437,6 +433,45 @@ function RepresentativeForm({
     }
   };
 
+  const representatives: Array<{
+    key: RepresentativeKey;
+    title: string;
+    namePlaceholder: string;
+    descriptionLabel: string;
+    descriptionPlaceholder: string;
+  }> = [
+    {
+      key: 'governmentRepresentative',
+      title: isKhmer
+        ? t('post.blocks.wgTemplate.governmentRepresentativeKh')
+        : t('post.blocks.wgTemplate.governmentRepresentativeEn'),
+      namePlaceholder: isKhmer
+        ? t('post.blocks.wgTemplate.governmentRepresentativePlaceholderKh')
+        : t('post.blocks.wgTemplate.governmentRepresentativePlaceholderEn'),
+      descriptionLabel: isKhmer
+        ? t('post.blocks.wgTemplate.governmentDescriptionKh')
+        : t('post.blocks.wgTemplate.governmentDescriptionEn'),
+      descriptionPlaceholder: isKhmer
+        ? t('post.blocks.wgTemplate.governmentDescriptionPlaceholderKh')
+        : t('post.blocks.wgTemplate.governmentDescriptionPlaceholderEn')
+    },
+    {
+      key: 'sectorRepresentative',
+      title: isKhmer
+        ? t('post.blocks.wgTemplate.sectorRepresentativeKh')
+        : t('post.blocks.wgTemplate.sectorRepresentativeEn'),
+      namePlaceholder: isKhmer
+        ? t('post.blocks.wgTemplate.sectorRepresentativePlaceholderKh')
+        : t('post.blocks.wgTemplate.sectorRepresentativePlaceholderEn'),
+      descriptionLabel: isKhmer
+        ? t('post.blocks.wgTemplate.sectorDescriptionKh')
+        : t('post.blocks.wgTemplate.sectorDescriptionEn'),
+      descriptionPlaceholder: isKhmer
+        ? t('post.blocks.wgTemplate.sectorDescriptionPlaceholderKh')
+        : t('post.blocks.wgTemplate.sectorDescriptionPlaceholderEn')
+    }
+  ];
+
   return (
     <Card>
       <CardHeader className='border-b'>
@@ -447,220 +482,97 @@ function RepresentativeForm({
       </CardHeader>
 
       <CardContent className='space-y-5 pt-6'>
-        <div className='grid gap-4 md:grid-cols-2'>
-          <div className='space-y-2'>
-            <Label htmlFor='government-representative'>
-              {isKhmer
-                ? t('post.blocks.wgTemplate.governmentRepresentativeKh')
-                : t('post.blocks.wgTemplate.governmentRepresentativeEn')}
-            </Label>
-            <Input
-              id='government-representative'
-              value={
-                isKhmer
-                  ? value.governmentRepresentative.km
-                  : value.governmentRepresentative.en
-              }
-              onChange={(event) =>
-                updateRepresentative(
-                  'governmentRepresentative',
-                  event.target.value
-                )
-              }
-              placeholder={
-                isKhmer
-                  ? t(
-                      'post.blocks.wgTemplate.governmentRepresentativePlaceholderKh'
-                    )
-                  : t(
-                      'post.blocks.wgTemplate.governmentRepresentativePlaceholderEn'
-                    )
-              }
-            />
-          </div>
+        <div className='grid gap-4'>
+          {representatives.map((item) => {
+            const representative = value[item.key];
+            const previewUrl = resolveApiAssetUrl(representative.photo);
 
-          <div className='space-y-2'>
-            <Label htmlFor='sector-representative'>
-              {isKhmer
-                ? t('post.blocks.wgTemplate.sectorRepresentativeKh')
-                : t('post.blocks.wgTemplate.sectorRepresentativeEn')}
-            </Label>
-            <Input
-              id='sector-representative'
-              value={
-                isKhmer
-                  ? value.sectorRepresentative.km
-                  : value.sectorRepresentative.en
-              }
-              onChange={(event) =>
-                updateRepresentative('sectorRepresentative', event.target.value)
-              }
-              placeholder={
-                isKhmer
-                  ? t(
-                      'post.blocks.wgTemplate.sectorRepresentativePlaceholderKh'
-                    )
-                  : t(
-                      'post.blocks.wgTemplate.sectorRepresentativePlaceholderEn'
-                    )
-              }
-            />
-          </div>
-        </div>
+            return (
+              <div key={item.key} className='space-y-4 rounded-xl border p-4'>
+                <div className='space-y-2'>
+                  <Label htmlFor={`${item.key}-name`}>{item.title}</Label>
+                  <Input
+                    id={`${item.key}-name`}
+                    value={representative.name[language]}
+                    onChange={(event) =>
+                      updateRepresentativeText(
+                        item.key,
+                        'name',
+                        event.target.value
+                      )
+                    }
+                    placeholder={item.namePlaceholder}
+                  />
+                </div>
 
-        <div className='grid gap-4 md:grid-cols-2'>
-          <div className='space-y-2'>
-            <Label htmlFor='government-representative-description'>
-              {isKhmer
-                ? t('post.blocks.wgTemplate.governmentDescriptionKh')
-                : t('post.blocks.wgTemplate.governmentDescriptionEn')}
-            </Label>
-            <Textarea
-              id='government-representative-description'
-              value={
-                isKhmer
-                  ? value.governmentRepresentativeDescription.km
-                  : value.governmentRepresentativeDescription.en
-              }
-              onChange={(event) =>
-                updateRepresentative(
-                  'governmentRepresentativeDescription',
-                  event.target.value
-                )
-              }
-              placeholder={
-                isKhmer
-                  ? t(
-                      'post.blocks.wgTemplate.governmentDescriptionPlaceholderKh'
-                    )
-                  : t(
-                      'post.blocks.wgTemplate.governmentDescriptionPlaceholderEn'
-                    )
-              }
-              rows={3}
-              className='resize-none'
-            />
-          </div>
+                <div className='space-y-2'>
+                  <Label htmlFor={`${item.key}-description`}>
+                    {item.descriptionLabel}
+                  </Label>
+                  <Textarea
+                    id={`${item.key}-description`}
+                    value={representative.description[language]}
+                    onChange={(event) =>
+                      updateRepresentativeText(
+                        item.key,
+                        'description',
+                        event.target.value
+                      )
+                    }
+                    placeholder={item.descriptionPlaceholder}
+                    rows={4}
+                    className='resize-none'
+                  />
+                </div>
 
-          <div className='space-y-2'>
-            <Label htmlFor='sector-representative-description'>
-              {isKhmer
-                ? t('post.blocks.wgTemplate.sectorDescriptionKh')
-                : t('post.blocks.wgTemplate.sectorDescriptionEn')}
-            </Label>
-            <Textarea
-              id='sector-representative-description'
-              value={
-                isKhmer
-                  ? value.sectorRepresentativeDescription.km
-                  : value.sectorRepresentativeDescription.en
-              }
-              onChange={(event) =>
-                updateRepresentative(
-                  'sectorRepresentativeDescription',
-                  event.target.value
-                )
-              }
-              placeholder={
-                isKhmer
-                  ? t('post.blocks.wgTemplate.sectorDescriptionPlaceholderKh')
-                  : t('post.blocks.wgTemplate.sectorDescriptionPlaceholderEn')
-              }
-              rows={3}
-              className='resize-none'
-            />
-          </div>
-        </div>
-
-        <div className='space-y-3'>
-          <div className='flex items-center justify-between gap-3'>
-            <div className='space-y-1'>
-              <Label>{t('post.blocks.wgTemplate.photos')}</Label>
-              <p className='text-muted-foreground text-sm'>
-                {/* {t('post.blocks.wgTemplate.photosHelp')} */}
-              </p>
-            </div>
-            <Button
-              type='button'
-              size='sm'
-              onClick={() => {
-                setPhotoPickerMode('append');
-                setPhotoPickerIndex(null);
-                setIsPhotoPickerOpen(true);
-              }}
-            >
-              <Plus className='mr-1 size-4' />
-              {t('post.blocks.wgTemplate.addPhoto')}
-            </Button>
-          </div>
-
-          {value.photos.length ? (
-            <div className='space-y-4'>
-              {value.photos.map((photo, index) => {
-                const previewUrl = resolveApiAssetUrl(photo);
-
-                return (
-                  <div
-                    key={`${photo || 'photo'}-${index}`}
-                    className='space-y-3 rounded-xl border p-4'
-                  >
-                    <div className='flex items-start justify-between gap-3'>
-                      <div className='min-w-0'>
-                        <p className='text-sm font-medium'>
-                          {t('post.blocks.wgTemplate.photo')} {index + 1}
-                        </p>
-                      </div>
+                <div className='space-y-3'>
+                  <div className='flex items-center justify-between gap-3'>
+                    <Label>
+                      {item.title} {t('post.blocks.wgTemplate.photo')}
+                    </Label>
+                    {representative.photo ? (
                       <Button
                         type='button'
                         variant='ghost'
-                        size='icon'
-                        className='text-destructive hover:bg-destructive/10 hover:text-destructive h-8 w-8'
-                        onClick={() => removePhoto(index)}
-                      >
-                        <X className='size-4' />
-                      </Button>
-                    </div>
-
-                    {previewUrl ? (
-                      <div className='relative aspect-[16/9] overflow-hidden rounded-lg border'>
-                        <Image
-                          src={previewUrl}
-                          alt={`${t('post.blocks.wgTemplate.photo')} ${index + 1}`}
-                          fill
-                          unoptimized
-                          className='object-cover'
-                        />
-                      </div>
-                    ) : (
-                      <div className='text-muted-foreground flex aspect-[16/9] items-center justify-center rounded-lg border border-dashed text-sm'>
-                        <ImageIcon className='mr-2 size-4' />
-                        {t('post.blocks.wgTemplate.noPhotoSelected')}
-                      </div>
-                    )}
-
-                    <div className='flex flex-wrap gap-2'>
-                      <Button
-                        type='button'
-                        variant='outline'
                         size='sm'
-                        onClick={() => {
-                          setPhotoPickerMode('replace');
-                          setPhotoPickerIndex(index);
-                          setIsPhotoPickerOpen(true);
-                        }}
+                        className='text-destructive hover:bg-destructive/10 hover:text-destructive'
+                        onClick={() => updateRepresentativePhoto(item.key, '')}
                       >
-                        {t('post.blocks.wgTemplate.chooseFromMedia')}
+                        <X className='mr-1 size-4' />
+                        {t('post.blocks.wgTemplate.clearPhoto')}
                       </Button>
-                    </div>
+                    ) : null}
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className='text-muted-foreground rounded-xl border border-dashed px-4 py-8 text-center text-sm'>
-              {t('post.blocks.wgTemplate.noPhotosAdded')}
-            </div>
-          )}
+
+                  {previewUrl ? (
+                    <div className='bg-muted/30 relative h-40 w-full max-w-sm overflow-hidden rounded-lg border'>
+                      <Image
+                        src={previewUrl}
+                        alt={`${item.title} ${t('post.blocks.wgTemplate.photo')}`}
+                        fill
+                        unoptimized
+                        className='object-contain'
+                      />
+                    </div>
+                  ) : (
+                    <div className='text-muted-foreground flex h-40 w-full max-w-sm items-center justify-center rounded-lg border border-dashed text-sm'>
+                      <ImageIcon className='mr-2 size-4' />
+                      {t('post.blocks.wgTemplate.noPhotoSelected')}
+                    </div>
+                  )}
+
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={() => openPhotoPicker(item.key)}
+                  >
+                    {t('post.blocks.wgTemplate.chooseFromMedia')}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
 
@@ -668,18 +580,16 @@ function RepresentativeForm({
         isOpen={isPhotoPickerOpen}
         onClose={() => {
           setIsPhotoPickerOpen(false);
-          setPhotoPickerIndex(null);
-          setPhotoPickerMode('append');
+          setPhotoPickerTarget(null);
         }}
         title={t('post.blocks.wgTemplate.selectPhoto')}
         description={t('post.blocks.wgTemplate.selectPhotoDescription')}
         onSelect={handleSelectPhoto}
-        onSelectMultiple={handleSelectMultiplePhotos}
         onUploadFromDevice={handleUploadPhoto}
         loading={uploadingFromDevice}
         types={['image']}
         accept='image/*'
-        multiple={photoPickerMode === 'append'}
+        multiple={false}
         allowUploadFromDevice
       />
     </Card>
