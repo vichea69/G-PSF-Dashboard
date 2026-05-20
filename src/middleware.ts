@@ -182,6 +182,13 @@ function applyRefreshedCookies(
   return response;
 }
 
+function clearAuthCookies(response: NextResponse): NextResponse {
+  for (const name of ['access_token', 'refresh_token', 'refreshToken']) {
+    response.cookies.set({ name, value: '', path: '/', maxAge: 0 });
+  }
+  return response;
+}
+
 export async function middleware(req: NextRequest) {
   let accessToken = req.cookies.get('access_token')?.value;
   const refreshToken =
@@ -189,26 +196,26 @@ export async function middleware(req: NextRequest) {
     req.cookies.get('refreshToken')?.value;
 
   let refreshedTokens: RefreshedTokens | null = null;
+  let accessTokenExpired = !!accessToken && isAccessTokenExpired(accessToken);
 
-  if (refreshToken && (!accessToken || isAccessTokenExpired(accessToken))) {
+  if (refreshToken && (!accessToken || accessTokenExpired)) {
     const cookieHeader = req.headers.get('cookie') ?? '';
     refreshedTokens = await refreshAccessToken(refreshToken, cookieHeader);
     if (refreshedTokens?.accessToken) {
       accessToken = refreshedTokens.accessToken;
+      accessTokenExpired = false;
     }
   }
 
   const path = req.nextUrl.pathname;
+  const hasValidAccess = !!accessToken && !accessTokenExpired;
 
-  if (!accessToken && path.startsWith('/admin')) {
+  if (!hasValidAccess && path.startsWith('/admin')) {
     const loginUrl = new URL('/auth/sign-in', req.url);
-    return applyRefreshedCookies(
-      NextResponse.redirect(loginUrl),
-      refreshedTokens
-    );
+    return clearAuthCookies(NextResponse.redirect(loginUrl));
   }
 
-  if (accessToken && path.startsWith('/auth/sign-in')) {
+  if (hasValidAccess && path.startsWith('/auth/sign-in')) {
     const dashboardUrl = new URL('/admin/overview', req.url);
     return applyRefreshedCookies(
       NextResponse.redirect(dashboardUrl),
