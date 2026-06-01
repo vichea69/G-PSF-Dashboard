@@ -119,6 +119,11 @@ export function usePostFormState({
     sectionId:
       editingPost?.section?.id ?? editingPost?.sectionId ?? initialSectionId,
     pageId: editingPost?.page?.id ?? editingPost?.pageId ?? initialPageId,
+    // Now persisted on the backend — pre-fill from the saved post first.
+    // Fall back to undefined so the reverse-lookup (pageId → WG) can still run
+    // for older posts that don't have workingGroupId yet.
+    workingGroupId:
+      editingPost?.workingGroup?.id ?? editingPost?.workingGroupId ?? undefined,
     newImages: [],
     existingImageIds: editingImages
       .map((image) => image.id)
@@ -182,6 +187,12 @@ export function usePostFormState({
       sectionId:
         editingPost?.section?.id ?? editingPost?.sectionId ?? prev.sectionId,
       pageId: editingPost?.page?.id ?? editingPost?.pageId ?? prev.pageId,
+      // Refresh from the saved post after a Save round-trip so the form
+      // reflects whatever was just persisted (including server-side normalization).
+      workingGroupId:
+        editingPost?.workingGroup?.id ??
+        editingPost?.workingGroupId ??
+        prev.workingGroupId,
       newImages: []
     }));
   }, [editingPost]);

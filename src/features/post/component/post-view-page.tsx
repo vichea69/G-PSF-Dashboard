@@ -111,9 +111,17 @@ export default function PostViewPage({
           const n = Number(val);
           return Number.isFinite(n) ? n : null;
         };
+        // numOrNull keeps null when the user explicitly cleared the field so we can
+        // forward "clear this" intent to the backend (which interprets '' as null).
         const categoryId = numOrNull(formData.categoryId);
         const sectionId = numOrNull(formData.sectionId);
         const pageId = numOrNull(formData.pageId);
+        const workingGroupId = numOrNull(formData.workingGroupId);
+        // On edit, always send these fields. Empty string tells the backend to clear.
+        // On create, only send when set (no point sending empty values for fields that
+        // don't exist yet).
+        const formDataValueOrEmpty = (value: number | null): string =>
+          value === null ? '' : String(value);
         const publishDate = formData.publishDate?.trim() || '';
         const expiredDate = formData.expiredDate?.trim() || '';
         const isFeatured = Boolean(formData.isFeatured);
@@ -157,9 +165,10 @@ export default function PostViewPage({
               ? publishDate
               : undefined,
           expiredAt: expiredDate || undefined,
-          categoryId: categoryId ?? undefined,
-          sectionId: sectionId ?? undefined,
-          pageId: pageId ?? undefined,
+          // null preserves the "user cleared this" intent so it survives all the way to FormData.
+          categoryId,
+          sectionId,
+          pageId,
           coverImage,
           document,
           documents: hasDocuments
@@ -195,14 +204,18 @@ export default function PostViewPage({
         if ((payload as any).expiredAt) {
           fd.append('expiredAt', (payload as any).expiredAt);
         }
-        if (payload.categoryId !== undefined) {
-          fd.append('categoryId', String(payload.categoryId));
+        // On edit: always append (empty string = clear). On create: skip when null.
+        if (isEditing || categoryId !== null) {
+          fd.append('categoryId', formDataValueOrEmpty(categoryId));
         }
-        if (payload.sectionId !== undefined) {
-          fd.append('sectionId', String(payload.sectionId));
+        if (isEditing || sectionId !== null) {
+          fd.append('sectionId', formDataValueOrEmpty(sectionId));
         }
-        if (payload.pageId !== undefined) {
-          fd.append('pageId', String(payload.pageId));
+        if (isEditing || pageId !== null) {
+          fd.append('pageId', formDataValueOrEmpty(pageId));
+        }
+        if (isEditing || workingGroupId !== null) {
+          fd.append('workingGroupId', formDataValueOrEmpty(workingGroupId));
         }
         if (isEditing || payload.coverImage) {
           fd.append('coverImage', payload.coverImage ?? '');

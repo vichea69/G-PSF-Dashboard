@@ -1,12 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useCategories } from '@/hooks/use-category';
 import { useLanguage } from '@/context/language-context';
 import { getLocalizedText } from '@/lib/helpers';
 import { extractPageRows, usePage } from '@/hooks/use-page';
 import type { PostContent } from '@/server/action/post/types';
 import { useSection } from '@/features/section/hook/use-section';
+import {
+  useWorkingGroups,
+  useWorkingGroupPostTargets
+} from '@/hooks/use-working-group';
 import {
   createEmptyBannerData,
   type HeroBannerData
@@ -133,6 +137,74 @@ export default function PostForm({
       ),
     [sections, formData.sectionId]
   );
+
+  const { data: workingGroupsData } = useWorkingGroups();
+  const workingGroups = useMemo(() => {
+    if (!Array.isArray(workingGroupsData)) return [];
+    return workingGroupsData.map((wg) => ({
+      ...wg,
+      title:
+        getLocalizedText(wg?.title as any, language) || String(wg?.id ?? '')
+    }));
+  }, [workingGroupsData, language]);
+
+  // Reverse-lookup: when editing a post whose pageId matches a WG's pageId,
+  // pre-select that WG in the dropdown on initial load.
+  // Only undefined means "never resolved" — empty string means the user explicitly
+  // cleared it via the Clear button, so we MUST NOT re-set it from pageId.
+  useEffect(() => {
+    if (formData.workingGroupId !== undefined) {
+      return;
+    }
+    if (!Array.isArray(workingGroupsData) || workingGroupsData.length === 0) {
+      return;
+    }
+    const pageIdValue = formData.pageId;
+    if (
+      pageIdValue === undefined ||
+      pageIdValue === null ||
+      pageIdValue === ''
+    ) {
+      return;
+    }
+    const match = workingGroupsData.find(
+      (wg) => String(wg.pageId ?? '') === String(pageIdValue)
+    );
+    if (match) {
+      setFormData((prev) => ({ ...prev, workingGroupId: match.id }));
+    }
+  }, [
+    workingGroupsData,
+    formData.pageId,
+    formData.workingGroupId,
+    setFormData
+  ]);
+
+  const { data: postTargets, isFetching: postTargetsLoading } =
+    useWorkingGroupPostTargets(formData.workingGroupId);
+
+  const allowedSectionIds = useMemo(
+    () => postTargets?.sections.map((s) => s.id) ?? [],
+    [postTargets]
+  );
+
+  const allowedCategoryIds = useMemo(() => {
+    if (!postTargets) return [];
+    const targetSection = postTargets.sections.find(
+      (section) => String(section.id) === String(formData.sectionId ?? '')
+    );
+    return targetSection?.allowedCategoryIds ?? [];
+  }, [postTargets, formData.sectionId]);
+
+  const hasWorkingGroup =
+    formData.workingGroupId !== undefined &&
+    formData.workingGroupId !== null &&
+    String(formData.workingGroupId).trim() !== '';
+  const hasNoPostListSection =
+    hasWorkingGroup &&
+    !postTargetsLoading &&
+    Array.isArray(postTargets?.sections) &&
+    postTargets!.sections.length === 0;
 
   const isHeroBannerSection = selectedSection?.blockType === 'hero_banner';
   const isAddressSection = selectedSection?.blockType === 'address';
@@ -512,9 +584,15 @@ export default function PostForm({
             categoryId={formData.categoryId}
             sectionId={formData.sectionId}
             pageId={formData.pageId}
+            workingGroupId={formData.workingGroupId}
             categories={categories as Array<Record<string, unknown>>}
             sections={sections as Array<Record<string, unknown>>}
             pages={pages as Array<Record<string, unknown>>}
+            workingGroups={workingGroups as Array<Record<string, unknown>>}
+            allowedSectionIds={allowedSectionIds}
+            allowedCategoryIds={allowedCategoryIds}
+            postTargetsLoading={postTargetsLoading}
+            hasNoPostListSection={hasNoPostListSection}
             selectedSection={selectedSection as Record<string, unknown>}
             isEditing={Boolean(editingPost)}
             onStatusChange={(value) =>
@@ -539,6 +617,28 @@ export default function PostForm({
                 sectionId: ''
               }))
             }
+            onWorkingGroupChange={(value) => {
+              const trimmed = value?.trim() ?? '';
+              if (!trimmed) {
+                // Clearing the WG releases the auto-fill but keeps existing
+                // page/section/category so authors don't lose their selections.
+                setFormData((prev) => ({ ...prev, workingGroupId: '' }));
+                return;
+              }
+              // Find the WG's pageId so the Page field auto-fills.
+              // The post-targets query will follow up with allowed sections/categories.
+              const next = Array.isArray(workingGroupsData)
+                ? workingGroupsData.find((wg) => String(wg.id) === trimmed)
+                : undefined;
+              setFormData((prev) => ({
+                ...prev,
+                workingGroupId: trimmed,
+                pageId: next?.pageId ?? prev.pageId,
+                // Reset section/category so the author re-picks within the new WG's allowed set.
+                sectionId: '',
+                categoryId: ''
+              }));
+            }}
             expiredDate={formData.expiredDate}
             onExpiredDateChange={(value) =>
               setFormData((prev) => ({ ...prev, expiredDate: value }))

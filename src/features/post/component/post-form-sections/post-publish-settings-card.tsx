@@ -30,9 +30,21 @@ type PostPublishSettingsCardProps = {
   categoryId?: number | string;
   sectionId?: number | string;
   pageId?: number | string;
+  workingGroupId?: number | string;
   categories: Array<Record<string, unknown>>;
   sections: Array<Record<string, unknown>>;
   pages: Array<Record<string, unknown>>;
+  workingGroups?: Array<Record<string, unknown>>;
+  // Allowed section ids for the chosen working group (post_list blocks only).
+  // When provided, the Section dropdown narrows to these ids.
+  allowedSectionIds?: number[];
+  // Allowed category ids for the chosen section (from section.settings.categoryIds).
+  // When provided, the Category dropdown narrows to these ids.
+  allowedCategoryIds?: number[];
+  // True while the post-targets query is loading after WG selection.
+  postTargetsLoading?: boolean;
+  // True if a working group is selected but its page has no post_list section.
+  hasNoPostListSection?: boolean;
   selectedSection?: Record<string, unknown>;
   isEditing: boolean;
   onStatusChange: (value: 'draft' | 'published') => void;
@@ -42,6 +54,7 @@ type PostPublishSettingsCardProps = {
   onCategoryChange: (value: string) => void;
   onSectionChange: (value: string) => void;
   onPageChange: (value: string) => void;
+  onWorkingGroupChange?: (value: string) => void;
   onCancel: () => void;
   onSubmit: () => void;
 };
@@ -188,9 +201,15 @@ export function PostPublishSettingsCard({
   categoryId,
   sectionId,
   pageId,
+  workingGroupId,
   categories,
   sections,
   pages,
+  workingGroups,
+  allowedSectionIds,
+  allowedCategoryIds,
+  postTargetsLoading,
+  hasNoPostListSection,
   selectedSection,
   isEditing,
   onStatusChange,
@@ -200,6 +219,7 @@ export function PostPublishSettingsCard({
   onCategoryChange,
   onSectionChange,
   onPageChange,
+  onWorkingGroupChange,
   onCancel,
   onSubmit
 }: PostPublishSettingsCardProps) {
@@ -211,6 +231,34 @@ export function PostPublishSettingsCard({
     typeof selectedSection?.blockType === 'string'
       ? selectedSection.blockType
       : '';
+
+  const hasWorkingGroup =
+    workingGroupId !== undefined &&
+    workingGroupId !== null &&
+    String(workingGroupId).trim() !== '';
+
+  // When a working group is selected, narrow Section options to its post_list sections only.
+  const visibleSections = useMemo(() => {
+    if (!hasWorkingGroup || !allowedSectionIds) return sections;
+    const allowed = new Set(allowedSectionIds.map((id) => String(id)));
+    return sections.filter((section) => allowed.has(String(section.id)));
+  }, [sections, hasWorkingGroup, allowedSectionIds]);
+
+  // When a working group is selected AND its chosen section has category constraints,
+  // narrow the Category dropdown to those allowed ids. An empty list means "no restriction".
+  const visibleCategories = useMemo(() => {
+    if (
+      !hasWorkingGroup ||
+      !allowedCategoryIds ||
+      allowedCategoryIds.length === 0
+    ) {
+      return categories;
+    }
+    const allowed = new Set(allowedCategoryIds.map((id) => String(id)));
+    return categories.filter((category) => allowed.has(String(category.id)));
+  }, [categories, hasWorkingGroup, allowedCategoryIds]);
+
+  const disablePageDropdown = hasWorkingGroup;
 
   return (
     <Card>
@@ -277,10 +325,55 @@ export function PostPublishSettingsCard({
           </Label>
         </div>
 
+        {workingGroups && onWorkingGroupChange ? (
+          <div>
+            <div className='flex items-center justify-between gap-2'>
+              <Label htmlFor='working-group'>
+                {t('post.publishSettings.workingGroup')}
+              </Label>
+              {hasWorkingGroup ? (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='sm'
+                  className='h-7 px-2 text-xs'
+                  onClick={() => onWorkingGroupChange('')}
+                >
+                  {t('post.publishSettings.clearSelection')}
+                </Button>
+              ) : null}
+            </div>
+            <Select
+              value={(workingGroupId ?? '').toString()}
+              onValueChange={onWorkingGroupChange}
+            >
+              <SelectTrigger className='mt-1'>
+                <SelectValue
+                  placeholder={t(
+                    'post.publishSettings.workingGroupPlaceholder'
+                  )}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {workingGroups.map((wg) => (
+                  <SelectItem key={String(wg.id)} value={String(wg.id)}>
+                    {String(wg.title ?? wg.slug ?? wg.id)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* The post is now associated with the Working Group through
+                Post.workingGroupId — public pages filter by that directly,
+                so we no longer need a post_list section to make the post
+                appear on the WG page. The old "no News/Updates section"
+                error was stale and has been removed. */}
+          </div>
+        ) : null}
+
         <div>
           <div className='flex items-center justify-between gap-2'>
             <Label htmlFor='page'>{t('post.publishSettings.page')}</Label>
-            {pageId ? (
+            {pageId && !disablePageDropdown ? (
               <Button
                 type='button'
                 variant='ghost'
@@ -295,6 +388,7 @@ export function PostPublishSettingsCard({
           <Select
             value={(pageId ?? '').toString()}
             onValueChange={onPageChange}
+            disabled={disablePageDropdown}
           >
             <SelectTrigger className='mt-1'>
               <SelectValue
@@ -336,52 +430,13 @@ export function PostPublishSettingsCard({
               />
             </SelectTrigger>
             <SelectContent>
-              {sections.map((section) => (
+              {visibleSections.map((section) => (
                 <SelectItem key={String(section.id)} value={String(section.id)}>
                   {String(section.title ?? section.blockType ?? section.id)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-
-          {selectedSection ? (
-            <div className='border-muted bg-muted/30 mt-3 space-y-1 rounded-md border p-3 text-xs'>
-              <p className='font-medium'>
-                {t('post.publishSettings.blockType')}:{' '}
-                {selectedBlockType || t('post.publishSettings.unknown')}
-              </p>
-
-              {selectedBlockType === 'hero_banner' && (
-                <p className='text-muted-foreground'>
-                  {t('post.publishSettings.heroBannerHelp')}
-                </p>
-              )}
-
-              {selectedBlockType === 'stats' && (
-                <p className='text-muted-foreground'>
-                  {t('post.publishSettings.statsHelp')}
-                </p>
-              )}
-
-              {selectedBlockType === 'post_list' && (
-                <div className='text-muted-foreground space-y-2'>
-                  <p>{t('post.publishSettings.postListHelp')}</p>
-                  <p className='text-[11px]'>
-                    {t('post.publishSettings.postListHelpSecondary')}
-                  </p>
-                </div>
-              )}
-
-              {selectedBlockType &&
-                !['hero_banner', 'post_list', 'stats'].includes(
-                  selectedBlockType
-                ) && (
-                  <p className='text-muted-foreground'>
-                    {t('post.publishSettings.customLayoutHelp')}
-                  </p>
-                )}
-            </div>
-          ) : null}
         </div>
 
         <div>
@@ -411,7 +466,7 @@ export function PostPublishSettingsCard({
               />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
+              {visibleCategories.map((category) => (
                 <SelectItem
                   key={String(category.id)}
                   value={String(category.id)}
@@ -432,7 +487,7 @@ export function PostPublishSettingsCard({
           <Button variant='outline' onClick={onCancel}>
             {t('post.publishSettings.back')}
           </Button>
-          <Button onClick={onSubmit}>
+          <Button onClick={onSubmit} disabled={postTargetsLoading}>
             <Save className='mr-2 h-4 w-4' />
             {isEditing
               ? t('post.publishSettings.updatePost')

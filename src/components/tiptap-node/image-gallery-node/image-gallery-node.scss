@@ -1,0 +1,135 @@
+.tiptap.ProseMirror {
+  // Horizontal-scroll image gallery block. One row, swipe / scroll left-right
+  // through every image regardless of how many there are. No vertical scroll.
+  .tiptap-image-gallery {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem;
+    margin: 1rem 0;
+
+    // Smooth swipe / scroll snapping so each image lands cleanly.
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+
+    // Subtle frame so the strip is visually distinct from regular images.
+    border: 1px solid var(--tt-divider-color, #e5e7eb);
+    border-radius: var(--tt-radius-xs, 0.25rem);
+    background-color: var(--tt-bg-color, #fafafa);
+
+    scrollbar-width: thin;
+  }
+
+  // Wrapper around each image so the × delete button can sit on top.
+  .tiptap-image-gallery__item-wrapper {
+    position: relative;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+
+    // Show the × button on hover (always visible on touch via the styles below).
+    &:hover .tiptap-image-gallery__remove,
+    &:focus-within .tiptap-image-gallery__remove {
+      opacity: 1;
+    }
+  }
+
+  .tiptap-image-gallery__item {
+    display: block;
+    width: 240px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: var(--tt-radius-xs, 0.25rem);
+    user-select: none;
+  }
+
+  // Floating × button — circle with cross, top-right of each image.
+  .tiptap-image-gallery__remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 9999px;
+    background-color: rgba(15, 23, 42, 0.7);
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 700;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+      opacity 120ms ease-in-out,
+      background-color 120ms ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover,
+    &:focus-visible {
+      background-color: rgba(220, 38, 38, 0.95);
+      outline: none;
+    }
+  }
+
+  // Touch / coarse pointer devices have no hover, so keep the × visible.
+  @media (hover: none) {
+    .tiptap-image-gallery__remove {
+      opacity: 1;
+    }
+  }
+
+  // "+ Add image" tile sits at the end of the strip (editable mode only).
+  // Same dimensions as a thumbnail so the row keeps its rhythm.
+  .tiptap-image-gallery__add {
+    flex: 0 0 auto;
+    width: 240px;
+    height: 180px;
+    border: 2px dashed var(--tt-divider-color, #cbd5e1);
+    border-radius: var(--tt-radius-xs, 0.25rem);
+    background-color: transparent;
+    color: var(--tt-muted-color, #64748b);
+    cursor: pointer;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1rem;
+    scroll-snap-align: start;
+    transition:
+      border-color 120ms ease-in-out,
+      color 120ms ease-in-out,
+      background-color 120ms ease-in-out;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--tt-brand-color-500, #2563eb);
+      color: var(--tt-brand-color-500, #2563eb);
+      background-color: rgba(37, 99, 235, 0.04);
+      outline: none;
+    }
+  }
+
+  .tiptap-image-gallery__add-icon {
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 300;
+  }
+
+  .tiptap-image-gallery__add-label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  // Selection ring when the gallery is selected as a whole.
+  .tiptap-image-gallery--selected {
+    outline: 0.125rem solid var(--tt-brand-color-500);
+    outline-offset: 2px;
+  }
+}

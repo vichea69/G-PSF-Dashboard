@@ -3,7 +3,11 @@ import 'server-only';
 
 import { api } from '@/lib/api';
 import { getAuthHeaders } from '@/server/action/userAuth/user';
-import type { WorkingGroupInput, WorkingGroupItem } from './working-group-type';
+import type {
+  WorkingGroupInput,
+  WorkingGroupItem,
+  WorkingGroupPostTargets
+} from './working-group-type';
 
 type WorkingGroupListResponse = {
   data?: {
@@ -13,6 +17,10 @@ type WorkingGroupListResponse = {
 
 type WorkingGroupDetailResponse = {
   data?: WorkingGroupItem;
+};
+
+type WorkingGroupPostTargetsResponse = {
+  data?: WorkingGroupPostTargets;
 };
 
 //Get list of working groups
@@ -56,6 +64,21 @@ export async function getWorkingGroupById(
   const headers = await getAuthHeaders();
   const res = await api.get<WorkingGroupDetailResponse>(
     `/working-groups/${id}`,
+    {
+      headers,
+      withCredentials: true
+    }
+  );
+  return res.data?.data ?? null;
+}
+
+//Get post targets (page + post_list sections + allowed categories) for a working group
+export async function getWorkingGroupPostTargets(
+  id: string | number
+): Promise<WorkingGroupPostTargets | null> {
+  const headers = await getAuthHeaders();
+  const res = await api.get<WorkingGroupPostTargetsResponse>(
+    `/working-groups/${id}/post-targets`,
     {
       headers,
       withCredentials: true

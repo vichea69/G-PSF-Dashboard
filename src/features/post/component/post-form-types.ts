@@ -66,6 +66,9 @@ export type PostFormData = {
   categoryId?: number | string;
   sectionId?: number | string;
   pageId?: number | string;
+  // UI-only: lets the publish-settings card auto-fill page/section/category.
+  // Stripped before sending to the backend in post.ts.
+  workingGroupId?: number | string;
   newImages: File[];
   existingImageIds: number[];
   removedImageIds: number[];

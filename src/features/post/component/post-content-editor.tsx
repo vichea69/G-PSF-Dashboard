@@ -34,12 +34,14 @@ import { ImagePlusIcon } from '@/components/tiptap-icons/image-plus-icon';
 
 import { HorizontalRule } from '@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension';
 import { ImageUploadNode } from '@/components/tiptap-node/image-upload-node/image-upload-node-extension';
+import { ImageGallery } from '@/components/tiptap-node/image-gallery-node/image-gallery-node-extension';
 import { YouTubeNode } from '@/components/tiptap-node/youtube-node/youtube-node-extension';
 import '@/components/tiptap-node/blockquote-node/blockquote-node.scss';
 import '@/components/tiptap-node/code-block-node/code-block-node.scss';
 import '@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss';
 import '@/components/tiptap-node/list-node/list-node.scss';
 import '@/components/tiptap-node/image-node/image-node.scss';
+import '@/components/tiptap-node/image-gallery-node/image-gallery-node.scss';
 import '@/components/tiptap-node/youtube-node/youtube-node.scss';
 import '@/components/tiptap-node/heading-node/heading-node.scss';
 import '@/components/tiptap-node/paragraph-node/paragraph-node.scss';
@@ -274,6 +276,8 @@ export function PostContentEditor({
   const isTextOnlyMode = mode === 'text';
   const [isImageSelected, setIsImageSelected] = React.useState(false);
   const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
+  // Separate dialog state so the Gallery button has its own modal flow.
+  const [galleryDialogOpen, setGalleryDialogOpen] = React.useState(false);
   const [hasKhmerText, setHasKhmerText] = React.useState(() =>
     contentHasKhmerCharacters(lastSyncedContent.current)
   );
@@ -315,6 +319,7 @@ export function PostContentEditor({
       ...(!isTextOnlyMode
         ? [
             ResizableImage,
+            ImageGallery,
             YouTubeNode,
             ImageUploadNode.configure({
               accept: 'image/*',
@@ -522,6 +527,25 @@ export function PostContentEditor({
     [editor]
   );
 
+  // Insert an image-gallery node containing one or more images. Used by the
+  // Gallery toolbar button. Only image-typed files are kept — PDFs/docs go
+  // through the existing image flow which already handles them separately.
+  const handleInsertGallery = React.useCallback(
+    (files: MediaFile[]) => {
+      if (!editor || files.length === 0) return;
+      setGalleryDialogOpen(false);
+
+      const images = files
+        .filter((file) => file.type === 'image' && Boolean(file.url))
+        .map((file) => ({ src: file.url, alt: file.name }));
+
+      if (images.length === 0) return;
+
+      editor.chain().focus().insertImageGallery(images).run();
+    },
+    [editor]
+  );
+
   React.useEffect(() => {
     if (!editor) return;
     const nextContent = normalizeContent(value);
@@ -596,6 +620,32 @@ export function PostContentEditor({
                   onClick={() => setImageDialogOpen(true)}
                 >
                   <ImagePlusIcon className='tiptap-button-icon' />
+                </Button>
+                <Button
+                  type='button'
+                  data-style='ghost'
+                  aria-label='Add image gallery'
+                  tooltip='Add image gallery (horizontal scroll)'
+                  onClick={() => setGalleryDialogOpen(true)}
+                >
+                  {/* Two-image icon to signal "multiple images" vs the single image button */}
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='20'
+                    height='20'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    className='tiptap-button-icon'
+                  >
+                    <rect x='3' y='5' width='13' height='13' rx='2' />
+                    <path d='M7 14l3-3 3 3' />
+                    <circle cx='10.5' cy='9.5' r='1' />
+                    <rect x='18' y='3' width='3' height='17' rx='1' />
+                  </svg>
                 </Button>
               </ToolbarGroup>
             </>
@@ -690,6 +740,20 @@ export function PostContentEditor({
         description='Upload a new file or pick from Media Manager.'
         types={['image', 'video', 'pdf', 'document']}
         accept='*/*'
+        multiple
+      />
+
+      {/* Gallery picker — images-only multi-select that inserts as a single
+          imageGallery node (horizontal scroll strip). */}
+      <FileModal
+        isOpen={!isTextOnlyMode && galleryDialogOpen}
+        onClose={() => setGalleryDialogOpen(false)}
+        onSelect={(file) => handleInsertGallery([file])}
+        onSelectMultiple={handleInsertGallery}
+        title='Insert image gallery'
+        description='Pick multiple images to display as a horizontal slider.'
+        types={['image']}
+        accept='image/*'
         multiple
       />
     </div>

@@ -14,7 +14,6 @@ import {
 import { cn } from '@/lib/utils';
 import { useMedia } from '@/features/media/hook/use-media';
 import type { MediaFile, MediaFolder } from '@/features/media/types/media-type';
-import Image from 'next/image';
 import { ArrowLeft, Folder } from 'lucide-react';
 
 interface FileModalProps {
@@ -56,7 +55,10 @@ export const FileModal: React.FC<FileModalProps> = ({
   const { data, isLoading: mediaLoading } = useMedia({
     page,
     pageSize,
-    folderId: activeFolderId
+    folderId: activeFolderId,
+    // Only fetch while the modal is actually open — keeps closed FileModals
+    // (e.g. one per image-gallery block) from each firing a media query.
+    enabled: isOpen
   });
   const folders = useMemo(() => data?.folders ?? [], [data?.folders]);
   const currentFolder = data?.currentFolder ?? null;
@@ -272,13 +274,19 @@ export const FileModal: React.FC<FileModalProps> = ({
                       onClick={() => toggleMediaSelection(file.id)}
                     >
                       {showThumbnail ? (
-                        <div className='bg-muted relative h-[136px] w-full'>
-                          <Image
+                        <div className='bg-muted h-[136px] w-full'>
+                          {/* Native img with lazy + async decode: only visible
+                              thumbnails load on open, and decoding happens off
+                              the main thread so the open animation stays smooth.
+                              (Images are already unoptimized, so next/image added
+                              cost with no benefit here.) */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
                             src={previewUrl}
                             alt={file.name}
-                            fill
-                            className='object-contain p-1'
-                            unoptimized
+                            loading='lazy'
+                            decoding='async'
+                            className='h-full w-full object-contain p-1'
                           />
                         </div>
                       ) : (

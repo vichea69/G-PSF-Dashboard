@@ -386,6 +386,13 @@ export const en = {
       clearDate: 'Clear date',
       clearSelection: 'Clear',
       featured: 'Featured',
+      workingGroup: 'Working Group',
+      workingGroupPlaceholder: 'Attach to a working group (optional)',
+      workingGroupAutoPage:
+        "Page is set automatically from the working group's linked page.",
+      noPostListSection:
+        "This working group's page has no News/Updates section. Add a post_list section in the page builder first.",
+      openPageBuilder: 'Open page builder',
       page: 'Page',
       pagePlaceholder: 'Attach to a page (optional)',
       section: 'Section',

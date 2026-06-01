@@ -11,6 +11,10 @@ type MediaQueryParams = {
   page?: number;
   pageSize?: number;
   folderId?: string | null;
+  // Gate fetching so closed media modals don't query. Multiple FileModals are
+  // mounted at once (editor image + gallery buttons + every gallery block), so
+  // without this they would all fetch on page load.
+  enabled?: boolean;
 };
 
 function getClientAuthHeaders(): Record<string, string> {
@@ -161,10 +165,18 @@ export function useMedia(params: MediaQueryParams = {}) {
     typeof params.folderId === 'string' && params.folderId.trim()
       ? params.folderId.trim()
       : null;
+  const enabled = params.enabled ?? true;
 
   return useQuery<MediaListResult>({
     queryKey: ['media', folderId ?? 'root', page, pageSize],
-    queryFn: () => fetchMedia({ page, pageSize, folderId })
+    queryFn: () => fetchMedia({ page, pageSize, folderId }),
+    enabled,
+    // Cache across modal open/close so re-opening is instant instead of a full
+    // refetch + 20-thumbnail re-render every time.
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    // Keep the previous page on screen while the next page loads (no blank flash).
+    placeholderData: (previous) => previous
   });
 }
 

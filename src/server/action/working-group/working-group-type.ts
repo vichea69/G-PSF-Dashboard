@@ -35,3 +35,21 @@ export type WorkingGroupItem = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type WorkingGroupPostTargetsSection = {
+  id: number;
+  title: LocalizedText;
+  blockType: string;
+  allowedCategoryIds: number[];
+};
+
+export type WorkingGroupPostTargets = {
+  workingGroupId: number;
+  pageId: number | null;
+  page: {
+    id: number;
+    title: LocalizedText | string | null;
+    slug: string;
+  } | null;
+  sections: WorkingGroupPostTargetsSection[];
+};
