@@ -63,11 +63,35 @@ export function ImageGalleryNodeView({
           selected ? 'tiptap-image-gallery--selected' : ''
         }`}
         data-type='image-gallery'
+        // Inline styles are belt-and-braces — the global `img { max-width: 100% }`
+        // rule and the editor's `prose` plugin can override the SCSS flex layout
+        // depending on load order. Inline `style` wins over any external CSS
+        // (except !important), so the strip stays horizontal no matter what.
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          gap: '0.5rem',
+          padding: '0.5rem',
+          margin: '1rem 0',
+          scrollSnapType: 'x mandatory',
+          scrollBehavior: 'smooth',
+          border: '1px solid var(--tt-divider-color, #e5e7eb)',
+          borderRadius: 'var(--tt-radius-xs, 0.25rem)',
+          backgroundColor: 'var(--tt-bg-color, #fafafa)'
+        }}
       >
         {images.map((image, index) => (
           <div
             key={`${index}-${image.src}`}
             className='tiptap-image-gallery__item-wrapper'
+            style={{
+              position: 'relative',
+              flex: '0 0 auto',
+              scrollSnapAlign: 'start'
+            }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -76,6 +100,15 @@ export function ImageGalleryNodeView({
               className='tiptap-image-gallery__item'
               loading='lazy'
               draggable={false}
+              style={{
+                display: 'block',
+                width: '240px',
+                height: '180px',
+                maxWidth: '240px',
+                objectFit: 'cover',
+                borderRadius: 'var(--tt-radius-xs, 0.25rem)',
+                margin: 0
+              }}
             />
             {isEditable ? (
               <button
@@ -98,6 +131,12 @@ export function ImageGalleryNodeView({
             onClick={() => setAddDialogOpen(true)}
             aria-label='Add more images to gallery'
             contentEditable={false}
+            style={{
+              flex: '0 0 auto',
+              width: '240px',
+              height: '180px',
+              scrollSnapAlign: 'start'
+            }}
           >
             <span className='tiptap-image-gallery__add-icon' aria-hidden>
               +

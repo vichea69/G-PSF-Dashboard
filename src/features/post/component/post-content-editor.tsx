@@ -615,37 +615,11 @@ export function PostContentEditor({
                 <Button
                   type='button'
                   data-style='ghost'
-                  aria-label='Add image'
-                  tooltip='Add image'
-                  onClick={() => setImageDialogOpen(true)}
-                >
-                  <ImagePlusIcon className='tiptap-button-icon' />
-                </Button>
-                <Button
-                  type='button'
-                  data-style='ghost'
                   aria-label='Add image gallery'
                   tooltip='Add image gallery (horizontal scroll)'
                   onClick={() => setGalleryDialogOpen(true)}
                 >
-                  {/* Two-image icon to signal "multiple images" vs the single image button */}
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    width='20'
-                    height='20'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    strokeWidth='2'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    className='tiptap-button-icon'
-                  >
-                    <rect x='3' y='5' width='13' height='13' rx='2' />
-                    <path d='M7 14l3-3 3 3' />
-                    <circle cx='10.5' cy='9.5' r='1' />
-                    <rect x='18' y='3' width='3' height='17' rx='1' />
-                  </svg>
+                  <ImagePlusIcon className='tiptap-button-icon' />
                 </Button>
               </ToolbarGroup>
             </>

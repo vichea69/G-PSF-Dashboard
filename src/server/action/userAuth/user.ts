@@ -8,7 +8,10 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { LoginInput, LoginResult, ResetPassword } from './types';
 
-const DEFAULT_ACCESS_TOKEN_MAX_AGE = 60 * 15; // 15 minutes
+// Defaults mirror the backend: 8h normal session, 7d when "Remember me" is on.
+// These are used only when the backend response doesn't include accessTokenExpiresIn.
+const DEFAULT_ACCESS_TOKEN_MAX_AGE = 60 * 60 * 8; // 8 hours
+const REMEMBER_ME_ACCESS_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 const DEFAULT_REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -74,14 +77,22 @@ async function deleteCookie(name: string) {
 export async function loginAction(input: LoginInput) {
   // Prefer sending only the required fields
   const { email, password, rememberMe } = input;
+  const rememberMeFlag = rememberMe === true;
 
   let payload: any;
   try {
-    const res = await api.post('/auth/login', { user: { email, password } });
+    // Forward rememberMe so the backend issues an 8h (no) or 7d (yes) token.
+    const res = await api.post('/auth/login', {
+      user: { email, password, rememberMe: rememberMeFlag }
+    });
     payload = res.data;
   } catch (err: any) {
     // Fallback to flat payload if nested failed
-    const res = await api.post('/auth/login', { email, password });
+    const res = await api.post('/auth/login', {
+      email,
+      password,
+      rememberMe: rememberMeFlag
+    });
     payload = res.data;
   }
   const user = payload?.user ?? payload?.data?.user;
@@ -106,6 +117,8 @@ export async function loginAction(input: LoginInput) {
     payload?.data?.refreshToken,
     payload?.data?.refresh_token
   );
+  // If the backend tells us the token TTL, use it; otherwise default to 8h
+  // (no remember-me) or 7d (remember-me). Keeps cookie + token expiry in sync.
   const accessTokenMaxAge = toCookieMaxAge(
     meta?.accessTokenExpiresIn ??
       meta?.access_token_expires_in ??
@@ -113,7 +126,9 @@ export async function loginAction(input: LoginInput) {
       tokens?.access_token_expires_in ??
       payload?.accessTokenExpiresIn ??
       payload?.access_token_expires_in,
-    DEFAULT_ACCESS_TOKEN_MAX_AGE
+    rememberMeFlag
+      ? REMEMBER_ME_ACCESS_TOKEN_MAX_AGE
+      : DEFAULT_ACCESS_TOKEN_MAX_AGE
   );
   const refreshTokenMaxAge = toCookieMaxAge(
     meta?.refreshTokenExpiresIn ??
@@ -131,19 +146,15 @@ export async function loginAction(input: LoginInput) {
     );
   }
 
-  // Prefer backend-set cookies (httpOnly). If tokens returned, set a readable cookie for middleware.
+  // Always set the access cookie with an explicit maxAge so it expires in step
+  // with the token. Without remember-me: 8h. With remember-me: 7d.
   if (accessToken) {
-    if (rememberMe) {
-      await setCookie('access_token', accessToken, {
-        maxAge: accessTokenMaxAge
-      });
-    } else {
-      // Session cookie: expires when browser closes
-      await setCookie('access_token', accessToken, { session: true });
-    }
+    await setCookie('access_token', accessToken, {
+      maxAge: accessTokenMaxAge
+    });
   }
 
-  if (rememberMe && refreshToken) {
+  if (rememberMeFlag && refreshToken) {
     await setCookie('refresh_token', refreshToken, {
       maxAge: refreshTokenMaxAge
     });

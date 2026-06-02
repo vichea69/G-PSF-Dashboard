@@ -240,7 +240,8 @@ export function WgTemplateForm({
     <Accordion
       type='single'
       collapsible
-      defaultValue='hero-banner'
+      // No defaultValue — every section starts collapsed, matching the rest of
+      // the form's accordions (Mandate & Scope, Representative, etc.).
       className='space-y-4'
     >
       <WgTemplateSection

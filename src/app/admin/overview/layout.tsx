@@ -1,10 +1,11 @@
 import PageContainer from '@/components/layout/page-container';
 import { Badge } from '@/components/ui/badge';
-import React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import React, { Suspense } from 'react';
 import { getAnalyticsOverview } from '@/server/action/analytics/analytics';
 import { formatLongDateLabel } from '@/features/overview/lib/analytics-format';
 
-export default async function OverViewLayout({
+export default function OverViewLayout({
   top_page,
   pie_stats,
   bar_stats,
@@ -15,27 +16,17 @@ export default async function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
-  const analytics = await getAnalyticsOverview();
-  const firstTimelinePoint = analytics.timeline[0];
-  const lastTimelinePoint = analytics.timeline[analytics.timeline.length - 1];
-  const rangeLabel =
-    firstTimelinePoint && lastTimelinePoint
-      ? `${formatLongDateLabel(firstTimelinePoint.label)} - ${formatLongDateLabel(
-          lastTimelinePoint.label
-        )}`
-      : 'Waiting for more analytics history';
-
+  // Layout no longer awaits analytics. The date-range badge — the only thing
+  // here that depends on the analytics call — is wrapped in Suspense so the
+  // rest of the page (and the parallel slots, which have their own loading.tsx)
+  // can render immediately. Big win on post-login navigation: previously the
+  // user clicked "Login" and waited for `await getAnalyticsOverview()` to
+  // resolve before *any* of /admin/overview painted.
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col gap-6'>
         <div className='flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'>
           <div className='flex flex-col gap-3'>
-            <div className='flex flex-wrap items-center gap-2'>
-              {/* <Badge variant='secondary' appearance='light'>
-                Google Analytics
-              </Badge> */}
-              {/* <Badge variant='outline'>Server rendered</Badge> */}
-            </div>
             <div className='flex flex-col gap-1'>
               <h1 className='text-3xl font-semibold tracking-tight'>
                 Traffic Overview
@@ -43,10 +34,9 @@ export default async function OverViewLayout({
             </div>
           </div>
           <div className='flex flex-col items-start gap-2 lg:items-end'>
-            <Badge variant='outline'>{rangeLabel}</Badge>
-            {/* <p className='text-muted-foreground text-sm'>
-              Source: overview, top pages, countries, and browsers endpoints
-            </p> */}
+            <Suspense fallback={<Skeleton className='h-6 w-56 rounded-full' />}>
+              <RangeLabel />
+            </Suspense>
           </div>
         </div>
         <div className='grid grid-cols-1 gap-4 xl:grid-cols-12'>
@@ -58,4 +48,24 @@ export default async function OverViewLayout({
       </div>
     </PageContainer>
   );
+}
+
+// Async sub-component — runs in parallel with the slots and streams in when
+// ready. If the analytics call fails, we render an empty Badge instead of
+// throwing, so a flaky GA upstream can't take down the whole overview page.
+async function RangeLabel() {
+  try {
+    const analytics = await getAnalyticsOverview();
+    const firstPoint = analytics.timeline[0];
+    const lastPoint = analytics.timeline[analytics.timeline.length - 1];
+    const label =
+      firstPoint && lastPoint
+        ? `${formatLongDateLabel(firstPoint.label)} - ${formatLongDateLabel(
+            lastPoint.label
+          )}`
+        : 'Waiting for more analytics history';
+    return <Badge variant='outline'>{label}</Badge>;
+  } catch {
+    return <Badge variant='outline'>Analytics unavailable</Badge>;
+  }
 }
