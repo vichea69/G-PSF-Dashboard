@@ -237,12 +237,11 @@ export function PostPublishSettingsCard({
     workingGroupId !== null &&
     String(workingGroupId).trim() !== '';
 
-  // When a working group is selected, narrow Section options to its post_list sections only.
-  const visibleSections = useMemo(() => {
-    if (!hasWorkingGroup || !allowedSectionIds) return sections;
-    const allowed = new Set(allowedSectionIds.map((id) => String(id)));
-    return sections.filter((section) => allowed.has(String(section.id)));
-  }, [sections, hasWorkingGroup, allowedSectionIds]);
+  // Show every section on the WG's page — not just post_list — so template
+  // posts (wg_template, working_group_co_chairs, hero_banner, etc.) can also
+  // be attached. allowedSectionIds is still computed for category narrowing,
+  // but it no longer hides non-news sections from the dropdown.
+  const visibleSections = sections;
 
   // When a working group is selected AND its chosen section has category constraints,
   // narrow the Category dropdown to those allowed ids. An empty list means "no restriction".
